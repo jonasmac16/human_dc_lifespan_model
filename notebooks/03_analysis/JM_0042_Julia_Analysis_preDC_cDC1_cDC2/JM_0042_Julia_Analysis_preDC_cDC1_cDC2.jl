@@ -149,10 +149,10 @@ begin
 	df_par = @pipe vcat(vcat(dfs_par_pooled...),
 	vcat(dfs_par_nonpooled...), 
 	vcat(dfs_par_pooled_extended...)) |>
-	transform(_,[:δ_preDCbm, :λ_preDC, :Δ_cDC1bm, :Δ_cDC2bm] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_preDC_bm,
+	transform(_,[:δ_ASDCbm, :λ_ASDC, :Δ_cDC1bm, :Δ_cDC2bm] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_ASDC_bm,
 	[:δ_cDC1bm, :λ_cDC1] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_cDC1_bm,
 	[:δ_cDC2bm, :λ_cDC2] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_cDC2_bm,
-	[:δ_preDCb, :Δ_cDC1b, :Δ_cDC2b] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_preDC_b,
+	[:δ_ASDCb, :Δ_cDC1b, :Δ_cDC2b] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_ASDC_b,
 	[:δ_cDC1b] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_cDC1_b,
 	[:δ_cDC2b] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_cDC2_b) |>
 	insertcols!(_, :prior=>"lognormal")
@@ -193,10 +193,10 @@ begin
 	# df_par_uninformative = @pipe vcat(vcat(dfs_par_pooled...),
 	# vcat(dfs_par_nonpooled...), 
 	# vcat(dfs_par_pooled_extended...)) |>
-	# transform(_,[:δ_preDCbm, :λ_preDC, :Δ_cDC1bm, :Δ_cDC2bm] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_preDC_bm,
+	# transform(_,[:δ_ASDCbm, :λ_ASDC, :Δ_cDC1bm, :Δ_cDC2bm] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_ASDC_bm,
 	# [:δ_cDC1bm, :λ_cDC1] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_cDC1_bm,
 	# [:δ_cDC2bm, :λ_cDC2] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_cDC2_bm,
-	# [:δ_preDCb, :Δ_cDC1b, :Δ_cDC2b] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_preDC_b,
+	# [:δ_ASDCb, :Δ_cDC1b, :Δ_cDC2b] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_ASDC_b,
 	# [:δ_cDC1b] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_cDC1_b,
 	# [:δ_cDC2b] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_cDC2_b) |>
 	# insertcols!(_, :prior=>"uniform")
@@ -302,7 +302,7 @@ begin
 	cell_ratios = DataFrame(load(datadir("exp_pro", "cell_ratios.csv")))
 	labelling_data = DataFrame(load(datadir("exp_pro", "labelling_data.csv")))
 
-    data_in = prepare_data_turing(labelling_data, cell_ratios, label_ps, tau_stop; population = ["preDC", "cDC1", "cDC2"], individual = donor_ids, label_p_names = [:fr,:delta, :frac], ratio_approach=ratio_approach, ratio_summary = ratio_summary, mean_data = true)
+    data_in = prepare_data_turing(labelling_data, cell_ratios, label_ps, tau_stop; population = ["ASDC", "cDC1", "cDC2"], individual = donor_ids, label_p_names = [:fr,:delta, :frac], ratio_approach=ratio_approach, ratio_summary = ratio_summary, mean_data = true)
 	groups_id  = @pipe data_in.df |> select(_, [:population_idx, :individual_idx] => ((x,y) -> tryparse.(Int, string.(x) .* string.(y)))) |> Array(_) |> reshape(_,:)
 	unique_group_ids = unique(groups_id)
 	groups_idx = [findall(x-> x == j, groups_id) for j in unique_group_ids]
@@ -329,7 +329,7 @@ begin
 
 
 	donor_ids = ["C66", "C67", "C68", "C53", "C55"]
-    data_in = prepare_data_turing(labelling_data, cell_ratios, label_ps, tau_stop; population = ["preDC", "cDC1", "cDC2"], individual = donor_ids, label_p_names = [:fr,:delta, :frac], ratio_approach=ratio_approach, ratio_summary = ratio_summary, mean_data = true)
+    data_in = prepare_data_turing(labelling_data, cell_ratios, label_ps, tau_stop; population = ["ASDC", "cDC1", "cDC2"], individual = donor_ids, label_p_names = [:fr,:delta, :frac], ratio_approach=ratio_approach, ratio_summary = ratio_summary, mean_data = true)
 	groups_id  = @pipe data_in.df |> select(_, [:population_idx, :individual_idx] => ((x,y) -> tryparse.(Int, string.(x) .* string.(y)))) |> Array(_) |> reshape(_,:)
 	unique_group_ids = unique(groups_id)
 	groups_idx = [findall(x-> x == j, groups_id) for j in unique_group_ids]
@@ -421,10 +421,10 @@ begin
 	# subset(_, :model_type => ((x) -> x .∈ Ref(["nonpooled", "pooled"]))) |>
 	# begin
 	# 	plot(
-	# 		groupedboxplot(_.model_id, _.p_preDCbm, group=_.donor, outliers=false),
+	# 		groupedboxplot(_.model_id, _.p_ASDCbm, group=_.donor, outliers=false),
 	# 		groupedboxplot(_.model_id, _.p_cDC1bm, group=_.donor, outliers=false),
 	# 		groupedboxplot(_.model_id, _.p_cDC2bm, group=_.donor, outliers=false),
-	# 		title=["p preDC" "p cDC1" "p cDC2"],
+	# 		title=["p ASDC" "p cDC1" "p cDC2"],
 	# 		legend=:outertopright,
 	# 		layout=(3,1),
 	# 		size=(300,900),
@@ -442,13 +442,13 @@ begin
 	# subset(_, :model_type => ((x) -> x .∈ Ref(["nonpooled", "pooled"]))) |>
 	# begin
 	# 	plot(
-	# 		groupedboxplot(_.model_id, _.dwell_preDC_bm, group=_.donor, outliers=false),
+	# 		groupedboxplot(_.model_id, _.dwell_ASDC_bm, group=_.donor, outliers=false),
 	# 		groupedboxplot(_.model_id, _.dwell_cDC1_bm, group=_.donor, outliers=false),
 	# 		groupedboxplot(_.model_id, _.dwell_cDC2_bm, group=_.donor, outliers=false),
-	# 		groupedboxplot(_.model_id, _.dwell_preDC_b, group=_.donor, outliers=false),
+	# 		groupedboxplot(_.model_id, _.dwell_ASDC_b, group=_.donor, outliers=false),
 	# 		groupedboxplot(_.model_id, _.dwell_cDC1_b, group=_.donor, outliers=false),
 	# 		groupedboxplot(_.model_id, _.dwell_cDC2_b, group=_.donor, outliers=false),
-	# 		title=["dwell_preDC_bm" "dwell_cDC1_bm" "dwell_cDC2_bm" "dwell_preDC_b" "dwell_cDC1_b" "dwell_cDC2_b"],
+	# 		title=["dwell_ASDC_bm" "dwell_cDC1_bm" "dwell_cDC2_bm" "dwell_ASDC_b" "dwell_cDC1_b" "dwell_cDC2_b"],
 	# 		legend=:outertopright,
 	# 		layout=(3,2),
 	# 		size=(600,900),
@@ -464,10 +464,10 @@ begin
 	# subset(_, :model_type => ((x) -> x .∈ Ref(["nonpooled", "pooled"]))) |>
 	# begin
 	# 	plot(
-	# 		groupedviolin(_.model_id, _.p_preDCbm, group=_.donor .* "_" .* _.prior, outliers=false),
+	# 		groupedviolin(_.model_id, _.p_ASDCbm, group=_.donor .* "_" .* _.prior, outliers=false),
 	# 		groupedviolin(_.model_id, _.p_cDC1bm, group=_.donor .* "_" .* _.prior, outliers=false),
 	# 		groupedviolin(_.model_id, _.p_cDC2bm, group=_.donor .* "_" .* _.prior, outliers=false),
-	# 		title=["p preDC" "p cDC1" "p cDC2"],
+	# 		title=["p ASDC" "p cDC1" "p cDC2"],
 	# 		layout=(3,1),
 	# 		size=(600,900),
 	# 		xaxis=45,
@@ -483,15 +483,15 @@ begin
 	# @pipe df_par |>
 	# subset(_, :model_id => (x -> x .!= "4")) |>
 	# subset(_, :model_type => ((x) -> x .∈ Ref(["pooled"]))) |>
-	# select(_, [:model_id,:model_type,:donor,:p_preDCbm, :p_cDC1bm, :p_cDC2bm]) |>
+	# select(_, [:model_id,:model_type,:donor,:p_ASDCbm, :p_cDC1bm, :p_cDC2bm]) |>
 	# groupby(_, [:model_id, :model_type, :donor]) |>
-	# combine(_, [:p_preDCbm, :p_cDC1bm, :p_cDC2bm] .=> (x -> [[mean(x), tuple([abs.(MCMCChains._hpd(x; alpha=0.2).-mean(x))...]...)]]) .=> [:p_preDCbm, :p_cDC1bm, :p_cDC2bm]) |>
+	# combine(_, [:p_ASDCbm, :p_cDC1bm, :p_cDC2bm] .=> (x -> [[mean(x), tuple([abs.(MCMCChains._hpd(x; alpha=0.2).-mean(x))...]...)]]) .=> [:p_ASDCbm, :p_cDC1bm, :p_cDC2bm]) |>
 	# begin
 	# 	plot(
-	# 		scatter(map(x -> x[1], _.p_preDCbm), _.model_id .* "_" .* _.model_type,xerror = map(x -> x[2], _.p_preDCbm), group=_.donor, lab="mean"),
+	# 		scatter(map(x -> x[1], _.p_ASDCbm), _.model_id .* "_" .* _.model_type,xerror = map(x -> x[2], _.p_ASDCbm), group=_.donor, lab="mean"),
 	# 		scatter(map(x -> x[1], _.p_cDC1bm), _.model_id .* "_" .* _.model_type, xerror = map(x -> x[2], _.p_cDC1bm), group=_.donor, lab="mean"),
 	# 		scatter(map(x -> x[1],_.p_cDC2bm), _.model_id .* "_" .* _.model_type, xerror = map(x -> x[2],_.p_cDC2bm), group=_.donor, lab="mean"),
-	# 		title=["p preDC" "p cDC1" "p cDC2"],
+	# 		title=["p ASDC" "p cDC1" "p cDC2"],
 	# 		legend=:outertopright,
 	# 		layout=(3,1),
 	# 		size=(300,900),
@@ -506,15 +506,15 @@ begin
 	# subset(_, :model_id => (x -> x .!= "4")) |>
 	# subset(_, :model_type => ((x) -> x .∈ Ref(["pooled"]))) |>
 	# subset(_, :prior => (x -> x .== "uniform")) |>
-	# select(_, [:model_id,:model_type,:donor,:p_preDCbm, :p_cDC1bm, :p_cDC2bm]) |>
+	# select(_, [:model_id,:model_type,:donor,:p_ASDCbm, :p_cDC1bm, :p_cDC2bm]) |>
 	# groupby(_, [:model_id, :model_type, :donor]) |>
-	# combine(_, [:p_preDCbm, :p_cDC1bm, :p_cDC2bm] .=> (x -> [[mean(x), tuple([abs.(MCMCChains._hpd(x; alpha=0.2).-mean(x))...]...)]]) .=> [:p_preDCbm, :p_cDC1bm, :p_cDC2bm]) |>
+	# combine(_, [:p_ASDCbm, :p_cDC1bm, :p_cDC2bm] .=> (x -> [[mean(x), tuple([abs.(MCMCChains._hpd(x; alpha=0.2).-mean(x))...]...)]]) .=> [:p_ASDCbm, :p_cDC1bm, :p_cDC2bm]) |>
 	# begin
 	# 	plot(
-	# 		scatter(map(x -> x[1], _.p_preDCbm), _.model_id .* "_" .* _.model_type,xerror = map(x -> x[2], _.p_preDCbm), group=_.donor, lab="mean"),
+	# 		scatter(map(x -> x[1], _.p_ASDCbm), _.model_id .* "_" .* _.model_type,xerror = map(x -> x[2], _.p_ASDCbm), group=_.donor, lab="mean"),
 	# 		scatter(map(x -> x[1], _.p_cDC1bm), _.model_id .* "_" .* _.model_type, xerror = map(x -> x[2], _.p_cDC1bm), group=_.donor, lab="mean"),
 	# 		scatter(map(x -> x[1],_.p_cDC2bm), _.model_id .* "_" .* _.model_type, xerror = map(x -> x[2],_.p_cDC2bm), group=_.donor, lab="mean"),
-	# 		title=["p preDC" "p cDC1" "p cDC2"],
+	# 		title=["p ASDC" "p cDC1" "p cDC2"],
 	# 		legend=:outertopright,
 	# 		layout=(3,1),
 	# 		size=(300,900),
@@ -528,15 +528,15 @@ begin
 	# @pipe df_par |>
 	# subset(_, :model_id => (x -> x .!= "4")) |>
 	# subset(_, :model_type => ((x) -> x .∈ Ref(["nonpooled"]))) |>
-	# select(_, [:model_id,:model_type,:donor,:p_preDCbm, :p_cDC1bm, :p_cDC2bm]) |>
+	# select(_, [:model_id,:model_type,:donor,:p_ASDCbm, :p_cDC1bm, :p_cDC2bm]) |>
 	# groupby(_, [:model_id, :model_type, :donor]) |>
-	# combine(_, [:p_preDCbm, :p_cDC1bm, :p_cDC2bm] .=> (x -> [[mean(x), tuple([abs.(MCMCChains._hpd(x; alpha=0.2).-mean(x))...]...)]]) .=> [:p_preDCbm, :p_cDC1bm, :p_cDC2bm]) |>
+	# combine(_, [:p_ASDCbm, :p_cDC1bm, :p_cDC2bm] .=> (x -> [[mean(x), tuple([abs.(MCMCChains._hpd(x; alpha=0.2).-mean(x))...]...)]]) .=> [:p_ASDCbm, :p_cDC1bm, :p_cDC2bm]) |>
 	# begin
 	# 	plot(
-	# 		scatter(map(x -> x[1], _.p_preDCbm), _.model_id .* "_" .* _.model_type .* "_" .* _.donor,xerror= map(x -> x[2], _.p_preDCbm), lab="mean"),
+	# 		scatter(map(x -> x[1], _.p_ASDCbm), _.model_id .* "_" .* _.model_type .* "_" .* _.donor,xerror= map(x -> x[2], _.p_ASDCbm), lab="mean"),
 	# 		scatter(map(x -> x[1], _.p_cDC1bm), _.model_id .* "_" .* _.model_type .* "_" .* _.donor, xerror = map(x -> x[2], _.p_cDC1bm), lab="mean"),
 	# 		scatter(map(x -> x[1],_.p_cDC2bm), _.model_id .* "_" .* _.model_type .* "_" .* _.donor, xerror = map(x -> x[2],_.p_cDC2bm), lab="mean"),
-	# 		title=["p preDC" "p cDC1" "p cDC2"],
+	# 		title=["p ASDC" "p cDC1" "p cDC2"],
 	# 		legend=:outertopright,
 	# 		layout=(3,1),
 	# 		size=(300,900),
@@ -551,18 +551,18 @@ begin
 	# @pipe df_par |>
 	# subset(_, :model_id => (x -> x .!= "4")) |>
 	# subset(_, :model_type => ((x) -> x .∈ Ref(["pooled"]))) |>
-	# select(_, [:model_id,:model_type,:donor,:dwell_preDC_bm,:dwell_cDC1_bm,:dwell_cDC2_bm,:dwell_preDC_b,:dwell_cDC1_b,:dwell_cDC2_b]) |>
+	# select(_, [:model_id,:model_type,:donor,:dwell_ASDC_bm,:dwell_cDC1_bm,:dwell_cDC2_bm,:dwell_ASDC_b,:dwell_cDC1_b,:dwell_cDC2_b]) |>
 	# groupby(_, [:model_id, :model_type, :donor]) |>
-	# combine(_, [:dwell_preDC_bm,:dwell_cDC1_bm,:dwell_cDC2_bm,:dwell_preDC_b,:dwell_cDC1_b,:dwell_cDC2_b] .=> (x -> [[mean(x), tuple([abs.(MCMCChains._hpd(x; alpha=0.2).-mean(x))...]...)]]) .=> [:dwell_preDC_bm,:dwell_cDC1_bm,:dwell_cDC2_bm,:dwell_preDC_b,:dwell_cDC1_b,:dwell_cDC2_b]) |>
+	# combine(_, [:dwell_ASDC_bm,:dwell_cDC1_bm,:dwell_cDC2_bm,:dwell_ASDC_b,:dwell_cDC1_b,:dwell_cDC2_b] .=> (x -> [[mean(x), tuple([abs.(MCMCChains._hpd(x; alpha=0.2).-mean(x))...]...)]]) .=> [:dwell_ASDC_bm,:dwell_cDC1_bm,:dwell_cDC2_bm,:dwell_ASDC_b,:dwell_cDC1_b,:dwell_cDC2_b]) |>
 	# begin
 	# 	plot(
-	# 		scatter(map(x -> x[1], _.dwell_preDC_bm), _.model_id .* "_" .* _.model_type,xerror= map(x -> x[2], _.dwell_preDC_bm), group=_.donor, lab="mean"),
+	# 		scatter(map(x -> x[1], _.dwell_ASDC_bm), _.model_id .* "_" .* _.model_type,xerror= map(x -> x[2], _.dwell_ASDC_bm), group=_.donor, lab="mean"),
 	# 		scatter(map(x -> x[1], _.dwell_cDC1_bm), _.model_id .* "_" .* _.model_type,xerror= map(x -> x[2], _.dwell_cDC1_bm), group=_.donor, lab="mean"),
 	# 		scatter(map(x -> x[1], _.dwell_cDC2_bm), _.model_id .* "_" .* _.model_type,xerror= map(x -> x[2], _.dwell_cDC2_bm), group=_.donor, lab="mean"),
-	# 		scatter(map(x -> x[1], _.dwell_preDC_b), _.model_id .* "_" .* _.model_type,xerror= map(x -> x[2], _.dwell_preDC_b), group=_.donor, lab="mean"),
+	# 		scatter(map(x -> x[1], _.dwell_ASDC_b), _.model_id .* "_" .* _.model_type,xerror= map(x -> x[2], _.dwell_ASDC_b), group=_.donor, lab="mean"),
 	# 		scatter(map(x -> x[1], _.dwell_cDC1_b), _.model_id .* "_" .* _.model_type, xerror = map(x -> x[2], _.dwell_cDC1_b), group=_.donor, lab="mean"),
 	# 		scatter(map(x -> x[1],_.dwell_cDC2_b), _.model_id .* "_" .* _.model_type, xerror = map(x -> x[2],_.dwell_cDC2_b), group=_.donor, lab="mean"),
-	# 		title=["dwell_preDC_bm" "dwell_cDC1_bm" "dwell_cDC2_bm" "dwell_preDC_b" "dwell_cDC1_b" "dwell_cDC2_b"],
+	# 		title=["dwell_ASDC_bm" "dwell_cDC1_bm" "dwell_cDC2_bm" "dwell_ASDC_b" "dwell_cDC1_b" "dwell_cDC2_b"],
 	# 		legend=:outertopright,
 	# 		layout=(3,2),
 	# 		size=(600,900),
@@ -582,18 +582,18 @@ begin
 	# @pipe df_par |>
 	# subset(_, :model_id => (x -> x .!= "4")) |>
 	# subset(_, :model_type => ((x) -> x .∈ Ref(["nonpooled"]))) |>
-	# select(_, [:model_id,:model_type,:donor,:dwell_preDC_bm,:dwell_cDC1_bm,:dwell_cDC2_bm,:dwell_preDC_b,:dwell_cDC1_b,:dwell_cDC2_b]) |>
+	# select(_, [:model_id,:model_type,:donor,:dwell_ASDC_bm,:dwell_cDC1_bm,:dwell_cDC2_bm,:dwell_ASDC_b,:dwell_cDC1_b,:dwell_cDC2_b]) |>
 	# groupby(_, [:model_id, :model_type, :donor]) |>
-	# combine(_, [:dwell_preDC_bm,:dwell_cDC1_bm,:dwell_cDC2_bm,:dwell_preDC_b,:dwell_cDC1_b,:dwell_cDC2_b] .=> (x -> [[mean(x), tuple([abs.(MCMCChains._hpd(x; alpha=0.2).-mean(x))...]...)]]) .=> [:dwell_preDC_bm,:dwell_cDC1_bm,:dwell_cDC2_bm,:dwell_preDC_b,:dwell_cDC1_b,:dwell_cDC2_b]) |>
+	# combine(_, [:dwell_ASDC_bm,:dwell_cDC1_bm,:dwell_cDC2_bm,:dwell_ASDC_b,:dwell_cDC1_b,:dwell_cDC2_b] .=> (x -> [[mean(x), tuple([abs.(MCMCChains._hpd(x; alpha=0.2).-mean(x))...]...)]]) .=> [:dwell_ASDC_bm,:dwell_cDC1_bm,:dwell_cDC2_bm,:dwell_ASDC_b,:dwell_cDC1_b,:dwell_cDC2_b]) |>
 	# begin
 	# 	plot(
-	# 		scatter(map(x -> x[1], _.dwell_preDC_bm), _.model_id .* "_" .* _.model_type .* "_" .* _.donor,xerror= map(x -> x[2], _.dwell_preDC_bm), lab="mean"),
+	# 		scatter(map(x -> x[1], _.dwell_ASDC_bm), _.model_id .* "_" .* _.model_type .* "_" .* _.donor,xerror= map(x -> x[2], _.dwell_ASDC_bm), lab="mean"),
 	# 		scatter(map(x -> x[1], _.dwell_cDC1_bm), _.model_id .* "_" .* _.model_type .* "_" .* _.donor,xerror= map(x -> x[2], _.dwell_cDC1_bm), lab="mean"),
 	# 		scatter(map(x -> x[1], _.dwell_cDC2_bm), _.model_id .* "_" .* _.model_type .* "_" .* _.donor,xerror= map(x -> x[2], _.dwell_cDC2_bm), lab="mean"),
-	# 		scatter(map(x -> x[1], _.dwell_preDC_b), _.model_id .* "_" .* _.model_type .* "_" .* _.donor,xerror= map(x -> x[2], _.dwell_preDC_b), lab="mean"),
+	# 		scatter(map(x -> x[1], _.dwell_ASDC_b), _.model_id .* "_" .* _.model_type .* "_" .* _.donor,xerror= map(x -> x[2], _.dwell_ASDC_b), lab="mean"),
 	# 		scatter(map(x -> x[1], _.dwell_cDC1_b), _.model_id .* "_" .* _.model_type .* "_" .* _.donor, xerror = map(x -> x[2], _.dwell_cDC1_b), lab="mean"),
 	# 		scatter(map(x -> x[1],_.dwell_cDC2_b), _.model_id .* "_" .* _.model_type .* "_" .* _.donor, xerror = map(x -> x[2],_.dwell_cDC2_b), lab="mean"),
-	# 		title=["dwell_preDC_bm" "dwell_cDC1_bm" "dwell_cDC2_bm" "dwell_preDC_b" "dwell_cDC1_b" "dwell_cDC2_b"],
+	# 		title=["dwell_ASDC_bm" "dwell_cDC1_bm" "dwell_cDC2_bm" "dwell_ASDC_b" "dwell_cDC1_b" "dwell_cDC2_b"],
 	# 		legend=:outertopright,
 	# 		layout=(3,2),
 	# 		size=(600,900),
@@ -615,10 +615,10 @@ begin
 	# @pipe df_par |>
 	# subset(_, :model_id => (x -> x .!= "4")) |>
 	# subset(_, :model_type => ((x) -> x .∈ Ref(["pooled"]))) |>
-	# select(_, [:model_id,:model_type,:donor,:p_preDCbm, :p_cDC1bm, :p_cDC2bm]) |>
+	# select(_, [:model_id,:model_type,:donor,:p_ASDCbm, :p_cDC1bm, :p_cDC2bm]) |>
 	# groupby(_, [:model_id, :model_type, :donor]) |>
-	# combine(_, [:p_preDCbm, :p_cDC1bm, :p_cDC2bm] .=> (x -> [[mean(x), [MCMCChains._hpd(x; alpha=0.2)...]...]]) .=> [:p_preDCbm, :p_cDC1bm, :p_cDC2bm]) |>
-	# DataFrames.stack(_, [:p_preDCbm, :p_cDC1bm, :p_cDC2bm]) |>
+	# combine(_, [:p_ASDCbm, :p_cDC1bm, :p_cDC2bm] .=> (x -> [[mean(x), [MCMCChains._hpd(x; alpha=0.2)...]...]]) .=> [:p_ASDCbm, :p_cDC1bm, :p_cDC2bm]) |>
+	# DataFrames.stack(_, [:p_ASDCbm, :p_cDC1bm, :p_cDC2bm]) |>
 	# transform(_, :value => ByRow(x -> (mean=x[1], ci_80_l = x[2], ci_80_u=x[3])) => AsTable)|>
 	# select(_, Not(:value)) |> 
 	# sort(_, :model_id) |>

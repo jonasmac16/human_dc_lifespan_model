@@ -151,8 +151,8 @@ begin
 	ax_labelling = [Axis(f_labelling[fldmod1(j,3)...], title=first(_[j].individual),xlabel="time (days)",ylabel="label enrichment", aspect=1) for j in 1:length(_)]
 
 	celltype_colors = cgrad(:roma, 6, categorical=true)
-	celltype_color_dict = Dict("preDC" => celltype_colors[1],"cDC1" => celltype_colors[2], "cDC2" => celltype_colors[3], "pDC" =>celltype_colors[4], "DC2" =>celltype_colors[5], "DC3" =>celltype_colors[6])
-	celltype_group_dict = Dict("preDC" => 1,"cDC1" => 2, "cDC2" => 3, "pDC" =>4, "DC2" => 5, "DC3" => 6)
+	celltype_color_dict = Dict("ASDC" => celltype_colors[1],"cDC1" => celltype_colors[2], "cDC2" => celltype_colors[3], "pDC" =>celltype_colors[4], "DC2" =>celltype_colors[5], "DC3" =>celltype_colors[6])
+	celltype_group_dict = Dict("ASDC" => 1,"cDC1" => 2, "cDC2" => 3, "pDC" =>4, "DC2" => 5, "DC3" => 6)
 	
 	for j in 1:length(_)
 		CairoMakie.scatter!(ax_labelling[j],
@@ -162,7 +162,7 @@ begin
 			group=map(x -> celltype_group_dict[x], _[j].population)) 
 	end
 	
-	f_labelling[1:2,4] = Legend(f_labelling,[MarkerElement(color = j, marker=:circle) for j in celltype_colors], ["preDC", "cDC1", "cDC2", "pDC", "DC2", "DC3"])
+	f_labelling[1:2,4] = Legend(f_labelling,[MarkerElement(color = j, marker=:circle) for j in celltype_colors], ["ASDC", "cDC1", "cDC2", "pDC", "DC2", "DC3"])
 
 	hideydecorations!.(ax_labelling[[(2:3:length(_))..., (3:3:length(_))...]],ticks=false,ticklabels=false)
 	hidexdecorations!.(ax_labelling[1:6],ticks=false,ticklabels=false)

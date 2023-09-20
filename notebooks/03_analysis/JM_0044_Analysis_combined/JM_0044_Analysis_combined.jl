@@ -219,7 +219,7 @@ begin
 	end
 	rename!(df, :timestamp => :time)
 	transform!(df, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
-	transform!(df, :population=> x -> categorical(x, levels=["preDC","cDC1", "cDC2"], compress=true), renamecols=false)
+	transform!(df, :population=> x -> categorical(x, levels=["ASDC","cDC1", "cDC2"], compress=true), renamecols=false)
 	subset!(df, :model => x -> x .∈ Ref([1,2,4,5]))
 	transform!(df, :model => (x -> replace(x, 4=> 3, 5 => 4)), renamecols=false)
 end
@@ -235,7 +235,7 @@ begin
 	end
 	rename!(df_nonpooled, :timestamp => :time)
 	transform!(df_nonpooled, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
-	transform!(df_nonpooled, :population=> x -> categorical(x, levels=["preDC","cDC1", "cDC2"], compress=true), renamecols=false)
+	transform!(df_nonpooled, :population=> x -> categorical(x, levels=["ASDC","cDC1", "cDC2"], compress=true), renamecols=false)
 	subset!(df_nonpooled, :model => x -> x .∈ Ref([1,2,4,5]))
 	transform!(df_nonpooled, :model => (x -> replace(x, 4=> 3, 5 => 4)), renamecols=false)
 end
@@ -321,7 +321,7 @@ end
 
 # ╔═╡ 56ab98d5-fba1-4644-9b9b-2a1197756dbc
 begin
-	function plot_predictions(df; donors_plotted = ["C66", "C67", "C68", "C53", "C55"], populations=["preDC", "cDC1", "cDC2"], dataset="extended", location="b", prior="lognormal", colors=:roma, data_color = [colorant"#755494",colorant"#de3458" ,colorant"#4e65a3"], models=[1,2,4,5], max_models=4, alpha=0.5, f_kwargs = (;), f = CairoMakie.Figure(;f_kwargs...), ax = hcat([[Axis(f[k,j], aspect=1.5) for k in 1:length(donors_plotted)] for j in 1:length(populations)]...))
+	function plot_predictions(df; donors_plotted = ["C66", "C67", "C68", "C53", "C55"], populations=["ASDC", "cDC1", "cDC2"], dataset="extended", location="b", prior="lognormal", colors=:roma, data_color = [colorant"#755494",colorant"#de3458" ,colorant"#4e65a3"], models=[1,2,4,5], max_models=4, alpha=0.5, f_kwargs = (;), f = CairoMakie.Figure(;f_kwargs...), ax = hcat([[Axis(f[k,j], aspect=1.5) for k in 1:length(donors_plotted)] for j in 1:length(populations)]...))
 		
 		
 		color_scheme=cgrad(colors, max_models, categorical=true, alpha=alpha)[models]
@@ -377,22 +377,22 @@ begin
 end
 
 # ╔═╡ 76a3b35a-8c27-43d3-8148-d8af071bb338
-ppc_1 = plot_predictions(df;donors_plotted = ["C66", "C67", "C68"], populations=["preDC", "cDC1", "cDC2"], dataset="original", models=[1,2,3,4], location ="b", f_kwargs =(;resolution = (800, 600)))[1]
+ppc_1 = plot_predictions(df;donors_plotted = ["C66", "C67", "C68"], populations=["ASDC", "cDC1", "cDC2"], dataset="original", models=[1,2,3,4], location ="b", f_kwargs =(;resolution = (800, 600)))[1]
 
 # ╔═╡ 7810af6d-d557-42b3-b585-7e80f57747d6
-save(joinpath(res_folder, "ppc_preDC_original_pooled.pdf"), ppc_1)
+save(joinpath(res_folder, "ppc_ASDC_original_pooled.pdf"), ppc_1)
 
 # ╔═╡ 5eef1a9e-10fe-4e89-82d5-8df105e7f911
-ppc_2 = plot_predictions(df_nonpooled;donors_plotted = ["C66", "C67", "C68"], populations=["preDC", "cDC1", "cDC2"], dataset="original", models=[1,2,3,4], location ="b", f_kwargs =(;resolution = (800, 600)))[1]
+ppc_2 = plot_predictions(df_nonpooled;donors_plotted = ["C66", "C67", "C68"], populations=["ASDC", "cDC1", "cDC2"], dataset="original", models=[1,2,3,4], location ="b", f_kwargs =(;resolution = (800, 600)))[1]
 
 # ╔═╡ 95ffc485-1cde-4429-9e4e-9d0062ac57ee
-save(joinpath(res_folder, "ppc_preDC_original_nonpooled.pdf"), ppc_2)
+save(joinpath(res_folder, "ppc_ASDC_original_nonpooled.pdf"), ppc_2)
 
 # ╔═╡ fc1777c6-ad4e-4a43-938a-729c5cb84f18
-ppc_3 = plot_predictions(df;donors_plotted = ["C66", "C67", "C68", "C53", "C55"], populations=["preDC", "cDC1", "cDC2"], dataset="extended", models=[1,2,3,4], location ="b", f_kwargs =(;resolution = (800, 900)))[1]
+ppc_3 = plot_predictions(df;donors_plotted = ["C66", "C67", "C68", "C53", "C55"], populations=["ASDC", "cDC1", "cDC2"], dataset="extended", models=[1,2,3,4], location ="b", f_kwargs =(;resolution = (800, 900)))[1]
 
 # ╔═╡ b7583245-ed9c-49e4-b8a7-890f814ac3c5
-save(joinpath(res_folder, "ppc_preDC_extended_pooled.pdf"), ppc_3)
+save(joinpath(res_folder, "ppc_ASDC_extended_pooled.pdf"), ppc_3)
 
 # ╔═╡ 27bec401-50f4-4fed-9a5a-b5acd59902ab
 ppc_4 = plot_predictions(df_pdc_pooled;donors_plotted = ["C66", "C67", "C68", "C52"], populations=["pDC"], dataset="original", models=[1,2], location ="b", data_color = [colorant"#c8ab37ff"], max_models=2, f_kwargs =(;resolution = (800, 1000)))[1]
@@ -410,7 +410,7 @@ save(joinpath(res_folder, "ppc_pDC_extended_nonpooled.pdf"), ppc_5)
 md"## Bone marrow prediction"
 
 # ╔═╡ 11f5be0c-2663-4ca0-adf7-a70203161ed7
-f = plot_predictions(df;donors_plotted = ["C68"], populations=["preDC"], dataset="extended", models=[1,2], location ="bm",  max_models=4, alpha = 0.5, f_kwargs =(;resolution = (800, 400)))
+f = plot_predictions(df;donors_plotted = ["C68"], populations=["ASDC"], dataset="extended", models=[1,2], location ="bm",  max_models=4, alpha = 0.5, f_kwargs =(;resolution = (800, 400)))
 
 # ╔═╡ a5ca7261-198f-4f06-ad1a-fd2870fa0bd4
 CairoMakie.xlims!(f[2][1], 0, 4)
@@ -419,7 +419,7 @@ CairoMakie.xlims!(f[2][1], 0, 4)
 f[1]
 
 # ╔═╡ f78b66f8-9601-4ba0-a23a-74fa7e444f43
-save(joinpath(res_folder, "ppc_preDC_extended_pooled_bone_marrow.pdf"), f[1])
+save(joinpath(res_folder, "ppc_ASDC_extended_pooled_bone_marrow.pdf"), f[1])
 
 # ╔═╡ b8715ebf-5290-4307-a554-7fd0ab3086c6
 md"## Model comparison"
@@ -431,25 +431,25 @@ transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) 
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
 
 # ╔═╡ 15716182-57e9-4f7a-b685-af321fdb8d8a
-df_loo_subset_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_preDC_cDC1_cDC2","results","PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.csv"), DataFrame) |>
+df_loo_subset_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_ASDC_cDC1_cDC2","results","PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
 
 # ╔═╡ 25c18a6a-3e7b-4eab-b38c-b6f6156d65e1
-df_loo_sample_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_preDC_cDC1_cDC2","results","PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.csv"), DataFrame) |>
+df_loo_sample_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_ASDC_cDC1_cDC2","results","PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
 
 # ╔═╡ 56d68aaa-bf87-460d-beb5-420fd7f60fc3
-df_loo_subset = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_preDC_cDC1_cDC2","results","PSIS_LOO_CV_Model_comparison_leave_out_subset.csv"), DataFrame) |>
+df_loo_subset = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_ASDC_cDC1_cDC2","results","PSIS_LOO_CV_Model_comparison_leave_out_subset.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
 
 # ╔═╡ ab3577de-6f11-4e9f-b171-f38948b0de09
-df_loo_sample = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_preDC_cDC1_cDC2","results","PSIS_LOO_CV_Model_comparison_leave_out_sample.csv"), DataFrame) |>
+df_loo_sample = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_ASDC_cDC1_cDC2","results","PSIS_LOO_CV_Model_comparison_leave_out_sample.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
@@ -557,9 +557,9 @@ noto_sans = assetpath("fonts", "NotoSans-Regular.ttf")
 
 # ╔═╡ 7882d78f-269a-4c44-844c-2dedf18a5199
 begin
-	fig_predc_comparison = CairoMakie.Figure(; resolution = (800,400), font = noto_sans)
-	gp_sample = fig_predc_comparison[1,1]
-	gp_subset = fig_predc_comparison[1,2]
+	fig_ASDC_comparison = CairoMakie.Figure(; resolution = (800,400), font = noto_sans)
+	gp_sample = fig_ASDC_comparison[1,1]
+	gp_subset = fig_ASDC_comparison[1,2]
 	ax_sample = Axis(gp_sample, title="Sample", aspect=1)
 	ax_subset = Axis(gp_subset, title="Subset", aspect=1)
 	
@@ -576,18 +576,18 @@ begin
         halign = :left)
 	end
 	
-	fig_predc_comparison
+	fig_ASDC_comparison
 	
 end
 
 # ╔═╡ 643a399d-b2bd-4bed-afa5-6e6ca4e13dd1
-save(joinpath(res_folder, "model_comparison_preDC_original_pooled.pdf"), fig_predc_comparison)
+save(joinpath(res_folder, "model_comparison_ASDC_original_pooled.pdf"), fig_ASDC_comparison)
 
 # ╔═╡ 04313499-f599-4f73-9c30-a0b214448090
 begin
-	fig_predc_comparison_extended = CairoMakie.Figure(; resolution = (800,400),font = noto_sans)
-	gp_sample_extended = fig_predc_comparison_extended[1,1]
-	gp_subset_extended = fig_predc_comparison_extended[1,2]
+	fig_ASDC_comparison_extended = CairoMakie.Figure(; resolution = (800,400),font = noto_sans)
+	gp_sample_extended = fig_ASDC_comparison_extended[1,1]
+	gp_subset_extended = fig_ASDC_comparison_extended[1,2]
 	ax_sample_extended = Axis(gp_sample_extended, title="Sample", aspect=1)
 	ax_subset_extended = Axis(gp_subset_extended, title="Subset", aspect=1)
 	
@@ -604,12 +604,12 @@ begin
         halign = :left)
 	end
 	
-	fig_predc_comparison_extended
+	fig_ASDC_comparison_extended
 	
 end
 
 # ╔═╡ 930678b5-882d-4042-b087-09bb7561c8f8
-save(joinpath(res_folder, "model_comparison_preDC_extended_pooled.pdf"), fig_predc_comparison_extended)
+save(joinpath(res_folder, "model_comparison_ASDC_extended_pooled.pdf"), fig_ASDC_comparison_extended)
 
 # ╔═╡ 3cf77b33-2d19-490f-a863-ca376d8c329e
 md" ## Marginal posteriors"
@@ -621,7 +621,7 @@ md"Load posterior dataframes"
 begin
 	df_full_posterior_extended = DataFrame()
 	for j in [1,2,3,4]
-		global df_full_posterior_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis", "JM_0042_Julia_Analysis_preDC_cDC1_cDC2","results","Parameter_full_posterior_model_$(j).csv"), DataFrame) |> vcat(df_full_posterior_extended,_, cols=:union)
+		global df_full_posterior_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis", "JM_0042_Julia_Analysis_ASDC_cDC1_cDC2","results","Parameter_full_posterior_model_$(j).csv"), DataFrame) |> vcat(df_full_posterior_extended,_, cols=:union)
 	end
 	df_full_posterior_extended = @pipe df_full_posterior_extended |> rename(_, :model_id => :model)
 end
@@ -711,7 +711,7 @@ plot_posterior_distribution(df_full_posterior_extended, Symbol.(filter(x -> star
 end
 
 # ╔═╡ 27dc81d6-e986-4a5b-9b56-81e47def9080
-save(joinpath(res_folder, "marginal_posteriors_dwell_preDC_extended_pooled.pdf"), fig_dwell)
+save(joinpath(res_folder, "marginal_posteriors_dwell_ASDC_extended_pooled.pdf"), fig_dwell)
 
 # ╔═╡ 122a5792-8c9a-4200-b79b-8d32e2f3c3c7
 begin
@@ -725,7 +725,7 @@ plot_posterior_distribution(df_full_posterior_extended, Symbol.(filter(x -> star
 end
 
 # ╔═╡ 36b84ebc-1b5a-496b-8cd2-2e94d7201efd
-save(joinpath(res_folder, "marginal_posteriors_proliferation_preDC_extended_pooled.pdf"), fig_prol)
+save(joinpath(res_folder, "marginal_posteriors_proliferation_ASDC_extended_pooled.pdf"), fig_prol)
 
 # ╔═╡ 62674e98-3a3a-48b7-860a-012cac18de8a
 begin
@@ -739,7 +739,7 @@ plot_posterior_distribution(df_full_posterior_extended, Symbol.(filter(x -> star
 end
 
 # ╔═╡ 8b71b338-63ad-458b-bc90-6abe3247fddd
-save(joinpath(res_folder, "marginal_posteriors_transition_preDC_extended_pooled.pdf"), fig_trans)
+save(joinpath(res_folder, "marginal_posteriors_transition_ASDC_extended_pooled.pdf"), fig_trans)
 
 # ╔═╡ ce20213f-6a62-494d-82f7-1bfdb83b5191
 begin
@@ -755,7 +755,7 @@ plot_posterior_distribution(df_full_posterior_extended, Symbol.(filter(x -> star
 end
 
 # ╔═╡ 22eb6659-5ea9-4e83-b3fc-6e331e64ddff
-save(joinpath(res_folder, "marginal_posteriors_death_preDC_extended_pooled.pdf"), fig_death)
+save(joinpath(res_folder, "marginal_posteriors_death_ASDC_extended_pooled.pdf"), fig_death)
 
 # ╔═╡ 20411334-d5ae-49f2-abf7-8c03ea4b8d4c
 begin
@@ -779,7 +779,7 @@ begin
 end
 
 # ╔═╡ e74ea368-ffe4-44cf-92e6-12cd5132986a
-save(joinpath(res_folder, "marginal_posteriors_differentiation_preDC_extended_pooled.pdf"), fig_diff)
+save(joinpath(res_folder, "marginal_posteriors_differentiation_ASDC_extended_pooled.pdf"), fig_diff)
 
 # ╔═╡ daf359d5-cd50-48a1-9b79-7e8fe0c3c94d
 md"Posterior plots of proliferation rate and dwell time in more detail"

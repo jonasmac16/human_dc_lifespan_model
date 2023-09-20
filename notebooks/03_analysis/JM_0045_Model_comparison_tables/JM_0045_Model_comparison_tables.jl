@@ -9,8 +9,8 @@ using CategoricalArrays
 
 
 pdc_loo_df = CSV.read(projectdir("notebooks","03_analysis", "JM_0043_Julia_Analysis_pDC", "results", "PSIS_LOO_CV_Model_comparison_pDC_leave_out_sample.csv"), DataFrame)
-predc_loo_df = CSV.read(projectdir("notebooks","03_analysis", "JM_0042_Julia_Analysis_preDC_cDC1_cDC2", "results", "PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.csv"), DataFrame)
-predc_loo_subsets_df = CSV.read(projectdir("notebooks","03_analysis", "JM_0042_Julia_Analysis_preDC_cDC1_cDC2", "results", "PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.csv"), DataFrame)
+ASDC_loo_df = CSV.read(projectdir("notebooks","03_analysis", "JM_0042_Julia_Analysis_ASDC_cDC1_cDC2", "results", "PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.csv"), DataFrame)
+ASDC_loo_subsets_df = CSV.read(projectdir("notebooks","03_analysis", "JM_0042_Julia_Analysis_ASDC_cDC1_cDC2", "results", "PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.csv"), DataFrame)
 
 
 function make_loo_df(df)
@@ -23,11 +23,11 @@ function make_loo_df(df)
 end
 
 pdc_loo_df_scaled = make_loo_df(pdc_loo_df)
-predc_loo_df_scaled = make_loo_df(predc_loo_df)
-predc_loo_subsets_df_scaled = make_loo_df(predc_loo_subsets_df)
+ASDC_loo_df_scaled = make_loo_df(ASDC_loo_df)
+ASDC_loo_subsets_df_scaled = make_loo_df(ASDC_loo_subsets_df)
 
 pdc_loo_df_striped = @pipe pdc_loo_df_scaled |> select(_, Not([:d_loo, :dse]))
-predc_loo_df_striped = @pipe predc_loo_df_scaled |> select(_, Not([:d_loo, :dse]))
+ASDC_loo_df_striped = @pipe ASDC_loo_df_scaled |> select(_, Not([:d_loo, :dse]))
 set_aog_theme!()
 
 function df_plot(df)
@@ -53,14 +53,14 @@ function df_plot(df)
 end
 
 df_plot(pdc_loo_df_scaled)
-df_plot(predc_loo_df_scaled)
-df_plot(predc_loo_subsets_df_scaled)
+df_plot(ASDC_loo_df_scaled)
+df_plot(ASDC_loo_subsets_df_scaled)
 
 mkpath(projectdir("notebooks", "03_analysis", basename(@__DIR__), "results"))
 
 CSV.write(projectdir("notebooks", "03_analysis", basename(@__DIR__), "results","pdc_loo_sample.csv"), pdc_loo_df_scaled)
-CSV.write(projectdir("notebooks", "03_analysis", basename(@__DIR__), "results","predc_loo_sample.csv"), predc_loo_df_scaled)
-CSV.write(projectdir("notebooks", "03_analysis", basename(@__DIR__), "results","predc_loo_subsets.csv"), predc_loo_subsets_df_scaled)
+CSV.write(projectdir("notebooks", "03_analysis", basename(@__DIR__), "results","ASDC_loo_sample.csv"), ASDC_loo_df_scaled)
+CSV.write(projectdir("notebooks", "03_analysis", basename(@__DIR__), "results","ASDC_loo_subsets.csv"), ASDC_loo_subsets_df_scaled)
 
 CSV.write(projectdir("notebooks", "03_analysis", basename(@__DIR__), "results","pdc_loo_sample_paper.csv"), pdc_loo_df_striped)
-CSV.write(projectdir("notebooks", "03_analysis", basename(@__DIR__), "results","predc_loo_sample_paper.csv"), predc_loo_df_striped)
+CSV.write(projectdir("notebooks", "03_analysis", basename(@__DIR__), "results","ASDC_loo_sample_paper.csv"), ASDC_loo_df_striped)

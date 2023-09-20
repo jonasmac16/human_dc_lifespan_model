@@ -346,10 +346,10 @@ begin
 	# @pipe df_par |>
 	# subset(_, :model_id => (x -> x .!= "4")) |>
 	# subset(_, :model_type => ((x) -> x .∈ Ref(["pooled"]))) |>
-	# select(_, [:model_id,:model_type,:donor,:p_preDCbm, :p_cDC1bm, :p_cDC2bm]) |>
+	# select(_, [:model_id,:model_type,:donor,:p_ASDCbm, :p_cDC1bm, :p_cDC2bm]) |>
 	# groupby(_, [:model_id, :model_type, :donor]) |>
-	# combine(_, [:p_preDCbm, :p_cDC1bm, :p_cDC2bm] .=> (x -> [[mean(x), [MCMCChains._hpd(x; alpha=0.2)...]...]]) .=> [:p_preDCbm, :p_cDC1bm, :p_cDC2bm]) |>
-	# DataFrames.stack(_, [:p_preDCbm, :p_cDC1bm, :p_cDC2bm]) |>
+	# combine(_, [:p_ASDCbm, :p_cDC1bm, :p_cDC2bm] .=> (x -> [[mean(x), [MCMCChains._hpd(x; alpha=0.2)...]...]]) .=> [:p_ASDCbm, :p_cDC1bm, :p_cDC2bm]) |>
+	# DataFrames.stack(_, [:p_ASDCbm, :p_cDC1bm, :p_cDC2bm]) |>
 	# transform(_, :value => ByRow(x -> (mean=x[1], ci_80_l = x[2], ci_80_u=x[3])) => AsTable)|>
 	# select(_, Not(:value)) |> 
 	# sort(_, :model_id) |>
