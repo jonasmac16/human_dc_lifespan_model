@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.16.4
+# v0.19.27
 
 using Markdown
 using InteractiveUtils
@@ -47,6 +47,25 @@ md"### Labelling data"
 # ╔═╡ a458f089-c9f9-4cf5-b632-73c7045a4e01
 labelling_data = CSV.read(datadir("exp_raw", "label", "labelling_data.csv"), DataFrame)
 
+# ╔═╡ 231db746-cb28-4a30-9d9a-b4a73856f8a2
+labelling_data_d01 = @pipe CSV.read(datadir("exp_raw", "label", "D01_label.csv"), DataFrame) |> transform(_, :enrichment => (x -> (x ./100)), renamecols=false)
+
+# ╔═╡ 19775b22-6635-491f-8337-b75a756fec06
+labelling_data_d02 = @pipe CSV.read(datadir("exp_raw", "label", "D02_label.csv"), DataFrame) |> transform(_, :enrichment => (x -> (x ./100)), renamecols=false)
+
+# ╔═╡ 65d8184d-6354-46d3-b0cb-659b4c797659
+labelling_data_d04 = @pipe CSV.read(datadir("exp_raw", "label", "D04_label.csv"), DataFrame) |> transform(_, :enrichment => (x -> (x ./100)), renamecols=false)
+
+# ╔═╡ 94e3896b-5eeb-4b69-8584-368b45bce1e4
+labelling_data_combined = @pipe vcat(
+	labelling_data,
+	labelling_data_d01,
+	labelling_data_d02,
+	labelling_data_d04
+) |>
+transform(_, [:individual, :population] .=> (x -> string.(x)), renamecols=false) |>
+subset(_, :population => (x -> x .!= "Blood"))
+
 # ╔═╡ d9fd135e-e6e8-11ea-0460-bb174c42188c
 md"### Glucose enrichment in saliva"
 
@@ -68,6 +87,15 @@ glucose_data_c53 = @pipe CSV.read(datadir("exp_raw","glucose", "C53_glucose.csv"
 # ╔═╡ e13f7819-ca9d-414f-8bae-836b618f1350
 glucose_data_c55 = @pipe CSV.read(datadir("exp_raw","glucose", "C55_glucose.csv"), DataFrame) |> transform(_, :time => (x -> (x ./ 24.0)) => :time, :enrichment => (x ->(x ./ 100)) => :enrichment)
 
+# ╔═╡ e67e1899-1600-4a39-b136-edb1f57bcc18
+glucose_data_d01 = @pipe CSV.read(datadir("exp_raw", "glucose", "D01_glucose.csv"), DataFrame) |> transform(_, :time => (x -> (x ./ 24.0)) => :time, :enrichment => (x ->(x ./ 100)) => :enrichment) |> insertcols!(_, :donor => "D01")
+
+# ╔═╡ 4b06410f-3eb1-4a4f-a031-0da585468918
+glucose_data_d02 = @pipe CSV.read(datadir("exp_raw", "glucose", "D02_glucose.csv"), DataFrame) |> transform(_, :time => (x -> (x ./ 24.0)) => :time, :enrichment => (x ->(x ./ 100)) => :enrichment) |> insertcols!(_, :donor => "D02")
+
+# ╔═╡ 43fa43ce-2547-4268-853c-e3284ac9cbb5
+glucose_data_d04= @pipe CSV.read(datadir("exp_raw", "glucose", "D04_glucose.csv"), DataFrame) |> transform(_, :time => (x -> (x ./ 24.0)) => :time, :enrichment => (x ->(x ./ 100)) => :enrichment) |> insertcols!(_, :donor => "D04")
+
 # ╔═╡ 32997d5a-8742-11eb-1e90-3fefee5473e7
 md"#### Combined glucose dataset"
 
@@ -78,7 +106,10 @@ glucose_data_c67,
 glucose_data_c68,
 glucose_data_c52,
 glucose_data_c53,
-glucose_data_c55) |>
+glucose_data_c55,
+glucose_data_d01,
+glucose_data_d02,
+glucose_data_d04) |>
 rename(_, :donor => :individual)
 
 # ╔═╡ d6468240-e6e3-11ea-0803-d5cb9a2e6625
@@ -98,7 +129,12 @@ begin
 	for j in 1:length(_)
 		CairoMakie.scatter!(ax_glucose[j], _[j].time, _[j].enrichment) 
 	end
+
+	hideydecorations!.(ax_glucose[[(2:3:length(_))..., (3:3:length(_))...]],ticks=false,ticklabels=false)
 	
+	hidexdecorations!.(ax_glucose[1:6],ticks=false,ticklabels=false)
+	
+	linkxaxes!(ax_glucose...)
 	
 	f_glucose
 end
@@ -107,23 +143,31 @@ end
 md"### Cell labelling kinetics in blood"
 
 # ╔═╡ 9a3c029f-9c1e-4503-910b-0ab8013e124c
-@pipe labelling_data |>
+@pipe labelling_data_combined |>
 groupby(_, :individual) |>
 begin
 	f_labelling = Figure()
 	
 	ax_labelling = [Axis(f_labelling[fldmod1(j,3)...], title=first(_[j].individual),xlabel="time (days)",ylabel="label enrichment", aspect=1) for j in 1:length(_)]
+
+	celltype_colors = cgrad(:roma, 6, categorical=true)
+	celltype_color_dict = Dict("preDC" => celltype_colors[1],"cDC1" => celltype_colors[2], "cDC2" => celltype_colors[3], "pDC" =>celltype_colors[4], "DC2" =>celltype_colors[5], "DC3" =>celltype_colors[6])
+	celltype_group_dict = Dict("preDC" => 1,"cDC1" => 2, "cDC2" => 3, "pDC" =>4, "DC2" => 5, "DC3" => 6)
 	
 	for j in 1:length(_)
 		CairoMakie.scatter!(ax_labelling[j],
 			_[j].time,
 			_[j].enrichment,			
-			color=map(x -> Dict("preDC" => cgrad(:roma, 4, categorical=true)[1],"cDC1" => cgrad(:roma, 4, categorical=true)[2], "cDC2" => cgrad(:roma, 4, categorical=true)[3], "pDC" =>cgrad(:roma, 4, categorical=true)[4])[x], _[j].population),
-			group=map(x -> Dict("preDC" => 1,"cDC1" => 2, "cDC2" => 3, "pDC" =>4)[x], _[j].population)) 
+			color=map(x -> celltype_color_dict[x], _[j].population),
+			group=map(x -> celltype_group_dict[x], _[j].population)) 
 	end
 	
-	f_labelling[1:2,4] = Legend(f_labelling,[MarkerElement(color = j, marker=:circle) for j in cgrad(:roma, 4, categorical=true)], ["preDC", "cDC1", "cDC2", "pDC"])
-	
+	f_labelling[1:2,4] = Legend(f_labelling,[MarkerElement(color = j, marker=:circle) for j in celltype_colors], ["preDC", "cDC1", "cDC2", "pDC", "DC2", "DC3"])
+
+	hideydecorations!.(ax_labelling[[(2:3:length(_))..., (3:3:length(_))...]],ticks=false,ticklabels=false)
+	hidexdecorations!.(ax_labelling[1:6],ticks=false,ticklabels=false)
+
+	linkxaxes!(ax_labelling...)
 	
 	f_labelling
 end
@@ -138,7 +182,7 @@ save_data = true ##if true existing data will be overwritten
 begin
 	if save_data == true
 		save(datadir("exp_pro", "glucose_data.csv"), glucose_data)
-		save(datadir("exp_pro", "labelling_data.csv"), labelling_data)
+		save(datadir("exp_pro", "labelling_data.csv"), labelling_data_combined)
 	end
 end
 
@@ -157,6 +201,10 @@ AlgebraOfGraphics.set_aog_theme!()
 # ╟─99aa8ba6-e6e3-11ea-3e42-47d490b85901
 # ╠═4956f8df-b915-4c4b-b48e-852f9a396d02
 # ╠═a458f089-c9f9-4cf5-b632-73c7045a4e01
+# ╠═231db746-cb28-4a30-9d9a-b4a73856f8a2
+# ╠═19775b22-6635-491f-8337-b75a756fec06
+# ╠═65d8184d-6354-46d3-b0cb-659b4c797659
+# ╠═94e3896b-5eeb-4b69-8584-368b45bce1e4
 # ╠═d9fd135e-e6e8-11ea-0460-bb174c42188c
 # ╠═8062c872-e6e8-11ea-0c81-f75f370f4f18
 # ╠═a551326e-e6e8-11ea-16c5-e5d4a6b0dab0
@@ -164,6 +212,9 @@ AlgebraOfGraphics.set_aog_theme!()
 # ╠═707e7ae1-90d6-4451-961b-ce72c33b6e23
 # ╠═9ae0078d-d602-4432-af02-aff11227005d
 # ╠═e13f7819-ca9d-414f-8bae-836b618f1350
+# ╠═e67e1899-1600-4a39-b136-edb1f57bcc18
+# ╠═4b06410f-3eb1-4a4f-a031-0da585468918
+# ╠═43fa43ce-2547-4268-853c-e3284ac9cbb5
 # ╠═32997d5a-8742-11eb-1e90-3fefee5473e7
 # ╠═f1a63b74-e775-11ea-2ec3-5565299a719c
 # ╠═d6468240-e6e3-11ea-0803-d5cb9a2e6625

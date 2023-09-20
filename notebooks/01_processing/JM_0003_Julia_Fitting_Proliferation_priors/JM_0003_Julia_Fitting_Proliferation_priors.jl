@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.16.4
+# v0.19.27
 
 using Markdown
 using InteractiveUtils
@@ -21,13 +21,16 @@ begin
 	using StatsBase
 	using Turing
 	using Distributions
-	using GalacticOptim
+	using Optimization
+	using OptimizationOptimJL
+	using OptimizationBBO
 	using Optim
 	using Pipe
 	using CategoricalArrays
 	using AlgebraOfGraphics
 	using CairoMakie
 	using Pipe
+	using CSV
 end
 
 # ╔═╡ 11944318-873a-11eb-1661-f56a06d1cb4c
@@ -64,31 +67,51 @@ md"First we load each dataset seperately and calculate absolute cell numbers in 
 
 # ╔═╡ c5b59e2a-2b21-11eb-22d2-4b22602a0509
 begin
-	for j in 1:2
-		global df_cell_blood_conc = DataFrame(load(datadir("exp_raw","cells","cell_count_blood.csv")))
-	end
+	df_cell_blood_conc = CSV.read(datadir("exp_raw","cells","cell_count_blood.csv"), DataFrame)
+	
 	df_cell_blood_conc = df_cell_blood_conc .* blood_vol
 	df_cell_blood_conc.donor = ("donor_blood_" .* string.(collect(1:nrow(df_cell_blood_conc))))
 	df_cell_blood_conc.location = repeat(["blood"], nrow(df_cell_blood_conc))
-	rename!(df_cell_blood_conc, :PreDC => :preDC,)
-	df_cell_blood_conc
+	rename!(df_cell_blood_conc, Symbol(" PreDC") => :preDC)
+	names(df_cell_blood_conc)
 end
+
+# ╔═╡ 0c10d4af-e9a6-408b-905e-f1ee266d96c8
+df_cell_blood_conc_updated = @pipe datadir("exp_raw","cells","cell_count_blood_revision_aug23.csv") |>
+CSV.read(_, DataFrame) |>
+(_ .* blood_vol) |>
+insertcols(_, :donor => "donor_blood_" .* string.(collect((nrow(df_cell_blood_conc)+1):(nrow(df_cell_blood_conc)+nrow(_))))) |>
+rename!(_, Symbol("pre-DC") => :preDC, Symbol("CD5+ cDC2") => :DC2, Symbol("CD5- DC3") => :DC3) |>
+insertcols(_, :location => "blood") |>
+vcat(df_cell_blood_conc, _; cols=:union)
 
 # ╔═╡ 4c87cf24-2b20-11eb-08ba-21c2e6bbde46
 begin
-	df_cell_bm_conc =  DataFrame(load(datadir("exp_raw","cells", "cell_count_bone_marrow.csv")))
+	df_cell_bm_conc =  CSV.read(datadir("exp_raw","cells", "cell_count_bone_marrow.csv"), DataFrame)
 	df_cell_bm_conc = df_cell_bm_conc .* bm_vol
 	df_cell_bm_conc.donor = ("donor_bm_" .* string.(collect(1:nrow(df_cell_bm_conc))))
 	df_cell_bm_conc.location = repeat(["bm"], nrow(df_cell_bm_conc))
-	rename!(df_cell_bm_conc, :PreDC => :preDC,)
+	rename!(df_cell_bm_conc, Symbol(" PreDC") => :preDC,)
 	df_cell_bm_conc
 end
+
+# ╔═╡ a93f1bfd-3018-4807-998c-affd45cbcd84
+df_cell_bm_conc_updated = @pipe datadir("exp_raw","cells","cell_count_bone_marrow_revision_aug23.csv") |>
+CSV.read(_, DataFrame) |>
+(_ .* bm_vol) |>
+insertcols(_, :donor => "donor_bm_" .* string.(collect((nrow(df_cell_bm_conc)+1):(nrow(df_cell_bm_conc)+nrow(_))))) |>
+rename!(_, Symbol("pre-DC") => :preDC, Symbol("CD5+ cDC2") => :DC2, Symbol("CD5- DC3") => :DC3) |>
+insertcols(_, :location => "bm") |>
+vcat(df_cell_bm_conc, _; cols=:union)
 
 # ╔═╡ 1274e508-2b23-11eb-3cd7-89668baf2cde
 md"Then, we combine both dataframes:"
 
 # ╔═╡ 25978f50-2b23-11eb-1ff0-67b5a3fdf254
 df_cell_concentration = vcat(df_cell_blood_conc,df_cell_bm_conc)
+
+# ╔═╡ d0353dca-0561-4458-97b7-40f19a00a86e
+df_cell_concentration_updated = vcat(df_cell_blood_conc_updated, df_cell_bm_conc_updated)
 
 # ╔═╡ ba837004-2b21-11eb-33f9-efd996b7f6e8
 md"### Cell cycle status"
@@ -98,22 +121,37 @@ md"Again, we enter the data for each compartment separately and then combine the
 
 # ╔═╡ 8876e062-2b23-11eb-28c0-4bd61158ba67
 begin
-	df_cycle_blood = DataFrame(load(datadir("exp_raw","cycle", "cell_cycle_blood.csv")))
+	df_cycle_blood =CSV.read(datadir("exp_raw","cycle", "cell_cycle_blood.csv"), DataFrame)
 	df_cycle_blood.donor = ("donor_blood_" .* string.(collect(1:nrow(df_cycle_blood))))
 	df_cycle_blood.location = repeat(["blood"], nrow(df_cycle_blood))
 	df_cycle_blood
 end
 
+# ╔═╡ 10b1331e-a12f-4e30-b6c1-4da9d412367e
+df_cycle_blood_updated = @pipe datadir("exp_raw","cycle", "cell_cycle_blood_revision_aug23.csv") |>
+CSV.read(_, DataFrame) |>
+insertcols(_, :location => "blood", :donor => "donor_blood_" .* string.(collect((nrow(df_cycle_blood)+1):(nrow(df_cycle_blood)+nrow(_))))) |>
+vcat(df_cycle_blood, _; cols=:union)
+
 # ╔═╡ 95c990b6-2b23-11eb-2b65-afb1b842767e
 begin
-	df_cycle_bm = DataFrame(load(datadir("exp_raw","cycle","cell_cycle_BM.csv")))
-	df_cycle_bm.donor = ("donor_blood_" .* string.(collect(1:nrow(df_cycle_bm))))
+	df_cycle_bm = CSV.read(datadir("exp_raw","cycle","cell_cycle_BM.csv"), DataFrame)
+	df_cycle_bm.donor = ("donor_bm_" .* string.(collect(1:nrow(df_cycle_bm))))
 	df_cycle_bm.location = repeat(["bm"], nrow(df_cycle_bm))
 	df_cycle_bm
 end
 
+# ╔═╡ d33f35ad-5e43-4e7a-99cd-83a9d2375c38
+df_cycle_bm_updated = @pipe datadir("exp_raw","cycle", "cell_cycle_BM_revision_aug23.csv") |> 
+CSV.read(_, DataFrame) |>
+insertcols(_, :location => "bm", :donor => "donor_bm_" .* string.(collect((nrow(df_cycle_bm)+1):(nrow(df_cycle_bm)+nrow(_))))) |>
+vcat(df_cycle_bm, _; cols=:union)
+
 # ╔═╡ b8de484a-7618-11eb-12bd-6787aa89366b
 df_cell_cycle = vcat(df_cycle_blood, df_cycle_bm)
+
+# ╔═╡ 74a0b803-9978-493e-b320-64581556e91e
+df_cell_cycle_updated = vcat(df_cycle_blood_updated, df_cycle_bm_updated)
 
 # ╔═╡ 2d83685e-7549-11eb-1994-3985c2a123e3
 md"## Transform data into long format"
@@ -127,6 +165,25 @@ begin
 	df_cycle_long = @linq df_cycle_long |> DataFrames.transform(:measurement => ByRow((x) -> match(r"(.*) ((PreDC)|(cDC1)|(cDC2|pDC))", x).captures[1]) => :state, :measurement => ByRow((x) -> match(r"(.*) ((PreDC)|(cDC1)|(cDC2|pDC))", x).captures[2]) => :population) |> DataFrames.select(Not(:measurement)) |> DataFrames.transform(:population => ByRow((x) -> ifelse(x == "PreDC", "preDC", identity(x)))   => :population) |> DataFrames.transform(:state => ByRow((x) -> ifelse(x == "G2,M, S", "G2", identity(x))) => :state)
 end
 
+# ╔═╡ 38507c53-645d-42d4-a7c7-4ba24671c9bc
+df_cycle_long_updated = @pipe df_cell_cycle_updated |> DataFrames.stack(_, variable_name = :measurement) |>
+dropmissing(_, :value) |>
+DataFrames.transform(_, :measurement => (x -> replace.(x , "ASDC" => "ASD")), renamecols=false) |>
+DataFrames.transform(_, :measurement => (x -> replace.(x, "dc3" => "DC3", "DC23" => "DC3", "DC2G1" => "DC2 G1", "DC G2SM" => "DC1 G2SM", "PreDC" => "preDC")), renamecols=false) |>
+DataFrames.transform(_, :measurement => (x -> replace.(x , "ASD" => "ASDC")), renamecols=false) |>
+DataFrames.transform(_, :measurement => (x -> replace.(x, "G2,M, S" => "G2SM", "g2sm" => "G2SM", "Go" => "G0")), renamecols=false) |>
+DataFrames.transform(_, 
+:measurement => ByRow(x -> match(r"(.*)(G1|G0|G2SM)(.*)", x).captures[2]) => :state) |>
+DataFrames.transform(_, 
+:measurement => ByRow(x -> match(r"(.*?)(preDC|cDC1|cDC2|pDC|ASDC|DC1|DC2|DC3)(.*)", x).captures[2]) => :population
+) |>
+DataFrames.transform(_, :state => ByRow((x) -> ifelse(x == "G2SM", "G2", identity(x))), renamecols=false) |>
+DataFrames.transform(_, [:state, :population] .=> (x -> string.(x)), renamecols=false) |>
+DataFrames.transform(_, :population => (x -> replace.(x , "cDC1" => "DC1")), renamecols=false) |>
+DataFrames.transform(_, :population => (x -> replace.(x , "DC1" => "cDC1")), renamecols=false) |>
+DataFrames.transform(_, :population => (x -> replace.(x , "preDC" => "ASDC")), renamecols=false) |>
+select(_, Not(:measurement)) 
+
 # ╔═╡ f18c0722-7753-11eb-0958-81f7dcb07e6a
 md"Cell number data:"
 
@@ -135,6 +192,12 @@ begin
 	df_cell_concentration_long = DataFrames.stack(df_cell_concentration, variable_name=:population)
 		
 end
+
+# ╔═╡ fc0bad6d-d12e-4878-ab34-26c6489a4a48
+df_cell_concentration_long_updated =@pipe df_cell_concentration_updated |>
+DataFrames.stack(_, variable_name = :population) |>
+dropmissing(_, :value) |>
+DataFrames.transform(_, :population => (x -> replace.(x , "preDC" => "ASDC")), renamecols=false)
 
 # ╔═╡ 39e8839c-7549-11eb-0e7e-efd773f2441a
 md"## Analyse and summarise data"
@@ -150,13 +213,16 @@ begin
 	subfig = fig_sg2m[1,1] #[Axis(fig_sg2m[1,j]) for j in 1:3]
 	
 	
-ax_sg2m = @pipe df_cycle_long |>
-	subset(_, :state => (x -> x .== "G2"))  |> transform(_, :population => (x -> categorical(x, levels=["preDC", "cDC1", "cDC2", "pDC"])), renamecols=false) |>
-	transform(_, :location => (x -> replace(x, "blood" => "blood", "bm" => "bone marrow")), renamecols=false) |>
-	transform(_, :location => (x -> categorical(x, levels=["bone marrow", "blood"])), renamecols=false) |>
+	ax_sg2m = @pipe df_cycle_long_updated |>
+	subset(_, :state => (x -> x .== "G2")) |>
+	DataFrames.transform(_, :population => (x -> categorical(x, levels=[unique(x)...])), renamecols=false) |>
+	DataFrames.transform(_, :location => (x -> replace(x, "blood" => "blood", "bm" => "bone marrow")), renamecols=false) |>
+	DataFrames.transform(_, :location => (x -> categorical(x, levels=["bone marrow", "blood"])), renamecols=false) |>
 	data(_) * mapping(:population, :value, layout=:location) *(visual(BoxPlot, outliers=false)*mapping(color=:population) + visual(Scatter, color=:black)) |>
 	draw!(subfig, _; axis=(aspect=1,),  palettes = (color = [colorant"#755494",colorant"#de3458" ,colorant"#4e65a3", colorant"#c8ab37ff"],))
 	ax_sg2m[1].axis.ylabel = "% of subset in SG2M phase"
+	ax_sg2m[1].axis.xticklabelrotation = 45
+	ax_sg2m[2].axis.xticklabelrotation = 45
 	fig_sg2m
 
 end
@@ -168,12 +234,15 @@ begin
 	# ax = Axis(fig_sg2m[1, 1], title="Some plot")
 	subfig_cell_number = fig_cell_number[1,1] #[Axis(fig_sg2m[1,j]) for j in 1:3]
 	
-@pipe df_cell_concentration_long |>
-	transform(_, :population => (x -> categorical(x, levels=["preDC", "cDC1", "cDC2", "pDC"])), renamecols=false) |>
-	transform(_, :location => (x -> replace(x, "blood" => "blood", "bm" => "bone marrow")), renamecols=false) |>
-	transform(_, :location => (x -> categorical(x, levels=["bone marrow", "blood"])), renamecols=false) |>
+    ax_cell_freq = @pipe df_cell_concentration_long_updated |>
+	DataFrames.transform(_, :population => (x -> categorical(x, levels=[unique(_.population)...])), renamecols=false) |>
+	DataFrames.transform(_, :location => (x -> replace(x, "blood" => "blood", "bm" => "bone marrow")), renamecols=false) |>
+	DataFrames.transform(_, :location => (x -> categorical(x, levels=["bone marrow", "blood"])), renamecols=false) |>
 	data(_) * mapping(:population, :value, layout=:location) *(visual(BoxPlot, outliers=false)*mapping(color=:population) + visual(Scatter, color=:black)) |> 
 	draw!(subfig_cell_number,_; axis=(ylabel="# cells in compartment",aspect=1,), palettes = (color = [colorant"#755494",colorant"#de3458" ,colorant"#4e65a3", colorant"#c8ab37ff"],))
+	ax_cell_freq[1].axis.xticklabelrotation = 45
+	ax_cell_freq[2].axis.xticklabelrotation = 45
+	
 	fig_cell_number
 end
 
@@ -184,7 +253,7 @@ md"## Analyse cell number data and calculate cell ratios"
 md"First, we calculate the intra-compartment ratios for each donor individually and then summarise the individual ratios."
 
 # ╔═╡ ec6f9ad2-7691-11eb-1f9a-1f4ea84d92d7
-df_ratios = @linq df_cell_concentration_long |> where(:population .!= "pDC") |> groupby(:donor) |> transform(ratio = first(:value)./:value)
+df_ratios = @linq df_cell_concentration_long_updated |> where(:population .∉ Ref(["pDC", "cDC2"])) |> groupby(:donor) |> transform(:ratio = first(:value)./:value)
 
 # ╔═╡ 0a981ce6-7697-11eb-30d4-318124f079a5
 begin
@@ -195,30 +264,30 @@ end
 begin
 	RpreDCcDC1b_mean = (@linq df_ratios_intra |> where(:population .== "cDC1", :location .== "blood") |> select(:mean) |> Array)[1]
 	RpreDCcDC1bm_mean = (@linq df_ratios_intra |> where(:population .== "cDC1", :location .== "bm") |> select(:mean) |> Array)[1]
-	RpreDCcDC2b_mean = (@linq df_ratios_intra |> where(:population .== "cDC2", :location .== "blood") |> select(:mean) |> Array)[1]
-	RpreDCcDC2bm_mean = (@linq df_ratios_intra |> where(:population .== "cDC2", :location .== "bm") |> select(:mean) |> Array)[1]
+	RpreDCDC2b_mean = (@linq df_ratios_intra |> where(:population .== "DC2", :location .== "blood") |> select(:mean) |> Array)[1]
+	RpreDCDC2bm_mean = (@linq df_ratios_intra |> where(:population .== "DC2", :location .== "bm") |> select(:mean) |> Array)[1]
 	
 	RpreDCcDC1b_median = (@linq df_ratios_intra |> where(:population .== "cDC1", :location .== "blood") |> select(:median) |> Array)[1]
 	RpreDCcDC1bm_median = (@linq df_ratios_intra |> where(:population .== "cDC1", :location .== "bm") |> select(:median) |> Array)[1]
-	RpreDCcDC2b_median = (@linq df_ratios_intra |> where(:population .== "cDC2", :location .== "blood") |> select(:median) |> Array)[1]
-	RpreDCcDC2bm_median = (@linq df_ratios_intra |> where(:population .== "cDC2", :location .== "bm") |> select(:median) |> Array)[1]
+	RpreDCDC2b_median = (@linq df_ratios_intra |> where(:population .== "DC2", :location .== "blood") |> select(:median) |> Array)[1]
+	RpreDCDC2bm_median = (@linq df_ratios_intra |> where(:population .== "DC2", :location .== "bm") |> select(:median) |> Array)[1]
 	
 	RpreDCcDC1b_min = (@linq df_ratios_intra |> where(:population .== "cDC1", :location .== "blood") |> select(:min) |> Array)[1]
 	RpreDCcDC1bm_min = (@linq df_ratios_intra |> where(:population .== "cDC1", :location .== "bm") |> select(:min) |> Array)[1]
-	RpreDCcDC2b_min = (@linq df_ratios_intra |> where(:population .== "cDC2", :location .== "blood") |> select(:min) |> Array)[1]
-	RpreDCcDC2bm_min = (@linq df_ratios_intra |> where(:population .== "cDC2", :location .== "bm") |> select(:min) |> Array)[1]
+	RpreDCDC2b_min = (@linq df_ratios_intra |> where(:population .== "DC2", :location .== "blood") |> select(:min) |> Array)[1]
+	RpreDCDC2bm_min = (@linq df_ratios_intra |> where(:population .== "DC2", :location .== "bm") |> select(:min) |> Array)[1]
 	
 	RpreDCcDC1b_max = (@linq df_ratios_intra |> where(:population .== "cDC1", :location .== "blood") |> select(:max) |> Array)[1]
 	RpreDCcDC1bm_max = (@linq df_ratios_intra |> where(:population .== "cDC1", :location .== "bm") |> select(:max) |> Array)[1]
-	RpreDCcDC2b_max = (@linq df_ratios_intra |> where(:population .== "cDC2", :location .== "blood") |> select(:max) |> Array)[1]
-	RpreDCcDC2bm_max = (@linq df_ratios_intra |> where(:population .== "cDC2", :location .== "bm") |> select(:max) |> Array)[1];
+	RpreDCDC2b_max = (@linq df_ratios_intra |> where(:population .== "DC2", :location .== "blood") |> select(:max) |> Array)[1]
+	RpreDCDC2bm_max = (@linq df_ratios_intra |> where(:population .== "DC2", :location .== "bm") |> select(:max) |> Array)[1];
 end
 
 # ╔═╡ 27af2e26-7b7b-11eb-1eaa-f5cabf39942a
 md"In order to identify the most reasonable population to base our cross-compartment calculation on (following section), we also determine the variability of each population in the both compartments:"
 
 # ╔═╡ 80290752-7b7b-11eb-2a1d-5707c650a0b0
-df_cell_vari = @linq df_cell_concentration_long |> where(:population .∈ Ref(["preDC", "cDC1", "cDC2", "pDC"])) |> groupby([:location, :population]) |> DataFrames.combine(:value =>(x -> [mean(x) median(x) std(x) minimum(x) maximum(x)] )=> [:mean, :median, :sd, :min, :max])
+df_cell_vari = @linq df_cell_concentration_long_updated |> where(:population .∈ Ref(["preDC", "cDC1", "cDC2", "DC2", "DC3", "pDC"])) |> groupby([:location, :population]) |> DataFrames.combine(:value =>(x -> [mean(x) median(x) std(x) minimum(x) maximum(x)] )=> [:mean, :median, :sd, :min, :max])
 
 # ╔═╡ 8007f76e-7753-11eb-2d1e-49006c5fa6f2
 md"### Calculating intercompartment ratios"
@@ -327,39 +396,39 @@ md"Following the outlined equations above we are calculating the intercompartmen
 # ╔═╡ 0436f3ba-769c-11eb-1c45-fd1dc9a8d75d
 begin
 	## Approach 1a
-	df_tmp = @linq df_cell_concentration_long |> where(:population .!= "pDC") |> groupby([:population, :location]) |> DataFrames.combine(:value => (x -> [mean(x) median(x) minimum(x) maximum(x)] )=> [:mean, :median, :min, :max])
+	df_tmp = @linq df_cell_concentration_long_updated |> where(:population .!= "pDC") |> groupby([:population, :location]) |> DataFrames.combine(:value => (x -> [mean(x) median(x) minimum(x) maximum(x)] )=> [:mean, :median, :min, :max])
 	
-	R_preDC_mean = (@linq df_tmp |> where(:population .== "preDC", :location .== "bm") |> select(:mean) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "preDC", :location .== "blood") |> select(:mean) |> Array |> reshape(:))[1]
-	R_preDC_median = (@linq df_tmp |> where(:population .== "preDC", :location .== "bm") |> select(:median) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "preDC", :location .== "blood") |> select(:median) |> Array |> reshape(:))[1]
-	R_preDC_min = (@linq df_tmp |> where(:population .== "preDC", :location .== "bm") |> select(:min) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "preDC", :location .== "blood") |> select(:max) |> Array |> reshape(:))[1]
-	R_preDC_max = (@linq df_tmp |> where(:population .== "preDC", :location .== "bm") |> select(:max) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "preDC", :location .== "blood") |> select(:min) |> Array |> reshape(:))[1]
+	R_preDC_mean = (@linq df_tmp |> where(:population .== "ASDC", :location .== "bm") |> select(:mean) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "ASDC", :location .== "blood") |> select(:mean) |> Array |> reshape(:))[1]
+	R_preDC_median = (@linq df_tmp |> where(:population .== "ASDC", :location .== "bm") |> select(:median) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "ASDC", :location .== "blood") |> select(:median) |> Array |> reshape(:))[1]
+	R_preDC_min = (@linq df_tmp |> where(:population .== "ASDC", :location .== "bm") |> select(:min) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "ASDC", :location .== "blood") |> select(:max) |> Array |> reshape(:))[1]
+	R_preDC_max = (@linq df_tmp |> where(:population .== "ASDC", :location .== "bm") |> select(:max) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "ASDC", :location .== "blood") |> select(:min) |> Array |> reshape(:))[1]
 	
 	RcDC1_mean = R_preDC_mean * (RpreDCcDC1b_mean/RpreDCcDC1bm_mean)
 	RcDC1_median = R_preDC_median * (RpreDCcDC1b_median/RpreDCcDC1bm_median)
 	RcDC1_min = R_preDC_min * (RpreDCcDC1b_min/RpreDCcDC1bm_max)
 	RcDC1_max = R_preDC_max * (RpreDCcDC1b_max/RpreDCcDC1bm_min)
 	
-	RcDC2_mean = R_preDC_mean * (RpreDCcDC2b_mean/RpreDCcDC2bm_mean)
-	RcDC2_median = R_preDC_median * (RpreDCcDC2b_mean/RpreDCcDC2bm_median)
-	RcDC2_min = R_preDC_min * (RpreDCcDC2b_min/RpreDCcDC2bm_max)
-	RcDC2_max = R_preDC_max * (RpreDCcDC2b_max/RpreDCcDC2bm_min)
+	RDC2_mean = R_preDC_mean * (RpreDCDC2b_mean/RpreDCDC2bm_mean)
+	RDC2_median = R_preDC_median * (RpreDCDC2b_mean/RpreDCDC2bm_median)
+	RDC2_min = R_preDC_min * (RpreDCDC2b_min/RpreDCDC2bm_max)
+	RDC2_max = R_preDC_max * (RpreDCDC2b_max/RpreDCDC2bm_min)
 	
 	df_new = DataFrame(RpreDC_cDC1_blood_mean = RpreDCcDC1b_mean,
 RpreDC_cDC1_bm_mean = RpreDCcDC1bm_mean,
-RpreDC_cDC2_blood_mean = RpreDCcDC2b_mean,
-RpreDC_cDC2_bm_mean = RpreDCcDC2bm_mean,
+RpreDC_DC2_blood_mean = RpreDCDC2b_mean,
+RpreDC_DC2_bm_mean = RpreDCDC2bm_mean,
 RpreDC_cDC1_blood_median = RpreDCcDC1b_median,
 RpreDC_cDC1_bm_median = RpreDCcDC1bm_median,
-RpreDC_cDC2_blood_median = RpreDCcDC2b_median,
-RpreDC_cDC2_bm_median = RpreDCcDC2bm_median,
+RpreDC_DC2_blood_median = RpreDCDC2b_median,
+RpreDC_DC2_bm_median = RpreDCDC2bm_median,
 RpreDC_cDC1_blood_min = RpreDCcDC1b_min,
 RpreDC_cDC1_bm_min = RpreDCcDC1bm_min,
-RpreDC_cDC2_blood_min = RpreDCcDC2b_min,
-RpreDC_cDC2_bm_min = RpreDCcDC2bm_min,
+RpreDC_DC2_blood_min = RpreDCDC2b_min,
+RpreDC_DC2_bm_min = RpreDCDC2bm_min,
 RpreDC_cDC1_blood_max = RpreDCcDC1b_max,
 RpreDC_cDC1_bm_max = RpreDCcDC1bm_max,
-RpreDC_cDC2_blood_max = RpreDCcDC2b_max,
-RpreDC_cDC2_bm_max = RpreDCcDC2bm_max,
+RpreDC_DC2_blood_max = RpreDCDC2b_max,
+RpreDC_DC2_bm_max = RpreDCDC2bm_max,
 RpreDC_mean = R_preDC_mean,
 RpreDC_median = R_preDC_median,
 RpreDC_min = R_preDC_min,
@@ -368,10 +437,10 @@ RcDC1_mean = RcDC1_mean,
 RcDC1_median = RcDC1_median,
 RcDC1_min = RcDC1_min,
 RcDC1_max = RcDC1_max,
-RcDC2_mean = RcDC2_mean,
-RcDC2_median = RcDC2_median,
-RcDC2_min = RcDC2_min,
-RcDC2_max = RcDC2_max)
+RDC2_mean = RDC2_mean,
+RDC2_median = RDC2_median,
+RDC2_min = RDC2_min,
+RDC2_max = RDC2_max)
 
 df_all_ratios = @linq DataFrames.stack(df_new) |> DataFrames.transform(:variable => (ByRow(x->match(r"(.*)_([mean|min|max])", x).captures[1])) => :parameter, :variable => (ByRow(x->match(r"(.*)_((mean)|(median)|(min)|(max))", x).captures[2])) => :summary) |> DataFrames.select(Not(:variable))
 end
@@ -389,26 +458,26 @@ begin
 	R_preDC_min_1 = RcDC1_min_1 * (RpreDCcDC1bm_min/RpreDCcDC1b_max)
 	R_preDC_max_1 = RcDC1_max_1 * (RpreDCcDC1bm_max/RpreDCcDC1b_min)
 	
-	RcDC2_mean_1 = R_preDC_mean_1 * (RpreDCcDC2b_mean/RpreDCcDC2bm_mean)
-	RcDC2_median_1 = R_preDC_median_1 * (RpreDCcDC2b_median/RpreDCcDC2bm_median)
-	RcDC2_min_1 = R_preDC_min_1 * (RpreDCcDC2b_min/RpreDCcDC2bm_max)
-	RcDC2_max_1 = R_preDC_max_1 * (RpreDCcDC2b_max/RpreDCcDC2bm_min)
+	RDC2_mean_1 = R_preDC_mean_1 * (RpreDCDC2b_mean/RpreDCDC2bm_mean)
+	RDC2_median_1 = R_preDC_median_1 * (RpreDCDC2b_median/RpreDCDC2bm_median)
+	RDC2_min_1 = R_preDC_min_1 * (RpreDCDC2b_min/RpreDCDC2bm_max)
+	RDC2_max_1 = R_preDC_max_1 * (RpreDCDC2b_max/RpreDCDC2bm_min)
 	df_1 = DataFrame(RpreDC_cDC1_blood_mean = RpreDCcDC1b_mean,
 RpreDC_cDC1_bm_mean = RpreDCcDC1bm_mean,
-RpreDC_cDC2_blood_mean = RpreDCcDC2b_mean,
-RpreDC_cDC2_bm_mean = RpreDCcDC2bm_mean,
+RpreDC_DC2_blood_mean = RpreDCDC2b_mean,
+RpreDC_DC2_bm_mean = RpreDCDC2bm_mean,
 RpreDC_cDC1_blood_median = RpreDCcDC1b_median,
 RpreDC_cDC1_bm_median = RpreDCcDC1bm_median,
-RpreDC_cDC2_blood_median = RpreDCcDC2b_median,
-RpreDC_cDC2_bm_median = RpreDCcDC2bm_median,
+RpreDC_DC2_blood_median = RpreDCDC2b_median,
+RpreDC_DC2_bm_median = RpreDCDC2bm_median,
 RpreDC_cDC1_blood_min = RpreDCcDC1b_min,
 RpreDC_cDC1_bm_min = RpreDCcDC1bm_min,
-RpreDC_cDC2_blood_min = RpreDCcDC2b_min,
-RpreDC_cDC2_bm_min = RpreDCcDC2bm_min,
+RpreDC_DC2_blood_min = RpreDCDC2b_min,
+RpreDC_DC2_bm_min = RpreDCDC2bm_min,
 RpreDC_cDC1_blood_max = RpreDCcDC1b_max,
 RpreDC_cDC1_bm_max = RpreDCcDC1bm_max,
-RpreDC_cDC2_blood_max = RpreDCcDC2b_max,
-RpreDC_cDC2_bm_max = RpreDCcDC2bm_max,
+RpreDC_DC2_blood_max = RpreDCDC2b_max,
+RpreDC_DC2_bm_max = RpreDCDC2bm_max,
 RpreDC_mean = R_preDC_mean_1,
 RpreDC_median = R_preDC_median_1,
 RpreDC_min = R_preDC_min_1,
@@ -417,10 +486,10 @@ RcDC1_mean = RcDC1_mean_1,
 RcDC1_median = RcDC1_median_1,
 RcDC1_min = RcDC1_min_1,
 RcDC1_max = RcDC1_max_1,
-RcDC2_mean = RcDC2_mean_1,
-RcDC2_median = RcDC2_median_1,
-RcDC2_min = RcDC2_min_1,
-RcDC2_max = RcDC2_max_1)
+RDC2_mean = RDC2_mean_1,
+RDC2_median = RDC2_median_1,
+RDC2_min = RDC2_min_1,
+RDC2_max = RDC2_max_1)
 
 	df_all_ratios_1 = @linq DataFrames.stack(df_1) |> DataFrames.transform(:variable => (ByRow(x->match(r"(.*)_([mean|min|max])", x).captures[1])) => :parameter, :variable => (ByRow(x->match(r"(.*)_((mean)|(median)|(min)|(max))", x).captures[2])) => :summary) |> DataFrames.select(Not(:variable))
 end
@@ -428,15 +497,15 @@ end
 # ╔═╡ 5edce4f2-774c-11eb-16f7-ffcfe2e6ff34
 begin
 	## Aproach 1c
-	RcDC2_mean_2 = (@linq df_tmp |> where(:population .== "cDC2", :location .== "bm") |> select(:mean) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "cDC2", :location .== "blood") |> select(:mean) |> Array |> reshape(:))[1]
-	RcDC2_median_2 = (@linq df_tmp |> where(:population .== "cDC2", :location .== "bm") |> select(:median) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "cDC2", :location .== "blood") |> select(:median) |> Array |> reshape(:))[1]
-	RcDC2_min_2 = (@linq df_tmp |> where(:population .== "cDC2", :location .== "bm") |> select(:min) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "cDC2", :location .== "blood") |> select(:max) |> Array |> reshape(:))[1]
-	RcDC2_max_2 = (@linq df_tmp |> where(:population .== "cDC2", :location .== "bm") |> select(:max) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "cDC2", :location .== "blood") |> select(:min) |> Array |> reshape(:))[1]
+	RDC2_mean_2 = (@linq df_tmp |> where(:population .== "DC2", :location .== "bm") |> select(:mean) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "DC2", :location .== "blood") |> select(:mean) |> Array |> reshape(:))[1]
+	RDC2_median_2 = (@linq df_tmp |> where(:population .== "DC2", :location .== "bm") |> select(:median) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "DC2", :location .== "blood") |> select(:median) |> Array |> reshape(:))[1]
+	RDC2_min_2 = (@linq df_tmp |> where(:population .== "DC2", :location .== "bm") |> select(:min) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "DC2", :location .== "blood") |> select(:max) |> Array |> reshape(:))[1]
+	RDC2_max_2 = (@linq df_tmp |> where(:population .== "DC2", :location .== "bm") |> select(:max) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "DC2", :location .== "blood") |> select(:min) |> Array |> reshape(:))[1]
 
-	R_preDC_mean_2 = RcDC2_mean_2 * (RpreDCcDC2bm_mean/RpreDCcDC2b_mean)
-	R_preDC_median_2 = RcDC2_median_2 * (RpreDCcDC2bm_median/RpreDCcDC2b_median)
-	R_preDC_min_2 = RcDC2_min_2 * (RpreDCcDC2bm_min/RpreDCcDC2b_max)
-	R_preDC_max_2 = RcDC2_max_2 * (RpreDCcDC2bm_max/RpreDCcDC2b_min)
+	R_preDC_mean_2 = RDC2_mean_2 * (RpreDCDC2bm_mean/RpreDCDC2b_mean)
+	R_preDC_median_2 = RDC2_median_2 * (RpreDCDC2bm_median/RpreDCDC2b_median)
+	R_preDC_min_2 = RDC2_min_2 * (RpreDCDC2bm_min/RpreDCDC2b_max)
+	R_preDC_max_2 = RDC2_max_2 * (RpreDCDC2bm_max/RpreDCDC2b_min)
 	
 	RcDC1_mean_2 = R_preDC_mean_2 * (RpreDCcDC1b_mean/RpreDCcDC1bm_mean)
 	RcDC1_median_2 = R_preDC_median_2 * (RpreDCcDC1b_median/RpreDCcDC1bm_median)
@@ -445,20 +514,20 @@ begin
 	
 	df_2 = DataFrame(RpreDC_cDC1_blood_mean = RpreDCcDC1b_mean,
 RpreDC_cDC1_bm_mean = RpreDCcDC1bm_mean,
-RpreDC_cDC2_blood_mean = RpreDCcDC2b_mean,
-RpreDC_cDC2_bm_mean = RpreDCcDC2bm_mean,
+RpreDC_DC2_blood_mean = RpreDCDC2b_mean,
+RpreDC_DC2_bm_mean = RpreDCDC2bm_mean,
 RpreDC_cDC1_blood_median = RpreDCcDC1b_median,
 RpreDC_cDC1_bm_median = RpreDCcDC1bm_median,
-RpreDC_cDC2_blood_median = RpreDCcDC2b_median,
-RpreDC_cDC2_bm_median = RpreDCcDC2bm_median,
+RpreDC_DC2_blood_median = RpreDCDC2b_median,
+RpreDC_DC2_bm_median = RpreDCDC2bm_median,
 RpreDC_cDC1_blood_min = RpreDCcDC1b_min,
 RpreDC_cDC1_bm_min = RpreDCcDC1bm_min,
-RpreDC_cDC2_blood_min = RpreDCcDC2b_min,
-RpreDC_cDC2_bm_min = RpreDCcDC2bm_min,
+RpreDC_DC2_blood_min = RpreDCDC2b_min,
+RpreDC_DC2_bm_min = RpreDCDC2bm_min,
 RpreDC_cDC1_blood_max = RpreDCcDC1b_max,
 RpreDC_cDC1_bm_max = RpreDCcDC1bm_max,
-RpreDC_cDC2_blood_max = RpreDCcDC2b_max,
-RpreDC_cDC2_bm_max = RpreDCcDC2bm_max,
+RpreDC_DC2_blood_max = RpreDCDC2b_max,
+RpreDC_DC2_bm_max = RpreDCDC2bm_max,
 RpreDC_mean = R_preDC_mean_2,
 RpreDC_median = R_preDC_median_2,
 RpreDC_min = R_preDC_min_2,
@@ -467,10 +536,10 @@ RcDC1_mean = RcDC1_mean_2,
 RcDC1_median = RcDC1_median_2,
 RcDC1_min = RcDC1_min_2,
 RcDC1_max = RcDC1_max_2,
-RcDC2_mean = RcDC2_mean_2,
-RcDC2_median = RcDC2_median_2,
-RcDC2_min = RcDC2_min_2,
-RcDC2_max = RcDC2_max_2)
+RDC2_mean = RDC2_mean_2,
+RDC2_median = RDC2_median_2,
+RDC2_min = RDC2_min_2,
+RDC2_max = RDC2_max_2)
 
 	df_all_ratios_2 = @linq DataFrames.stack(df_2) |> DataFrames.transform(:variable => (ByRow(x->match(r"(.*)_([mean|min|max])", x).captures[1])) => :parameter, :variable => (ByRow(x->match(r"(.*)_((mean)|(median)|(min)|(max))", x).captures[2])) => :summary) |> DataFrames.select(Not(:variable))
 end
@@ -478,39 +547,39 @@ end
 # ╔═╡ 2c7b6d3a-774c-11eb-354d-85b49dd83eeb
 begin
 	## Approach 2
-	R_preDC_mean_3 = (@linq df_tmp |> where(:population .== "preDC", :location .== "bm") |> select(:mean) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "preDC", :location .== "blood") |> select(:mean) |> Array |> reshape(:))[1]
-	R_preDC_median_3 = (@linq df_tmp |> where(:population .== "preDC", :location .== "bm") |> select(:median) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "preDC", :location .== "blood") |> select(:median) |> Array |> reshape(:))[1]
-	R_preDC_min_3 = (@linq df_tmp |> where(:population .== "preDC", :location .== "bm") |> select(:min) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "preDC", :location .== "blood") |> select(:max) |> Array |> reshape(:))[1]
-	R_preDC_max_3 = (@linq df_tmp |> where(:population .== "preDC", :location .== "bm") |> select(:max) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "preDC", :location .== "blood") |> select(:min) |> Array |> reshape(:))[1]
+	R_preDC_mean_3 = (@linq df_tmp |> where(:population .== "ASDC", :location .== "bm") |> select(:mean) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "ASDC", :location .== "blood") |> select(:mean) |> Array |> reshape(:))[1]
+	R_preDC_median_3 = (@linq df_tmp |> where(:population .== "ASDC", :location .== "bm") |> select(:median) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "ASDC", :location .== "blood") |> select(:median) |> Array |> reshape(:))[1]
+	R_preDC_min_3 = (@linq df_tmp |> where(:population .== "ASDC", :location .== "bm") |> select(:min) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "ASDC", :location .== "blood") |> select(:max) |> Array |> reshape(:))[1]
+	R_preDC_max_3 = (@linq df_tmp |> where(:population .== "ASDC", :location .== "bm") |> select(:max) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "ASDC", :location .== "blood") |> select(:min) |> Array |> reshape(:))[1]
 	
 	RcDC1_mean_3 = (@linq df_tmp |> where(:population .== "cDC1", :location .== "bm") |> select(:mean) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "cDC1", :location .== "blood") |> select(:mean) |> Array |> reshape(:))[1]
 	RcDC1_median_3 = (@linq df_tmp |> where(:population .== "cDC1", :location .== "bm") |> select(:median) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "cDC1", :location .== "blood") |> select(:median) |> Array |> reshape(:))[1]
 	RcDC1_min_3 = (@linq df_tmp |> where(:population .== "cDC1", :location .== "bm") |> select(:min) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "cDC1", :location .== "blood") |> select(:max) |> Array |> reshape(:))[1]
 	RcDC1_max_3 = (@linq df_tmp |> where(:population .== "cDC1", :location .== "bm") |> select(:max) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "cDC1", :location .== "blood") |> select(:min) |> Array |> reshape(:))[1]
 	
-	RcDC2_mean_3 = (@linq df_tmp |> where(:population .== "cDC2", :location .== "bm") |> select(:mean) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "cDC2", :location .== "blood") |> select(:mean) |> Array |> reshape(:))[1]
-	RcDC2_median_3 = (@linq df_tmp |> where(:population .== "cDC2", :location .== "bm") |> select(:median) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "cDC2", :location .== "blood") |> select(:median) |> Array |> reshape(:))[1]
+	RDC2_mean_3 = (@linq df_tmp |> where(:population .== "DC2", :location .== "bm") |> select(:mean) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "DC2", :location .== "blood") |> select(:mean) |> Array |> reshape(:))[1]
+	RDC2_median_3 = (@linq df_tmp |> where(:population .== "DC2", :location .== "bm") |> select(:median) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "DC2", :location .== "blood") |> select(:median) |> Array |> reshape(:))[1]
 	
-	RcDC2_min_3 = (@linq df_tmp |> where(:population .== "cDC2", :location .== "bm") |> select(:min) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "cDC2", :location .== "blood") |> select(:max) |> Array |> reshape(:))[1]
+	RDC2_min_3 = (@linq df_tmp |> where(:population .== "DC2", :location .== "bm") |> select(:min) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "DC2", :location .== "blood") |> select(:max) |> Array |> reshape(:))[1]
 	
-	 RcDC2_max_3 = (@linq df_tmp |> where(:population .== "cDC2", :location .== "bm") |> select(:max) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "cDC2", :location .== "blood") |> select(:min) |> Array |> reshape(:))[1]
+	 RDC2_max_3 = (@linq df_tmp |> where(:population .== "DC2", :location .== "bm") |> select(:max) |> Array |> reshape(:))[1] / (@linq df_tmp |> where(:population .== "DC2", :location .== "blood") |> select(:min) |> Array |> reshape(:))[1]
 	
 		df_3 = DataFrame(RpreDC_cDC1_blood_mean = RpreDCcDC1b_mean,
 RpreDC_cDC1_bm_mean = RpreDCcDC1bm_mean,
-RpreDC_cDC2_blood_mean = RpreDCcDC2b_mean,
-RpreDC_cDC2_bm_mean = RpreDCcDC2bm_mean,
+RpreDC_cDC2_blood_mean = RpreDCDC2b_mean,
+RpreDC_cDC2_bm_mean = RpreDCDC2bm_mean,
 RpreDC_cDC1_blood_median = RpreDCcDC1b_median,
 RpreDC_cDC1_bm_median = RpreDCcDC1bm_median,
-RpreDC_cDC2_blood_median = RpreDCcDC2b_median,
-RpreDC_cDC2_bm_median = RpreDCcDC2bm_median,
+RpreDC_cDC2_blood_median = RpreDCDC2b_median,
+RpreDC_cDC2_bm_median = RpreDCDC2bm_median,
 RpreDC_cDC1_blood_min = RpreDCcDC1b_min,
 RpreDC_cDC1_bm_min = RpreDCcDC1bm_min,
-RpreDC_cDC2_blood_min = RpreDCcDC2b_min,
-RpreDC_cDC2_bm_min = RpreDCcDC2bm_min,
+RpreDC_cDC2_blood_min = RpreDCDC2b_min,
+RpreDC_cDC2_bm_min = RpreDCDC2bm_min,
 RpreDC_cDC1_blood_max = RpreDCcDC1b_max,
 RpreDC_cDC1_bm_max = RpreDCcDC1bm_max,
-RpreDC_cDC2_blood_max = RpreDCcDC2b_max,
-RpreDC_cDC2_bm_max = RpreDCcDC2bm_max,
+RpreDC_cDC2_blood_max = RpreDCDC2b_max,
+RpreDC_cDC2_bm_max = RpreDCDC2bm_max,
 RpreDC_mean = R_preDC_mean_3,
 RpreDC_median = R_preDC_median_3,
 RpreDC_min = R_preDC_min_3,
@@ -519,10 +588,10 @@ RcDC1_mean = RcDC1_mean_3,
 RcDC1_median = RcDC1_median_3,
 RcDC1_min = RcDC1_min_3,
 RcDC1_max = RcDC1_max_3,
-RcDC2_mean = RcDC2_mean_3,
-RcDC2_median = RcDC2_median_3,
-RcDC2_min = RcDC2_min_3,
-RcDC2_max = RcDC2_max_3)
+RcDC2_mean = RDC2_mean_3,
+RcDC2_median = RDC2_median_3,
+RcDC2_min = RDC2_min_3,
+RcDC2_max = RDC2_max_3)
 
 	df_all_ratios_3 = @linq DataFrames.stack(df_3) |> DataFrames.transform(:variable => (ByRow(x->match(r"(.*)_([mean|min|max])", x).captures[1])) => :parameter, :variable => (ByRow(x->match(r"(.*)_((mean)|(median)|(min)|(max))", x).captures[2])) => :summary) |> DataFrames.select(Not(:variable))
 end
@@ -535,44 +604,44 @@ begin
 	function rename_ratios(rnames)
 		mapping = ["RpreDC" => "R_preDC",
 				"RcDC1" => "R_cDC1",
-				"RcDC2" => "R_cDC2",
+				"RDC2" => "R_DC2",
 				"RpreDC_cDC1_bm" => "R_precDC1bm",
-				"RpreDC_cDC2_bm" => "R_precDC2bm",
+				"RpreDC_DC2_bm" => "R_preDC2bm",
 				"RpreDC_cDC1_blood" => "R_precDC1b",
-				"RpreDC_cDC2_blood" => "R_precDC2b",
-				"RpDC" => "R_pDC"]
+				"RpreDC_DC2_blood" => "R_preDC2b",
+				"RDC3" => "R_DC3"]
 		
 		return replace(rnames, mapping...)
 	end
 
 
-	df_ratio_approaches_combined = @pipe vcat(transform(df_all_ratios, :value => (x -> [1 for j in x]) => :method),
-transform(df_all_ratios_1, :value => (x -> [2 for j in x]) => :method),
-transform(df_all_ratios_2, :value => (x -> [3 for j in x]) => :method),
-transform(df_all_ratios_3, :value => (x -> [4 for j in x]) => :method)) |>
-transform(_, :method => (x -> string.(x)), renamecols=false) |>
-transform(_, :method => (x -> replace(x, "1"=>"1a", "2"=>"1b", "3"=>"1c", "4"=>"2")), renamecols=false) |>
-transform(_, :method => (x -> categorical(x, levels=["1a", "1b", "1c","2"])), renamecols=false)
+	df_ratio_approaches_combined = @pipe vcat(DataFrames.transform(df_all_ratios, :value => (x -> [1 for j in x]) => :method),
+DataFrames.transform(df_all_ratios_1, :value => (x -> [2 for j in x]) => :method),
+DataFrames.transform(df_all_ratios_2, :value => (x -> [3 for j in x]) => :method),
+DataFrames.transform(df_all_ratios_3, :value => (x -> [4 for j in x]) => :method)) |>
+DataFrames.transform(_, :method => (x -> string.(x)), renamecols=false) |>
+DataFrames.transform(_, :method => (x -> replace(x, "1"=>"1a", "2"=>"1b", "3"=>"1c", "4"=>"2")), renamecols=false) |>
+DataFrames.transform(_, :method => (x -> categorical(x, levels=["1a", "1b", "1c","2"])), renamecols=false)
 
-df_ratio_approaches_combined_wpdc = @pipe df_cell_concentration_long |>
-subset(_, :population => x -> x .== "pDC") |>
+df_ratio_approaches_combined_wpdc = @pipe df_cell_concentration_long_updated |>
+subset(_, :population => x -> x .== "DC3") |>
 groupby(_,[:population, :location]) |>
 DataFrames.combine(_, :value => (x -> [mean(x) median(x) minimum(x) maximum(x)] )=> [:mean, :median, :min, :max]) |>
 select(_, Not([:min, :max])) |>
 DataFrames.stack(_, [:mean, :median]) |>
 DataFrames.unstack(_, :variable, :location, :value) |>
 select(_,:variable, AsTable([:bm, :blood]) => ByRow(x -> x.bm/x.blood) => :value) |>
-insertcols!(_, :parameter => "RpDC", :method => "2") |>
+insertcols!(_, :parameter => "RDC3", :method => "2") |>
 rename(_, :variable => :summary) |>
 vcat(df_ratio_approaches_combined, _) |>
-transform(_, :method => (x -> categorical(x, levels = ["1a","1b","1c","2"])), renamecols=false) |>
+DataFrames.transform(_, :method => (x -> categorical(x, levels = ["1a","1b","1c","2"])), renamecols=false) |>
 rename(_, :method => :approach)
 
 df_ratio_approaches_combined = @pipe df_ratio_approaches_combined |>
-transform(_, :parameter => rename_ratios => :parameter)
+DataFrames.transform(_, :parameter => rename_ratios => :parameter)
 
 df_ratio_approaches_combined_wpdc = @pipe df_ratio_approaches_combined_wpdc |>
-transform(_, :parameter => rename_ratios => :parameter)
+DataFrames.transform(_, :parameter => rename_ratios => :parameter)
 
 end
 
@@ -600,76 +669,80 @@ md"**proliferation rate = (fraction\_SG2M / phase\_length) * 24h**"
 md"#### Bootstraping to determine creadible priors for proliferation rate"
 
 # ╔═╡ 5323669a-7c4f-11eb-14e8-cdb2539e5d7e
-	df_cycle_long_bm = @linq df_cycle_long |> where(:state .== "G2", :location .== "bm") |> transform(value= :value ./100)
+	df_cycle_long_bm = @linq df_cycle_long_updated |> where(:state .== "G2", :location .== "bm") |> transform(:value= :value ./100)
 
 # ╔═╡ f9882475-6e97-4026-9f08-9d50d74d41b8
 @model lognormal_model(x) = begin
-	upper = 2.0
+	μ ~ Uniform(0.0,2)
+	σ ~ Uniform(0.0,2) 
 	
-	μ ~ Uniform(-10,10) 
-	σ ~ Uniform(0.0,10) 
-	
-	x .~ Truncated(LogNormal(μ,σ), 0.0, 2.0)
+	x .~ Truncated(Normal(μ,σ), 0, 2.0)
 
 end
 
 # ╔═╡ 7f41768d-db55-474b-9d3d-d972f87bb396
-bootst_comb_preDC = (sample((@pipe df_cycle_long_bm |> subset(_, :population => (x -> x .== "preDC")) |> select(_, :value) |> Array |> reshape(_,:)), 10000, replace=true)./ rand(Uniform(mintime, maxtime), 10000)) .* 24.0
+bootst_comb_preDC = (sample((@pipe df_cycle_long_bm |> subset(_, :population => (x -> x .== "ASDC")) |> select(_, :value) |> Array |> reshape(_,:)), 10000, replace=true)./ rand(Uniform(mintime, maxtime), 10000)) .* 24.0
 
 # ╔═╡ 0d3a3a1a-0bcf-4bdd-80db-8769728f2d58
 bootst_comb_cDC1 = (sample((@pipe df_cycle_long_bm |> subset(_, :population => (x -> x .== "cDC1")) |> select(_, :value) |> Array |> reshape(_,:)), 10000, replace=true)./ rand(Uniform(mintime, maxtime), 10000)) .* 24.0
 
 # ╔═╡ f9f438d7-6a4f-43a8-b3ac-50d080bbab45
-bootst_comb_cDC2 = (sample((@pipe df_cycle_long_bm |> subset(_, :population => (x -> x .== "cDC2")) |> select(_, :value) |> Array |> reshape(_,:)), 10000, replace=true)./ rand(Uniform(mintime, maxtime), 10000)) .* 24.0
+bootst_comb_DC2 = (sample((@pipe df_cycle_long_bm |> subset(_, :population => (x -> x .== "DC2")) |> select(_, :value) |> Array |> reshape(_,:)), 10000, replace=true)./ rand(Uniform(mintime, maxtime), 10000)) .* 24.0
 
 # ╔═╡ 075961aa-1ae1-460c-8ff3-34de54542a3e
-bootst_comb_pDC = (sample((@pipe df_cycle_long_bm |> subset(_, :population => (x -> x .== "pDC")) |> select(_, :value) |> Array |> reshape(_,:)), 10000, replace=true)./ rand(Uniform(mintime, maxtime), 10000)) .* 24.0
+bootst_comb_DC3 = (sample((@pipe df_cycle_long_bm |> subset(_, :population => (x -> x .== "DC3")) |> select(_, :value) |> Array |> reshape(_,:)), 10000, replace=true)./ rand(Uniform(mintime, maxtime), 10000)) .* 24.0
+
+# ╔═╡ 29b6cea0-679b-4a70-81ce-207ee0ed5737
+rand(lognormal_model(bootst_comb_preDC))
 
 # ╔═╡ 8c1b9ce5-803b-45e4-adc2-1eeabf56a9cd
 begin
-	galac_prob_preDC = Turing.optim_problem(lognormal_model(bootst_comb_preDC), MLE();constrained=true, lb=[-10.0,0.0], ub=[10.0,10.0])	
-	res_preDC= solve(galac_prob_preDC.prob, ParticleSwarm(n_particles=400, lower=galac_prob_preDC.prob.lb,upper=galac_prob_preDC.prob.ub));
-	res_preDC_GD= solve(remake(galac_prob_preDC.prob, u0=res_preDC.u), Fminbox(GradientDescent()));
+	galac_prob_preDC = Turing.optim_problem(lognormal_model(bootst_comb_preDC), MLE();constrained=true, lb=[0.0, 0.0], ub=[2.0, 2.0])	
+	res_preDC= solve(galac_prob_preDC.prob, LBFGS(), maxiters = 1e6);
+	res_preDC_GD= solve(remake(galac_prob_preDC.prob, u0=res_preDC.u), Fminbox(GradientDescent()), maxiters = 1e6);
 end
 
 # ╔═╡ 0f36747b-3392-48ea-a829-9831a5f031e4
 begin
-	galac_prob_cDC1 = Turing.optim_problem(lognormal_model(bootst_comb_cDC1), MLE();constrained=true, lb=[-10.0,0.0], ub=[10.0,10.0])	
-	res_cDC1= solve(galac_prob_cDC1.prob, ParticleSwarm(n_particles=400, lower=galac_prob_cDC1.prob.lb,upper=galac_prob_cDC1.prob.ub));
-	res_cDC1_GD= solve(remake(galac_prob_cDC1.prob, u0=res_cDC1.u), Fminbox(GradientDescent()));
+	galac_prob_cDC1 = Turing.optim_problem(lognormal_model(bootst_comb_cDC1), MLE();constrained=true, lb=[0.0, 0.0], ub=[2.0, 2.0])	
+	res_cDC1= solve(galac_prob_cDC1.prob, LBFGS(), maxiters = 1e6);
+	res_cDC1_GD= solve(remake(galac_prob_cDC1.prob, u0=res_cDC1.u), Fminbox(GradientDescent()), maxiters = 1e6);
 end
 
 # ╔═╡ 1162d297-0776-43cf-b47c-a30d175e70eb
 begin
-	galac_prob_cDC2 = Turing.optim_problem(lognormal_model(bootst_comb_cDC2), MLE();constrained=true, lb=[-10.0,0.0], ub=[10.0,10.0])	
-	res_cDC2= solve(galac_prob_cDC2.prob, ParticleSwarm(n_particles=400, lower=galac_prob_cDC2.prob.lb,upper=galac_prob_cDC2.prob.ub));
-	res_cDC2_GD= solve(remake(galac_prob_cDC2.prob, u0=res_cDC2.u), Fminbox(GradientDescent()));
+	galac_prob_DC2 = Turing.optim_problem(lognormal_model(bootst_comb_DC2), MLE();constrained=true, lb=[0.0, 0.0], ub=[2.0, 2.0])	
+	res_DC2= solve(galac_prob_DC2.prob, LBFGS(), maxiters = 1e6);
+	res_DC2_GD= solve(remake(galac_prob_DC2.prob, u0=res_DC2.u), Fminbox(GradientDescent()), maxiters = 1e6);
 end
 
 # ╔═╡ c6d5216b-1981-41b3-8c44-3d75f19b0a7d
 begin
-	galac_prob_pDC = Turing.optim_problem(lognormal_model(bootst_comb_pDC), MLE();constrained=true, lb=[-10.0,0.0], ub=[10.0,10.0])	
-	res_pDC= solve(galac_prob_pDC.prob, ParticleSwarm(n_particles=400, lower=galac_prob_pDC.prob.lb,upper=galac_prob_pDC.prob.ub));
-	res_pDC_GD= solve(remake(galac_prob_pDC.prob, u0=res_pDC.u), Fminbox(GradientDescent()));
+	galac_prob_DC3 = Turing.optim_problem(lognormal_model(bootst_comb_DC3), MLE();constrained=true, lb=[0.0, 0.0], ub=[2.0, 2.0])	
+	res_DC3= solve(galac_prob_DC3.prob, LBFGS(), maxiters = 1e7);
+	res_DC3_GD= solve(remake(galac_prob_DC3.prob, u0=res_DC3.u), Fminbox(GradientDescent()), maxiters = 1e6);
 end
 
 # ╔═╡ 91a9b444-7c71-11eb-3858-17f5c2b4c884
 md"Both bootstrap and plain sampling yield comparable results. We will be using the bootstrapping method, which in essence combines bootstrap samples from G2 fraction with samples from a uniform distribution U(5.0, 15.0). The priors of the proliferation rates used in the inference are the following:"
 
 # ╔═╡ 41aa65d3-5367-4e2c-9a3b-041909ec49ad
-df_p_priors_truncated = DataFrame(parameter = ["preDC","cDC1", "cDC2", "pDC"], µ = [res_preDC_GD.u[1],res_cDC1_GD.u[1],res_cDC2_GD.u[1], res_pDC_GD.u[1]], σ = [res_preDC_GD.u[2],res_cDC1_GD.u[2],res_cDC2_GD.u[2], res_pDC_GD.u[2]], dist = ["Truncated(LogNormal)", "Truncated(LogNormal)", "Truncated(LogNormal)", "Truncated(LogNormal)"])
+df_p_priors_truncated = DataFrame(parameter = ["ASDC","cDC1", "DC2", "DC3"], µ = [res_preDC_GD.u[1],res_cDC1_GD.u[1],res_DC2_GD.u[1], res_DC3_GD.u[1]], σ = [res_preDC_GD.u[2],res_cDC1_GD.u[2],res_DC2_GD.u[2], res_DC3_GD.u[2]], dist = ["Truncated(Normal)", "Truncated(Normal)", "Truncated(Normal)", "Truncated(Normal)"])
 
 # ╔═╡ 587d774d-6a95-4a5f-8927-d3443fc9bf5c
 begin
 	fig_prior = Figure()
 	ax_prior = [Axis(fig_prior[j,i], ylabel="density") for j in 1:2 for i in 1:2]
-
+	
 	for (idx, j) in enumerate(eachrow(df_p_priors_truncated))
 		ax_prior[idx].title= j.parameter
-		CairoMakie.plot!(ax_prior[idx], Truncated(LogNormal(j.μ, j.σ), 0.0, 2.0), label="prior",strokewidth = 2)
-		CairoMakie.density!(ax_prior[idx],[bootst_comb_preDC,bootst_comb_cDC1,bootst_comb_cDC2,bootst_comb_pDC][idx], label="bootstrap sample", color=(:red,0.0), strokecolor=:red,strokewidth = 2)
-		CairoMakie.xlims!(ax_prior[idx], (-0.1,maximum([bootst_comb_preDC,bootst_comb_cDC1,bootst_comb_cDC2,bootst_comb_pDC][idx])*1.2))
+		CairoMakie.density!(ax_prior[idx], rand(Truncated(Normal(j.μ, j.σ), 0, 2.0), 10000), label="fitted prior",strokewidth = 2)
+		CairoMakie.density!(ax_prior[idx],[bootst_comb_preDC,bootst_comb_cDC1,bootst_comb_DC2,bootst_comb_DC3][idx], label="bootstrap sample", color=(:red,0.0), strokecolor=:red,strokewidth = 2)
+		# CairoMakie.xlims!(ax_prior[idx], (-0.0,0.5))
+		CairoMakie.xlims!(ax_prior[idx], (-0.,maximum([bootst_comb_preDC,bootst_comb_cDC1,bootst_comb_DC2,bootst_comb_DC3][idx])*1.2))
 	end
+
+	
 	
 	# legend_ax = Axis(fig_prior[3,:])
 	ax_prior[2].ylabel=""
@@ -680,6 +753,9 @@ begin
 	
 	fig_prior
 end
+
+# ╔═╡ 3a14b993-952a-47cc-b3a5-2138edc12d15
+df_p_priors_truncated
 
 # ╔═╡ 078601d7-bb0e-4178-b99c-499e0ff4162c
 md"## Save ratios to hardrive"
@@ -719,20 +795,28 @@ set_aog_theme!()
 # ╟─73e87950-2b21-11eb-22b0-f70d8354e6c0
 # ╟─a7177ccc-2b21-11eb-26e8-dd349d40f1f0
 # ╟─fd25929c-2b22-11eb-0a36-f70e823e37cb
-# ╟─c5b59e2a-2b21-11eb-22d2-4b22602a0509
-# ╟─4c87cf24-2b20-11eb-08ba-21c2e6bbde46
+# ╠═c5b59e2a-2b21-11eb-22d2-4b22602a0509
+# ╠═0c10d4af-e9a6-408b-905e-f1ee266d96c8
+# ╠═4c87cf24-2b20-11eb-08ba-21c2e6bbde46
+# ╠═a93f1bfd-3018-4807-998c-affd45cbcd84
 # ╟─1274e508-2b23-11eb-3cd7-89668baf2cde
-# ╟─25978f50-2b23-11eb-1ff0-67b5a3fdf254
+# ╠═25978f50-2b23-11eb-1ff0-67b5a3fdf254
+# ╠═d0353dca-0561-4458-97b7-40f19a00a86e
 # ╟─ba837004-2b21-11eb-33f9-efd996b7f6e8
 # ╟─c4699bbe-2b21-11eb-33e2-ad7b9ddeb94e
-# ╟─8876e062-2b23-11eb-28c0-4bd61158ba67
-# ╟─95c990b6-2b23-11eb-2b65-afb1b842767e
+# ╠═8876e062-2b23-11eb-28c0-4bd61158ba67
+# ╠═10b1331e-a12f-4e30-b6c1-4da9d412367e
+# ╠═95c990b6-2b23-11eb-2b65-afb1b842767e
+# ╠═d33f35ad-5e43-4e7a-99cd-83a9d2375c38
 # ╠═b8de484a-7618-11eb-12bd-6787aa89366b
+# ╠═74a0b803-9978-493e-b320-64581556e91e
 # ╟─2d83685e-7549-11eb-1994-3985c2a123e3
 # ╟─e902b2ea-7753-11eb-3ff4-b7799790a5ff
-# ╟─2d5a4352-7549-11eb-30b3-47b5d1dacab6
+# ╠═2d5a4352-7549-11eb-30b3-47b5d1dacab6
+# ╠═38507c53-645d-42d4-a7c7-4ba24671c9bc
 # ╟─f18c0722-7753-11eb-0958-81f7dcb07e6a
-# ╟─189bd424-7555-11eb-10a9-bff781d5ef41
+# ╠═189bd424-7555-11eb-10a9-bff781d5ef41
+# ╠═fc0bad6d-d12e-4878-ab34-26c6489a4a48
 # ╟─39e8839c-7549-11eb-0e7e-efd773f2441a
 # ╟─39c9d2ba-7549-11eb-2722-c3d6c5a4a836
 # ╠═7d4edb59-a104-4b66-906d-e77b4aced31b
@@ -768,6 +852,7 @@ set_aog_theme!()
 # ╠═0d3a3a1a-0bcf-4bdd-80db-8769728f2d58
 # ╠═f9f438d7-6a4f-43a8-b3ac-50d080bbab45
 # ╠═075961aa-1ae1-460c-8ff3-34de54542a3e
+# ╠═29b6cea0-679b-4a70-81ce-207ee0ed5737
 # ╠═8c1b9ce5-803b-45e4-adc2-1eeabf56a9cd
 # ╠═0f36747b-3392-48ea-a829-9831a5f031e4
 # ╠═1162d297-0776-43cf-b47c-a30d175e70eb
@@ -775,6 +860,7 @@ set_aog_theme!()
 # ╟─91a9b444-7c71-11eb-3858-17f5c2b4c884
 # ╠═41aa65d3-5367-4e2c-9a3b-041909ec49ad
 # ╠═587d774d-6a95-4a5f-8927-d3443fc9bf5c
+# ╠═3a14b993-952a-47cc-b3a5-2138edc12d15
 # ╠═078601d7-bb0e-4178-b99c-499e0ff4162c
 # ╠═aba96283-01c7-4450-bd5d-3e04043d2075
 # ╠═eba36176-d1cf-4e7a-b2bd-0134467365e4
