@@ -4,8 +4,10 @@ using Pkg
 Pkg.activate(projectdir_name)
 Pkg.instantiate()
 
+ENV["PYTHON"]=""
+run Pkg.build("PyCall")
 
-ENV["R_HOME"] = "*"
+ENV["R_HOME"] = ""
 Pkg.build("RCall")
 
 using Conda
