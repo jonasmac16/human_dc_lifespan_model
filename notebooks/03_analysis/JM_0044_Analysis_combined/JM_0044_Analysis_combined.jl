@@ -219,7 +219,7 @@ begin
 	end
 	rename!(df, :timestamp => :time)
 	transform!(df, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
-	transform!(df, :population=> x -> categorical(x, levels=["ASDC","cDC1", "cDC2"], compress=true), renamecols=false)
+	transform!(df, :population=> x -> categorical(x, levels=["ASDC","cDC1", "DC2"], compress=true), renamecols=false)
 	subset!(df, :model => x -> x .∈ Ref([1,2,4,5]))
 	transform!(df, :model => (x -> replace(x, 4=> 3, 5 => 4)), renamecols=false)
 end
@@ -235,7 +235,7 @@ begin
 	end
 	rename!(df_nonpooled, :timestamp => :time)
 	transform!(df_nonpooled, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
-	transform!(df_nonpooled, :population=> x -> categorical(x, levels=["ASDC","cDC1", "cDC2"], compress=true), renamecols=false)
+	transform!(df_nonpooled, :population=> x -> categorical(x, levels=["ASDC","cDC1", "DC2"], compress=true), renamecols=false)
 	subset!(df_nonpooled, :model => x -> x .∈ Ref([1,2,4,5]))
 	transform!(df_nonpooled, :model => (x -> replace(x, 4=> 3, 5 => 4)), renamecols=false)
 end
@@ -321,7 +321,7 @@ end
 
 # ╔═╡ 56ab98d5-fba1-4644-9b9b-2a1197756dbc
 begin
-	function plot_predictions(df; donors_plotted = ["C66", "C67", "C68", "C53", "C55"], populations=["ASDC", "cDC1", "cDC2"], dataset="extended", location="b", prior="lognormal", colors=:roma, data_color = [colorant"#755494",colorant"#de3458" ,colorant"#4e65a3"], models=[1,2,4,5], max_models=4, alpha=0.5, f_kwargs = (;), f = CairoMakie.Figure(;f_kwargs...), ax = hcat([[Axis(f[k,j], aspect=1.5) for k in 1:length(donors_plotted)] for j in 1:length(populations)]...))
+	function plot_predictions(df; donors_plotted = ["C66", "C67", "C68", "C53", "C55"], populations=["ASDC", "cDC1", "DC2"], dataset="extended", location="b", prior="lognormal", colors=:roma, data_color = [colorant"#755494",colorant"#de3458" ,colorant"#4e65a3"], models=[1,2,4,5], max_models=4, alpha=0.5, f_kwargs = (;), f = CairoMakie.Figure(;f_kwargs...), ax = hcat([[Axis(f[k,j], aspect=1.5) for k in 1:length(donors_plotted)] for j in 1:length(populations)]...))
 		
 		
 		color_scheme=cgrad(colors, max_models, categorical=true, alpha=alpha)[models]
@@ -377,19 +377,19 @@ begin
 end
 
 # ╔═╡ 76a3b35a-8c27-43d3-8148-d8af071bb338
-ppc_1 = plot_predictions(df;donors_plotted = ["C66", "C67", "C68"], populations=["ASDC", "cDC1", "cDC2"], dataset="original", models=[1,2,3,4], location ="b", f_kwargs =(;resolution = (800, 600)))[1]
+ppc_1 = plot_predictions(df;donors_plotted = ["C66", "C67", "C68"], populations=["ASDC", "cDC1", "DC2"], dataset="original", models=[1,2,3,4], location ="b", f_kwargs =(;resolution = (800, 600)))[1]
 
 # ╔═╡ 7810af6d-d557-42b3-b585-7e80f57747d6
 save(joinpath(res_folder, "ppc_ASDC_original_pooled.pdf"), ppc_1)
 
 # ╔═╡ 5eef1a9e-10fe-4e89-82d5-8df105e7f911
-ppc_2 = plot_predictions(df_nonpooled;donors_plotted = ["C66", "C67", "C68"], populations=["ASDC", "cDC1", "cDC2"], dataset="original", models=[1,2,3,4], location ="b", f_kwargs =(;resolution = (800, 600)))[1]
+ppc_2 = plot_predictions(df_nonpooled;donors_plotted = ["C66", "C67", "C68"], populations=["ASDC", "cDC1", "DC2"], dataset="original", models=[1,2,3,4], location ="b", f_kwargs =(;resolution = (800, 600)))[1]
 
 # ╔═╡ 95ffc485-1cde-4429-9e4e-9d0062ac57ee
 save(joinpath(res_folder, "ppc_ASDC_original_nonpooled.pdf"), ppc_2)
 
 # ╔═╡ fc1777c6-ad4e-4a43-938a-729c5cb84f18
-ppc_3 = plot_predictions(df;donors_plotted = ["C66", "C67", "C68", "C53", "C55"], populations=["ASDC", "cDC1", "cDC2"], dataset="extended", models=[1,2,3,4], location ="b", f_kwargs =(;resolution = (800, 900)))[1]
+ppc_3 = plot_predictions(df;donors_plotted = ["C66", "C67", "C68", "C53", "C55"], populations=["ASDC", "cDC1", "DC2"], dataset="extended", models=[1,2,3,4], location ="b", f_kwargs =(;resolution = (800, 900)))[1]
 
 # ╔═╡ b7583245-ed9c-49e4-b8a7-890f814ac3c5
 save(joinpath(res_folder, "ppc_ASDC_extended_pooled.pdf"), ppc_3)
@@ -431,25 +431,25 @@ transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) 
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
 
 # ╔═╡ 15716182-57e9-4f7a-b685-af321fdb8d8a
-df_loo_subset_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_ASDC_cDC1_cDC2","results","PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.csv"), DataFrame) |>
+df_loo_subset_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
 
 # ╔═╡ 25c18a6a-3e7b-4eab-b38c-b6f6156d65e1
-df_loo_sample_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_ASDC_cDC1_cDC2","results","PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.csv"), DataFrame) |>
+df_loo_sample_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
 
 # ╔═╡ 56d68aaa-bf87-460d-beb5-420fd7f60fc3
-df_loo_subset = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_ASDC_cDC1_cDC2","results","PSIS_LOO_CV_Model_comparison_leave_out_subset.csv"), DataFrame) |>
+df_loo_subset = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_subset.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
 
 # ╔═╡ ab3577de-6f11-4e9f-b171-f38948b0de09
-df_loo_sample = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_ASDC_cDC1_cDC2","results","PSIS_LOO_CV_Model_comparison_leave_out_sample.csv"), DataFrame) |>
+df_loo_sample = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_sample.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
@@ -621,7 +621,7 @@ md"Load posterior dataframes"
 begin
 	df_full_posterior_extended = DataFrame()
 	for j in [1,2,3,4]
-		global df_full_posterior_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis", "JM_0042_Julia_Analysis_ASDC_cDC1_cDC2","results","Parameter_full_posterior_model_$(j).csv"), DataFrame) |> vcat(df_full_posterior_extended,_, cols=:union)
+		global df_full_posterior_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis", "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","Parameter_full_posterior_model_$(j).csv"), DataFrame) |> vcat(df_full_posterior_extended,_, cols=:union)
 	end
 	df_full_posterior_extended = @pipe df_full_posterior_extended |> rename(_, :model_id => :model)
 end
@@ -766,9 +766,9 @@ begin
 	sf_diff4 = fig_diff[2,2]
 	
 	ax_diff1 = plot_posterior_distribution(df_full_posterior_extended, Symbol.(filter(x -> endswith(x, "Δ_cDC1bm"), DataFrames.names(df_full_posterior_extended))), [1,2]; sf=sf_diff1, alpha=0.5, offset_factor=1.5, xlabel="")[3]
-	ax_diff2 = plot_posterior_distribution(df_full_posterior_extended, Symbol.(filter(x -> endswith(x, "Δ_cDC2bm"), DataFrames.names(df_full_posterior_extended))), [1,2,4]; sf=sf_diff2, alpha=0.5, offset_factor=1.5,xlabel="")[3]
+	ax_diff2 = plot_posterior_distribution(df_full_posterior_extended, Symbol.(filter(x -> endswith(x, "Δ_DC2bm"), DataFrames.names(df_full_posterior_extended))), [1,2,4]; sf=sf_diff2, alpha=0.5, offset_factor=1.5,xlabel="")[3]
 	ax_diff3 = plot_posterior_distribution(df_full_posterior_extended, Symbol.(filter(x -> endswith(x, "Δ_cDC1b"), DataFrames.names(df_full_posterior_extended))), [1]; sf=sf_diff3, alpha=0.5, offset_factor=1.5, xlabel="day⁻¹")[3]
-	ax_diff4 = plot_posterior_distribution(df_full_posterior_extended, Symbol.(filter(x -> endswith(x, "Δ_cDC2b"), DataFrames.names(df_full_posterior_extended))), [1,4]; sf=sf_diff4, alpha=0.5, offset_factor=1.5, xlabel="day⁻¹")[3]
+	ax_diff4 = plot_posterior_distribution(df_full_posterior_extended, Symbol.(filter(x -> endswith(x, "Δ_DC2b"), DataFrames.names(df_full_posterior_extended))), [1,4]; sf=sf_diff4, alpha=0.5, offset_factor=1.5, xlabel="day⁻¹")[3]
 	
 	linkyaxes!(ax_diff1[1], ax_diff2[1])
 	linkyaxes!(ax_diff3[1], ax_diff4[1])

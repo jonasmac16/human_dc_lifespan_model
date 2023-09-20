@@ -24,7 +24,7 @@ end
 function Distributions._rand!(rng::Random.AbstractRNG,d::MyDistribution, x::Array{Float64,1})
     x[1] = rand(d.dp_pDCbm) #p_ASDCbm
 
-    x[2] = rand(truncated(d.dλ_pDC, -Inf, x[1])) #λ_cDC2 
+    x[2] = rand(truncated(d.dλ_pDC, -Inf, x[1])) #λ_DC2 
     return
 end
 
@@ -39,7 +39,7 @@ end
 function Distributions._logpdf(d::MyDistribution, b::AbstractVector)
     l = logpdf(d.dp_pDCbm ,b[1]) #p_ASDCbm
   
-    l += logpdf(truncated(d.dλ_pDC, -Inf, b[1]), b[2]) #λ_cDC2 
+    l += logpdf(truncated(d.dλ_pDC, -Inf, b[1]), b[2]) #λ_DC2 
 
     return l
 end
@@ -47,7 +47,7 @@ end
 function Distributions.logpdf(d::MyDistribution, b::AbstractVector)
     l = logpdf(d.dp_pDCbm ,b[1]) #p_ASDCbm
 
-    l += logpdf(truncated(d.dλ_pDC, -Inf, b[1]), b[2]) #λ_cDC2 
+    l += logpdf(truncated(d.dλ_pDC, -Inf, b[1]), b[2]) #λ_DC2 
 
     return l
 end
@@ -62,7 +62,7 @@ function (b::MyBijector)(x::AbstractVector)
 
     y[1] = bijector(b.dp_pDCbm)(x[1]) #p_ASDCbm
 
-    y[2] = bijector(truncated(b.dλ_pDC, -Inf, x[1]))(x[2]) #λ_cDC2 
+    y[2] = bijector(truncated(b.dλ_pDC, -Inf, x[1]))(x[2]) #λ_DC2 
 
     return y
 end
@@ -70,7 +70,7 @@ function (b::Inverse{<:MyBijector})(y::AbstractVector)
 	x = similar(y)
 
     x[1] = inv(bijector(b.orig.dp_pDCbm))(y[1]) #p_ASDCbm
-    x[2] = inv(bijector(truncated(b.orig.dλ_pDC, -Inf, x[1])))(y[2]) #λ_cDC2 
+    x[2] = inv(bijector(truncated(b.orig.dλ_pDC, -Inf, x[1])))(y[2]) #λ_DC2 
 
     return x
 end
@@ -78,7 +78,7 @@ function Bijectors.logabsdetjac(b::MyBijector, x::AbstractVector)
 	l = float(zero(eltype(x)))
 
     l += logabsdetjac(bijector(b.dp_pDCbm),x[1]) #p_ASDCbm
-    l += logabsdetjac(bijector(truncated(b.dλ_pDC, -Inf, x[1])),x[2]) #λ_cDC2 
+    l += logabsdetjac(bijector(truncated(b.dλ_pDC, -Inf, x[1])),x[2]) #λ_DC2 
 
     return l
 end

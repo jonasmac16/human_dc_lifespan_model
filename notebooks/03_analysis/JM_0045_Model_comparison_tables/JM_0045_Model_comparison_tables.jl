@@ -9,8 +9,8 @@ using CategoricalArrays
 
 
 pdc_loo_df = CSV.read(projectdir("notebooks","03_analysis", "JM_0043_Julia_Analysis_pDC", "results", "PSIS_LOO_CV_Model_comparison_pDC_leave_out_sample.csv"), DataFrame)
-ASDC_loo_df = CSV.read(projectdir("notebooks","03_analysis", "JM_0042_Julia_Analysis_ASDC_cDC1_cDC2", "results", "PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.csv"), DataFrame)
-ASDC_loo_subsets_df = CSV.read(projectdir("notebooks","03_analysis", "JM_0042_Julia_Analysis_ASDC_cDC1_cDC2", "results", "PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.csv"), DataFrame)
+ASDC_loo_df = CSV.read(projectdir("notebooks","03_analysis", "JM_0042_Julia_Analysis_ASDC_cDC1_DC2", "results", "PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.csv"), DataFrame)
+ASDC_loo_subsets_df = CSV.read(projectdir("notebooks","03_analysis", "JM_0042_Julia_Analysis_ASDC_cDC1_DC2", "results", "PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.csv"), DataFrame)
 
 
 function make_loo_df(df)

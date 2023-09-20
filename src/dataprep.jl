@@ -1,4 +1,4 @@
-function prepare_data_turing(data, data_r, data_label_p, tau; population = ["ASDC", "cDC1", "cDC2"], individual = ["C66", "C67", "C68", "C52", "C53", "C55"], ratios = ["R_ASDC", "R_cDC1", "R_cDC2", "R_precDC1bm", "R_precDC2bm", "R_precDC1b", "R_precDC2b"], population_mapping =[j => idx for (idx, j) in enumerate(population)], label_p_names = [:fr,:delta, :frac], ratio_approach="2", ratio_summary = "mean", mean_data::Bool = false)
+function prepare_data_turing(data, data_r, data_label_p, tau; population = ["ASDC", "cDC1", "DC2"], individual = ["C66", "C67", "C68", "C52", "C53", "C55"], ratios = ["R_ASDC", "R_cDC1", "R_DC2", "R_precDC1bm", "R_preDC2bm", "R_precDC1b", "R_preDC2b"], population_mapping =[j => idx for (idx, j) in enumerate(population)], label_p_names = [:fr,:delta, :frac], ratio_approach="2", ratio_summary = "mean", mean_data::Bool = false)
     # individual_mapping = [j => idx for (idx, j) in enumerate(individual)]
     
     df = @pipe data |> 

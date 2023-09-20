@@ -206,7 +206,7 @@ end
 begin
 	p_diag_1 = plot(chains, title=permutedims(vcat([[j, j] for j in par_range_names]...)), label=permutedims([("Chain " .* string.(collect(1:n_chains)))...]))
 	for k in 1:(length(p_init)-10)
-		density!(p_diag_1, [rand(MyDistribution(priors.p_ASDCbm, priors.p_cDC1bm, priors.p_cDC2bm, [Uniform(0.0,2.0) for j in 1:(length(p_init)-13)]..., data_in.metadata.R.R_ASDC, data_in.metadata.R.R_precDC1bm,data_in.metadata.R.R_precDC2bm))[k] for j in 1:1000], subplot=(k-1)*2+2, c=:black, legend=true, label="prior")
+		density!(p_diag_1, [rand(MyDistribution(priors.p_ASDCbm, priors.p_cDC1bm, priors.p_DC2bm, [Uniform(0.0,2.0) for j in 1:(length(p_init)-13)]..., data_in.metadata.R.R_ASDC, data_in.metadata.R.R_precDC1bm,data_in.metadata.R.R_preDC2bm))[k] for j in 1:1000], subplot=(k-1)*2+2, c=:black, legend=true, label="prior")
 	end
 	savefig(p_diag_1, projectdir("notebooks", "02_fitting", notebook_folder,"diagnostic_all.pdf"))
 	p_diag_1
@@ -260,7 +260,7 @@ begin
 		end
 		return p
 	end
-	function plot_ppc_condensed(sols, vars; pop=["ASDC", "cDC1", "cDC2"], cols=[:grey, :grey, :grey], subplotkwargs=(;), kwargs...)
+	function plot_ppc_condensed(sols, vars; pop=["ASDC", "cDC1", "DC2"], cols=[:grey, :grey, :grey], subplotkwargs=(;), kwargs...)
 		n_indv = length(first(sols))
 		
 		p = plot(layout=(n_indv,1); kwargs...)
@@ -283,7 +283,7 @@ end
 
 # ╔═╡ ff300623-cc98-4d79-adac-766d60d8b4da
 begin
-	function make_labels(pop, donor, pop_label=["ASDC", "cDC1", "cDC2"])
+	function make_labels(pop, donor, pop_label=["ASDC", "cDC1", "DC2"])
 		pop=deepcopy(pop)
 		donor=deepcopy(donor)
 		label_res = fill("", length(pop))
@@ -310,7 +310,7 @@ begin
 		return p
 	end
 
-	function plot_ppc_condensed(sols, data, vars;pop=["ASDC", "cDC1", "cDC2"], cols=[colorant"#755494", colorant"#de3458", colorant"#4e65a3"], subplotkwargs=(;),datakwargs=(;), kwargs...)
+	function plot_ppc_condensed(sols, data, vars;pop=["ASDC", "cDC1", "DC2"], cols=[colorant"#755494", colorant"#de3458", colorant"#4e65a3"], subplotkwargs=(;),datakwargs=(;), kwargs...)
 		p = plot_ppc_condensed(sols, vars, cols=cols, subplotkwargs=subplotkwargs; kwargs...)
 		
 		for j in 1:length(data.data)
