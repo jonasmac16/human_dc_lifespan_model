@@ -268,8 +268,8 @@ function instantiate_galacticoptim_problem(model::DynamicPPL.Model, ::MAP , ::un
   
   l(x,p) = obj(x)
 
-  f = GalacticOptim.OptimizationFunction(l, grad = (G,x,p) -> obj(G,x))
-  prob = GalacticOptim.OptimizationProblem(f, init, p)
+  f = Optimization.OptimizationFunction(l, grad = (G,x,p) -> obj(G,x))
+  prob = Optimization.OptimizationProblem(f, init, p)
 
   return (prob=prob, transform = t)
 end
@@ -279,8 +279,8 @@ function instantiate_galacticoptim_problem(model::DynamicPPL.Model, ::MLE , ::un
   
   l(x,p) = obj(x)
 
-  f = GalacticOptim.OptimizationFunction(l, grad = (G,x,p) -> obj(G,x))
-  prob = GalacticOptim.OptimizationProblem(f, init, p)
+  f = Optimization.OptimizationFunction(l, grad = (G,x,p) -> obj(G,x))
+  prob = Optimization.OptimizationProblem(f, init, p)
 
   return (prob=prob, transform = t)
 end
@@ -290,8 +290,8 @@ function instantiate_galacticoptim_problem(model::DynamicPPL.Model, ::MAP , ::co
   
   l(x,p) = obj(x)
 
-  f = GalacticOptim.OptimizationFunction(l, grad = (G,x,p) -> obj(G,x))
-  prob = GalacticOptim.OptimizationProblem(f, init, p;lb=lb, ub=ub)
+  f = Optimization.OptimizationFunction(l, grad = (G,x,p) -> obj(G,x))
+  prob = Optimization.OptimizationProblem(f, init, p;lb=lb, ub=ub)
 
   return (prob=prob, transform = t)
 end
@@ -301,8 +301,8 @@ function instantiate_galacticoptim_problem(model::DynamicPPL.Model, ::MLE , ::co
   
   l(x,p) = obj(x)
 
-  f = GalacticOptim.OptimizationFunction(l, grad = (G,x,p) -> obj(G,x))
-  prob = GalacticOptim.OptimizationProblem(f, init, p;lb=lb, ub=ub)
+  f = Optimization.OptimizationFunction(l, grad = (G,x,p) -> obj(G,x))
+  prob = Optimization.OptimizationProblem(f, init, p;lb=lb, ub=ub)
 
   return (prob=prob, transform = t)
 end
