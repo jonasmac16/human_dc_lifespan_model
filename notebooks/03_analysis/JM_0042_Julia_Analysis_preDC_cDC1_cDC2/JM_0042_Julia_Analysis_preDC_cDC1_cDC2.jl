@@ -291,7 +291,7 @@ begin
 	arr_ifd_arviz_loo = Dict{String, Any}() 
 
 	include(srcdir("dataprep.jl"))
-	donor_ids = ["C66", "C67", "C68"]
+	donor_ids = ["D01", "D02", "D04"]
 	cell_cycle_approach = 3
 	ratio_approach = "1c"
 	ratio_summary = "median"
