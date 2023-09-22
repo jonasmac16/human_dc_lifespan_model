@@ -605,9 +605,9 @@ begin
 		mapping = ["RASDC" => "R_ASDC",
 				"RcDC1" => "R_cDC1",
 				"RDC2" => "R_DC2",
-				"RASDC_cDC1_bm" => "R_precDC1bm",
+				"RASDC_cDC1_bm" => "R_ASDCcDC1bm",
 				"RASDC_DC2_bm" => "R_ASDC2bm",
-				"RASDC_cDC1_blood" => "R_precDC1b",
+				"RASDC_cDC1_blood" => "R_ASDCcDC1b",
 				"RASDC_DC2_blood" => "R_ASDC2b",
 				"RDC3" => "R_DC3"]
 		

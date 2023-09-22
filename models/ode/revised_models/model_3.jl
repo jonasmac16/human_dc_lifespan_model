@@ -1,6 +1,6 @@
 function _model_3(du,u,p,t, U_func, R)
     LASDCm, LcDC1m, LDC2m, LASDCb, LcDC1b, LDC2b = u
-    @unpack R_cDC1, R_DC2, R_ASDC, R_precDC1bm, R_precDC1b, R_preDC2bm, R_preDC2b = R
+    @unpack R_cDC1, R_DC2, R_ASDC, R_ASDCcDC1bm, R_ASDCcDC1b, R_ASDCDC2bm, R_ASDCDC2b = R
     p_ASDCbm, δ_ASDCbm, p_cDC1bm, δ_cDC1bm, p_DC2bm, δ_DC2bm, δ_ASDCb, δ_cDC1b, δ_DC2b, λ_ASDC, λ_cDC1, λ_DC2 = p[1:(end-4)]
     fr, delta, frac, tau = p[(end-3):end]
 

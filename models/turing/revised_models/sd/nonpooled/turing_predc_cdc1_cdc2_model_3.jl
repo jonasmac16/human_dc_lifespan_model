@@ -11,8 +11,8 @@ struct MyDistribution <: ContinuousMultivariateDistribution
     dλ_cDC1::ContinuousUnivariateDistribution
     dλ_DC2::ContinuousUnivariateDistribution
     R_ASDC::Float64
-    R_precDC1bm::Float64
-    R_preDC2bm::Float64
+    R_ASDCcDC1bm::Float64
+    R_ASDCDC2bm::Float64
 end
 
 function Distributions.length(d::MyDistribution)
@@ -97,8 +97,8 @@ struct MyBijector <: Bijectors.Bijector{1}
     dλ_cDC1::ContinuousUnivariateDistribution
     dλ_DC2::ContinuousUnivariateDistribution
     R_ASDC::Float64
-    R_precDC1bm::Float64
-    R_preDC2bm::Float64
+    R_ASDCcDC1bm::Float64
+    R_ASDCDC2bm::Float64
 end
 
 function (b::MyBijector)(x::AbstractVector)
@@ -150,7 +150,7 @@ function Bijectors.logabsdetjac(b::MyBijector, x::AbstractVector)
 
     return l
 end
-Bijectors.bijector(d::MyDistribution)= MyBijector(d.dp_ASDCbm,d.dp_cDC1bm,d.dp_DC2bm,d.dδ_ASDCb,d.dλ_cDC1,d.dλ_DC2,d.R_ASDC,d.R_precDC1bm,d.R_preDC2bm)
+Bijectors.bijector(d::MyDistribution)= MyBijector(d.dp_ASDCbm,d.dp_cDC1bm,d.dp_DC2bm,d.dδ_ASDCb,d.dλ_cDC1,d.dλ_DC2,d.R_ASDC,d.R_ASDCcDC1bm,d.R_ASDCDC2bm)
 
 
 
@@ -171,10 +171,10 @@ end
 
 @model function _turing_model(data::Array{Float64,1}, metadata::NamedTuple, ode_prob::ODEProblem, solver, priors::NamedTuple, ::Type{T} = Float64; ode_parallel_mode=EnsembleSerial(), ode_args = (;)) where {T}
     ### unpack R data
-    @unpack R_ASDC, R_cDC1, R_DC2, R_precDC1bm, R_preDC2bm, R_precDC1b, R_preDC2b = metadata.R
+    @unpack R_ASDC, R_cDC1, R_DC2, R_ASDCcDC1bm, R_ASDCDC2bm, R_ASDCcDC1b, R_ASDCDC2b = metadata.R
     
     ### priors
-    prior_dist = MyDistribution(priors.p_ASDCbm, priors.p_cDC1bm, priors.p_DC2bm, Uniform(0.0,2.0), Uniform(0.0,2.0), Uniform(0.0,2.0),R_ASDC, R_precDC1bm,R_preDC2bm)
+    prior_dist = MyDistribution(priors.p_ASDCbm, priors.p_cDC1bm, priors.p_DC2bm, Uniform(0.0,2.0), Uniform(0.0,2.0), Uniform(0.0,2.0),R_ASDC, R_ASDCcDC1bm,R_ASDCDC2bm)
     par = Vector{Array{T,1}}(undef, metadata.n_indv)
     for j in 1:metadata.n_indv
         par[j] ~ prior_dist

@@ -207,7 +207,7 @@ end
 begin
 	p_diag_1 = plot(chains, title=permutedims(vcat([[j, j] for j in par_range_names]...)), label=permutedims([("Chain " .* string.(collect(1:n_chains)))...]))
 	for k in 1:(length(p_init)-10)
-		density!(p_diag_1, [rand(MyDistribution(priors.p_ASDCbm, priors.p_cDC1bm, priors.p_DC2bm, [Uniform(0.0,2.0) for j in 1:(length(p_init)-13)]..., data_in.metadata.R.R_ASDC, data_in.metadata.R.R_precDC1bm,data_in.metadata.R.R_preDC2bm))[k] for j in 1:1000], subplot=(k-1)*2+2, c=:black, legend=true, label="prior")
+		density!(p_diag_1, [rand(MyDistribution(priors.p_ASDCbm, priors.p_cDC1bm, priors.p_DC2bm, [Uniform(0.0,2.0) for j in 1:(length(p_init)-13)]..., data_in.metadata.R.R_ASDC, data_in.metadata.R.R_ASDCcDC1bm,data_in.metadata.R.R_ASDCDC2bm))[k] for j in 1:1000], subplot=(k-1)*2+2, c=:black, legend=true, label="prior")
 	end
 	savefig(p_diag_1, projectdir("notebooks", "02_fitting", notebook_folder,"diagnostic_all.pdf"))
 	p_diag_1

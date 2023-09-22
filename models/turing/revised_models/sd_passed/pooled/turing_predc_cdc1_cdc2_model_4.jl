@@ -13,8 +13,8 @@ struct MyDistribution <: ContinuousMultivariateDistribution
     dΔ_cDC1b::ContinuousUnivariateDistribution
     dΔ_DC2b::ContinuousUnivariateDistribution
     R_ASDC::Float64
-    R_precDC1bm::Float64
-    R_preDC2bm::Float64
+    R_ASDCcDC1bm::Float64
+    R_ASDCDC2bm::Float64
 end
 
 function Distributions.length(d::MyDistribution)
@@ -101,8 +101,8 @@ struct MyBijector <: Bijectors.Bijector{1}
     dΔ_cDC1b::ContinuousUnivariateDistribution
     dΔ_DC2b::ContinuousUnivariateDistribution
     R_ASDC::Float64
-    R_precDC1bm::Float64
-    R_preDC2bm::Float64
+    R_ASDCcDC1bm::Float64
+    R_ASDCDC2bm::Float64
 end
 
 function (b::MyBijector)(x::AbstractVector)
@@ -154,7 +154,7 @@ function Bijectors.logabsdetjac(b::MyBijector, x::AbstractVector)
 
     return l
 end
-Bijectors.bijector(d::MyDistribution)= MyBijector(d.dp_ASDCbm,d.dp_cDC1bm,d.dp_DC2bm,d.dδ_ASDCb,d.dΔ_cDC1bm,d.dΔ_DC2bm,d.dΔ_cDC1b,d.dΔ_DC2b,d.R_ASDC,d.R_precDC1bm,d.R_preDC2bm)
+Bijectors.bijector(d::MyDistribution)= MyBijector(d.dp_ASDCbm,d.dp_cDC1bm,d.dp_DC2bm,d.dδ_ASDCb,d.dΔ_cDC1bm,d.dΔ_DC2bm,d.dΔ_cDC1b,d.dΔ_DC2b,d.R_ASDC,d.R_ASDCcDC1bm,d.R_ASDCDC2bm)
 
 
 
@@ -171,10 +171,10 @@ end
 
 @model function _turing_model(data::Array{Float64,1}, data_sd::Array{Float64,1}, metadata::NamedTuple, ode_prob::ODEProblem, solver, priors::NamedTuple; ode_parallel_mode=EnsembleSerial(), ode_args = (;))
     ### unpack R data
-    @unpack R_ASDC, R_cDC1, R_DC2, R_precDC1bm, R_preDC2bm, R_precDC1b, R_preDC2b = metadata.R
+    @unpack R_ASDC, R_cDC1, R_DC2, R_ASDCcDC1bm, R_ASDCDC2bm, R_ASDCcDC1b, R_ASDCDC2b = metadata.R
     
     ### priors
-    par ~ MyDistribution(priors.p_ASDCbm, priors.p_cDC1bm, priors.p_DC2bm, Uniform(0.0,2.0), Uniform(0.0,2.0), Uniform(0.0,2.0), Uniform(0.0,2.0), Uniform(0.0,2.0),R_ASDC, R_precDC1bm,R_preDC2bm)
+    par ~ MyDistribution(priors.p_ASDCbm, priors.p_cDC1bm, priors.p_DC2bm, Uniform(0.0,2.0), Uniform(0.0,2.0), Uniform(0.0,2.0), Uniform(0.0,2.0), Uniform(0.0,2.0),R_ASDC, R_ASDCcDC1bm,R_ASDCDC2bm)
     p_ASDCbm, p_cDC1bm, p_DC2bm, δ_ASDCb, Δ_cDC1bm, Δ_DC2bm, Δ_cDC1b, Δ_DC2b = par           
     λ_ASDC = (Δ_cDC1b + Δ_DC2b + δ_ASDCb) / R_ASDC
     
@@ -183,10 +183,10 @@ end
 
     ### compound parameter
     δ_ASDCbm = p_ASDCbm .- λ_ASDC .- Δ_cDC1bm .- Δ_DC2bm
-    δ_cDC1bm = p_cDC1bm .+ Δ_cDC1bm .* R_precDC1bm
-    δ_DC2bm = p_DC2bm .+ Δ_DC2bm .* R_preDC2bm
-    δ_cDC1b = Δ_cDC1b .* R_precDC1b
-    δ_DC2b = Δ_DC2b .* R_preDC2b
+    δ_cDC1bm = p_cDC1bm .+ Δ_cDC1bm .* R_ASDCcDC1bm
+    δ_DC2bm = p_DC2bm .+ Δ_DC2bm .* R_ASDCDC2bm
+    δ_cDC1b = Δ_cDC1b .* R_ASDCcDC1b
+    δ_DC2b = Δ_DC2b .* R_ASDCDC2b
 
     theta = [[p_ASDCbm, δ_ASDCbm, p_cDC1bm, δ_cDC1bm, p_DC2bm, δ_DC2bm, δ_ASDCb, δ_cDC1b, δ_DC2b, λ_ASDC, Δ_cDC1bm, Δ_DC2bm, Δ_cDC1b, Δ_DC2b] for j in 1:metadata.n_indv]
     
