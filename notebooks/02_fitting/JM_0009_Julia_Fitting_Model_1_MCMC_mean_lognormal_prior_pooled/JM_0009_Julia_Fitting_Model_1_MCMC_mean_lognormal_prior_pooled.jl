@@ -116,9 +116,9 @@ label_ps
 begin
 	df_p_priors = DataFrame(load(datadir("exp_pro", "p_priors_truncatedlognormal.csv")))
 
-	priors = (p_ASDCbm = truncated(LogNormal((@linq df_p_priors |> where(:parameter .== "ASDC") |> DataFrames.select([:µ, :σ]) |> Array |> reshape(:))...), 2e-11, 2.0),
-							p_cDC1bm = truncated(LogNormal((@linq df_p_priors |> where(:parameter .== "cDC1") |> DataFrames.select([:µ, :σ]) |> Array |> reshape(:))...), 2e-11, 2.0),
-							p_DC2bm = truncated(LogNormal((@linq df_p_priors |> where(:parameter .== "DC2") |> DataFrames.select([:µ, :σ]) |> Array |> reshape(:))...), 2e-11, 2.0))
+	priors = (p_ASDCbm = truncated(Normal((@linq df_p_priors |> where(:parameter .== "ASDC") |> DataFrames.select([:µ, :σ]) |> Array |> reshape(:))...), 0.0, 2.0),
+							p_cDC1bm = truncated(Normal((@linq df_p_priors |> where(:parameter .== "cDC1") |> DataFrames.select([:µ, :σ]) |> Array |> reshape(:))...), 0.0, 2.0),
+							p_DC2bm = truncated(Normal((@linq df_p_priors |> where(:parameter .== "DC2") |> DataFrames.select([:µ, :σ]) |> Array |> reshape(:))...), 0.0, 2.0))
 end
 
 # ╔═╡ a3d2f836-7200-11eb-0d49-a7d5a55ab8e5

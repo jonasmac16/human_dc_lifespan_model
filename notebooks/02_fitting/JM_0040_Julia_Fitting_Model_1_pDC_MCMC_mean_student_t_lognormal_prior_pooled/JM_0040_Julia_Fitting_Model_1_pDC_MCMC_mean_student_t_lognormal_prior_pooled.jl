@@ -114,7 +114,7 @@ label_ps
 begin
 	df_p_priors = DataFrame(load(datadir("exp_pro", "p_priors_truncatedlognormal.csv")))
 
-	priors = (;p_pDCbm = truncated(LogNormal((@linq df_p_priors |> where(:parameter .== "pDC") |> DataFrames.select([:µ, :σ]) |> Array |> reshape(:))...), 2e-11, 2.0))
+	priors = (;p_pDCbm = truncated(Normal((@linq df_p_priors |> where(:parameter .== "pDC") |> DataFrames.select([:µ, :σ]) |> Array |> reshape(:))...), 0.0, 2.0))
 end
 
 # ╔═╡ a3d2f836-7200-11eb-0d49-a7d5a55ab8e5

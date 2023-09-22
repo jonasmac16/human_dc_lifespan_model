@@ -773,10 +773,10 @@ md"## Save priors to harddrive"
 md"We save the new prior parameters both as CSV and BSON files to be used in the downstream analysis and modelling"
 
 # ╔═╡ 17de5082-7c73-11eb-2b3a-c712a6d6664e
-save(datadir("exp_pro", "p_priors_truncatedlognormal.csv"), df_p_priors_truncated)
+save(datadir("exp_pro", "p_priors_truncatednormal.csv"), df_p_priors_truncated)
 
 # ╔═╡ 172900ce-7c73-11eb-1ace-1919cfed3ac0
-save(datadir("exp_pro", "p_priors_truncatedlognormal.bson"), :df_p_priors=>df_p_priors_truncated)
+save(datadir("exp_pro", "p_priors_truncatednormal.bson"), :df_p_priors=>df_p_priors_truncated)
 
 # ╔═╡ efaf5444-2b1e-11eb-1d33-19962296cb3f
 md"## Dependencies"
