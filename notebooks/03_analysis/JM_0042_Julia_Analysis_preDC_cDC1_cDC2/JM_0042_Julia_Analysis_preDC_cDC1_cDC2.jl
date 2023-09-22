@@ -328,7 +328,7 @@ begin
 
 
 
-	donor_ids = ["C66", "C67", "C68", "C53", "C55"]
+	donor_ids = ["D01", "D02", "D04", "C66", "C67", "C68", "C53", "C55"]
     data_in = prepare_data_turing(labelling_data, cell_ratios, label_ps, tau_stop; population = ["ASDC", "cDC1", "DC2"], individual = donor_ids, label_p_names = [:fr,:delta, :frac], ratio_approach=ratio_approach, ratio_summary = ratio_summary, mean_data = true)
 	groups_id  = @pipe data_in.df |> select(_, [:population_idx, :individual_idx] => ((x,y) -> tryparse.(Int, string.(x) .* string.(y)))) |> Array(_) |> reshape(_,:)
 	unique_group_ids = unique(groups_id)
