@@ -4,16 +4,16 @@ function prepare_data_turing(data, data_r, data_label_p, tau; population = ["ASD
     df = @pipe data |> 
     subset(_, :population => x-> x .∈ Ref(population), :individual => x -> x .∈ Ref(individual)) |> 
     groupby(_, [:time, :population, :individual]) |>
-    transform(_, :enrichment => std => :SD, ungroup=false) |>
+    DataFrames.transform(_, :enrichment => std => :SD, ungroup=false) |>
     combine(_, [:enrichment,:SD] .=> (x -> mean_data ? mean(x) : identity(x))  .=> [:enrichment, :SD]) |>
-    transform(_, :population => (x -> replace(x, population_mapping...)) => :population_idx) |> 
-    transform(_, :individual => (x -> replace(x, [j => idx for (idx, j) in enumerate(individual[individual .∈ Ref(x)])]...)) => :individual_idx) |> 
-    transform(_, [:population_idx, :individual_idx] .=> (x -> Int.(x)), renamecols=false) |>
+    DataFrames.transform(_, :population => (x -> replace(x, population_mapping...)) => :population_idx) |> 
+    DataFrames.transform(_, :individual => (x -> replace(x, [j => idx for (idx, j) in enumerate(individual[individual .∈ Ref(x)])]...)) => :individual_idx) |> 
+    DataFrames.transform(_, [:population_idx, :individual_idx] .=> (x -> Int.(x)), renamecols=false) |>
     sort(_,[:individual_idx, :population_idx, :time]) |>
     groupby(_, [:time, :population, :individual]) |>
     hcat(parent(_), DataFrame(:technical_idx => Int.(groupindices(_)) )) |>
     groupby(_, :individual) |>
-    transform(_, :time => (x ->indexin(x, sort(unique(x)))) => :timepoint_idx) |>
+    DataFrames.transform(_, :time => (x ->indexin(x, sort(unique(x)))) => :timepoint_idx) |>
     sort(_, [:individual_idx, :population_idx, :time])
 
 	n_indv = length(unique(df[:,:individual_idx]))
@@ -22,7 +22,7 @@ function prepare_data_turing(data, data_r, data_label_p, tau; population = ["ASD
 
 	for (k, indv) in enumerate(sort(unique(df[:,:individual_idx])))
         indv_name = @pipe df |> subset(_, :individual_idx => x -> x .== indv) |> select(_,:individual) |> unique |> Array |> first
-		t_total[k] = @pipe df |> subset(_, :individual_idx => x -> x .==indv) |> _[:, :time] |> Array(_) |> unique(_) |> sort(_) 
+        t_total[k] = @pipe df |> subset(_, :individual_idx => x -> x .==indv) |> _[:, :time] |> Array(_) |> unique(_) |> sort(_) 
         label_p[k] = @pipe data_label_p |> subset(_, :variable => x -> x .==indv_name) |> select(_,label_p_names) |> Array(_)[1,:] |> [_..., tau]
 		# t_total[k] = sort(unique(@linq df_sub |> select(:time) |> Array |> reshape(:)))
 		# label_p[k] = [(@linq data_label_p |> where(:variable .== indv) |> DataFrames.select(label_p_names...) |> Array |> reshape(:))..., tau]#(; zip(Tuple([label_p_names..., :tau]),
