@@ -64,7 +64,8 @@ labelling_data_combined = @pipe vcat(
 	labelling_data_d04
 ) |>
 transform(_, [:individual, :population] .=> (x -> string.(x)), renamecols=false) |>
-subset(_, :population => (x -> x .!= "Blood"))
+subset(_, :population => (x -> x .!= "Blood")) |>
+transform(_, :population => (x -> replace.(x, "preDC" => "ASDC")), renamecols=false)
 
 # ╔═╡ d9fd135e-e6e8-11ea-0460-bb174c42188c
 md"### Glucose enrichment in saliva"
@@ -88,13 +89,13 @@ glucose_data_c53 = @pipe CSV.read(datadir("exp_raw","glucose", "C53_glucose.csv"
 glucose_data_c55 = @pipe CSV.read(datadir("exp_raw","glucose", "C55_glucose.csv"), DataFrame) |> transform(_, :time => (x -> (x ./ 24.0)) => :time, :enrichment => (x ->(x ./ 100)) => :enrichment)
 
 # ╔═╡ e67e1899-1600-4a39-b136-edb1f57bcc18
-glucose_data_d01 = @pipe CSV.read(datadir("exp_raw", "glucose", "D01_glucose.csv"), DataFrame) |> transform(_, :time => (x -> (x ./ 24.0)) => :time, :enrichment => (x ->(x ./ 100)) => :enrichment) |> insertcols!(_, :donor => "D01")
+glucose_data_d01 = @pipe CSV.read(datadir("exp_raw", "glucose", "D01_glucose.csv"), DataFrame) |> transform(_, :time => (x -> (x ./ 24.0)) => :time, :enrichment => (x ->(x ./ 100)) => :enrichment) |> DataFrames.subset(_, :time => (x -> x .!= 0.25)) |> DataFrames.subset(_, :time => (x -> x .< 0.9)) |> insertcols!(_, :donor => "D01") 
 
 # ╔═╡ 4b06410f-3eb1-4a4f-a031-0da585468918
-glucose_data_d02 = @pipe CSV.read(datadir("exp_raw", "glucose", "D02_glucose.csv"), DataFrame) |> transform(_, :time => (x -> (x ./ 24.0)) => :time, :enrichment => (x ->(x ./ 100)) => :enrichment) |> insertcols!(_, :donor => "D02")
+glucose_data_d02 = @pipe CSV.read(datadir("exp_raw", "glucose", "D02_glucose.csv"), DataFrame) |> transform(_, :time => (x -> (x ./ 24.0)) => :time, :enrichment => (x ->(x ./ 100)) => :enrichment) |> DataFrames.subset(_, :time => (x -> x .!= 0.25)) |> DataFrames.subset(_, :time => (x -> x .< 0.9)) |> insertcols!(_, :donor => "D02")
 
 # ╔═╡ 43fa43ce-2547-4268-853c-e3284ac9cbb5
-glucose_data_d04= @pipe CSV.read(datadir("exp_raw", "glucose", "D04_glucose.csv"), DataFrame) |> transform(_, :time => (x -> (x ./ 24.0)) => :time, :enrichment => (x ->(x ./ 100)) => :enrichment) |> insertcols!(_, :donor => "D04")
+glucose_data_d04= @pipe CSV.read(datadir("exp_raw", "glucose", "D04_glucose.csv"), DataFrame) |> transform(_, :time => (x -> (x ./ 24.0)) => :time, :enrichment => (x ->(x ./ 100)) => :enrichment) |> DataFrames.subset(_, :time => (x -> x .!= 0.25)) |> DataFrames.subset(_, :time => (x -> x .< 0.9)) |> insertcols!(_, :donor => "D04")
 
 # ╔═╡ 32997d5a-8742-11eb-1e90-3fefee5473e7
 md"#### Combined glucose dataset"
@@ -151,8 +152,8 @@ begin
 	ax_labelling = [Axis(f_labelling[fldmod1(j,3)...], title=first(_[j].individual),xlabel="time (days)",ylabel="label enrichment", aspect=1) for j in 1:length(_)]
 
 	celltype_colors = cgrad(:roma, 6, categorical=true)
-	celltype_color_dict = Dict("ASDC" => celltype_colors[1],"cDC1" => celltype_colors[2], "DC2" => celltype_colors[3], "pDC" =>celltype_colors[4], "DC2" =>celltype_colors[5], "DC3" =>celltype_colors[6])
-	celltype_group_dict = Dict("ASDC" => 1,"cDC1" => 2, "DC2" => 3, "pDC" =>4, "DC2" => 5, "DC3" => 6)
+	celltype_color_dict = Dict("ASDC" => celltype_colors[1],"cDC1" => celltype_colors[2], "cDC2" => celltype_colors[3], "pDC" =>celltype_colors[4], "DC2" =>celltype_colors[5], "DC3" =>celltype_colors[6])
+	celltype_group_dict = Dict("ASDC" => 1,"cDC1" => 2, "cDC2" => 3, "pDC" =>4, "DC2" => 5, "DC3" => 6)
 	
 	for j in 1:length(_)
 		CairoMakie.scatter!(ax_labelling[j],
@@ -162,7 +163,7 @@ begin
 			group=map(x -> celltype_group_dict[x], _[j].population)) 
 	end
 	
-	f_labelling[1:2,4] = Legend(f_labelling,[MarkerElement(color = j, marker=:circle) for j in celltype_colors], ["ASDC", "cDC1", "DC2", "pDC", "DC2", "DC3"])
+	f_labelling[1:2,4] = Legend(f_labelling,[MarkerElement(color = j, marker=:circle) for j in celltype_colors], ["ASDC", "cDC1", "cDC2", "pDC", "DC2", "DC3"])
 
 	hideydecorations!.(ax_labelling[[(2:3:length(_))..., (3:3:length(_))...]],ticks=false,ticklabels=false)
 	hidexdecorations!.(ax_labelling[1:6],ticks=false,ticklabels=false)
