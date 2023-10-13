@@ -303,7 +303,7 @@ end
 
 # ╔═╡ 0aef9d6e-cae1-11ec-3673-2568b90fd439
 begin
-df_label_pars = DataFrame(hcat([j.minimizer[[1,2,3]] for j in res_mle_local]...),[:C66,:C67,:C68, :C52, :C53, :C55, :D01, :D02, :D03])
+df_label_pars = DataFrame(hcat([j.minimizer[[1,2,3]] for j in res_mle_local]...),[:C66,:C67,:C68, :C52, :C53, :C55, :D01, :D02, :D04])
 df_label_pars = hcat(DataFrame(:parameter => ["fr","delta","frac"]), df_label_pars)
 df_label_pars = DataFrames.unstack(DataFrames.stack(df_label_pars, Not(:parameter)),:variable, :parameter, :value)
 
@@ -311,7 +311,7 @@ end
 
 # ╔═╡ 0aef9d78-cae1-11ec-28b0-5f8679a5704f
 begin
-	df_label_pars_map = DataFrame(hcat([j.minimizer[[1,2,3]] for j in res_map_local]...),[:C66,:C67,:C68, :C52, :C53, :C55, :D01, :D02, :D03])
+	df_label_pars_map = DataFrame(hcat([j.minimizer[[1,2,3]] for j in res_map_local]...),[:C66,:C67,:C68, :C52, :C53, :C55, :D01, :D02, :D04])
 	df_label_pars_map = hcat(DataFrame(:parameter => ["fr","delta","frac"]), df_label_pars_map)
 	df_label_pars_map = DataFrames.unstack(DataFrames.stack(df_label_pars_map, Not(:parameter)),:variable, :parameter, :value)
 end
