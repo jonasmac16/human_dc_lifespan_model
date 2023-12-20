@@ -607,7 +607,7 @@ begin
 				"RDC2" => "R_DC2",
 				"RASDC_cDC1_bm" => "R_ASDCcDC1bm",
 				"RASDC_DC2_bm" => "R_ASDCDC2bm",
-				"RASDC_cDC1_blood" => "R_ASDCcDC1b",
+				"RASDC_cDC1_blood" => "R_precDC1b",
 				"RASDC_DC2_blood" => "R_ASDCDC2b",
 				"RDC3" => "R_DC3"]
 		
@@ -637,11 +637,11 @@ vcat(df_ratio_approaches_combined, _) |>
 DataFrames.transform(_, :method => (x -> categorical(x, levels = ["1a","1b","1c","2"])), renamecols=false) |>
 rename(_, :method => :approach)
 
-# df_ratio_approaches_combined = @pipe df_ratio_approaches_combined |>
-# DataFrames.transform(_, :parameter => rename_ratios => :parameter)
+df_ratio_approaches_combined = @pipe df_ratio_approaches_combined |>
+DataFrames.transform(_, :parameter => rename_ratios => :parameter)
 
-# df_ratio_approaches_combined_wpdc = @pipe df_ratio_approaches_combined_wpdc |>
-# DataFrames.transform(_, :parameter => rename_ratios => :parameter)
+df_ratio_approaches_combined_wpdc = @pipe df_ratio_approaches_combined_wpdc |>
+DataFrames.transform(_, :parameter => rename_ratios => :parameter)
 
 end
 
@@ -672,11 +672,21 @@ md"#### Bootstraping to determine creadible priors for proliferation rate"
 	df_cycle_long_bm = @linq df_cycle_long_updated |> where(:state .== "G2", :location .== "bm") |> transform(:value= :value ./100)
 
 # ╔═╡ f9882475-6e97-4026-9f08-9d50d74d41b8
+begin
+	
 @model normal_model(x) = begin
 	μ ~ Uniform(0.0,2)
 	σ ~ Uniform(0.0,2) 
 	
-	x .~ Truncated(Normal(μ,σ), 0, Inf)
+	x .~ Truncated(Normal(μ,σ), 0, 2.0)
+
+end
+
+function opt_func(x, data)
+	lpdf_vec = similar(data, Float64)
+	logpdf!(lpdf_vec, Truncated(Normal(x[1],x[2]), 0, 2.0), data)
+	return sum(lpdf)
+end
 
 end
 
@@ -698,28 +708,35 @@ fit_res = fit_mle(Normal, bootst_comb_ASDC)
 # ╔═╡ 8c1b9ce5-803b-45e4-adc2-1eeabf56a9cd
 begin
 	galac_prob_ASDC = Turing.optim_problem(normal_model(bootst_comb_ASDC), MLE();constrained=true, autoad = Optimization.AutoForwardDiff(), lb=[0.0, 0.0], ub=[2.0, 2.0])	
-	res_ASDC= solve(galac_prob_ASDC.prob, BBO_adaptive_de_rand_1_bin_radiuslimited(), maxiters = 1e7, allow_f_increases=true);
+	res_ASDC= solve(galac_prob_ASDC.prob, Fminbox(GradientDescent()), maxiters = 1e7, allow_f_increases=true);
 	res_ASDC_GD= solve(remake(galac_prob_ASDC.prob, u0=res_ASDC.u), Fminbox(GradientDescent()), maxiters = 1e6);
 end
 
+# ╔═╡ bb93e961-f87d-41ed-bcca-1a4f11d7ed29
+begin
+	f_asdc = OptimizationFunction((x, p) -> rosenbrock(x, bootst_comb_cDC1), Optimization.AutoForwardDiff())
+	prob_asdc = OptimizationProblem(f_asdc, x0; lb=[0.0, 0.0], ub=[2.0, 2.0])
+	res_ASDC_f= solve(prob_asdc, Fminbox(GradientDescent()), maxiters = 1e7, allow_f_increases=true);
+	res_ASDC_f_GD= solve(remake(prob_asdc, u0=res_ASDC_f.u), Fminbox(GradientDescent()), maxiters = 1e6);
+end
 # ╔═╡ 0f36747b-3392-48ea-a829-9831a5f031e4
 begin
 	galac_prob_cDC1 = Turing.optim_problem(normal_model(bootst_comb_cDC1), MLE();constrained=true, autoad = Optimization.AutoForwardDiff(), lb=[0.0, 0.0], ub=[2.0, 2.0])	
-	res_cDC1= solve(galac_prob_cDC1.prob, BBO_adaptive_de_rand_1_bin_radiuslimited(), maxiters = 1e7, allow_f_increases=true);
+	res_cDC1= solve(galac_prob_cDC1.prob, Fminbox(GradientDescent()), maxiters = 1e7, allow_f_increases=true);
 	res_cDC1_GD= solve(remake(galac_prob_cDC1.prob, u0=res_cDC1.u), Fminbox(GradientDescent()), maxiters = 1e6);
 end
 
 # ╔═╡ 1162d297-0776-43cf-b47c-a30d175e70eb
 begin
 	galac_prob_DC2 = Turing.optim_problem(normal_model(bootst_comb_DC2), MLE();constrained=true, autoad = Optimization.AutoForwardDiff(), lb=[0.0, 0.0], ub=[2.0, 2.0])	
-	res_DC2= solve(galac_prob_DC2.prob, BBO_adaptive_de_rand_1_bin_radiuslimited(), maxiters = 1e7, allow_f_increases=true);
+	res_DC2= solve(galac_prob_DC2.prob, Fminbox(GradientDescent()), maxiters = 1e7, allow_f_increases=true);
 	res_DC2_GD= solve(remake(galac_prob_DC2.prob, u0=res_DC2.u), Fminbox(GradientDescent()), maxiters = 1e6);
 end
 
 # ╔═╡ c6d5216b-1981-41b3-8c44-3d75f19b0a7d
 begin
 	galac_prob_DC3 = Turing.optim_problem(normal_model(bootst_comb_DC3), MLE();constrained=true, autoad = Optimization.AutoForwardDiff(), lb=[0.0, 0.0], ub=[2.0, 2.0])	
-	res_DC3= solve(galac_prob_DC3.prob, BBO_adaptive_de_rand_1_bin_radiuslimited(), maxiters = 1e7, allow_f_increases=true);
+	res_DC3= solve(galac_prob_DC3.prob, Fminbox(GradientDescent()), maxiters = 1e7, allow_f_increases=true);
 	res_DC3_GD= solve(remake(galac_prob_DC3.prob, u0=res_DC3.u), Fminbox(GradientDescent()), maxiters = 1e6);
 end
 
@@ -736,7 +753,7 @@ begin
 	
 	for (idx, j) in enumerate(eachrow(df_p_priors_truncated))
 		ax_prior[idx].title= j.parameter
-		CairoMakie.density!(ax_prior[idx], rand(Truncated(Normal(j.μ, j.σ), 0, 3.0), 10000), label="fitted prior",strokewidth = 2)
+		CairoMakie.density!(ax_prior[idx], rand(Truncated(Normal(j.μ, j.σ), 0, 2.0), 10000), label="fitted prior",strokewidth = 2)
 		CairoMakie.density!(ax_prior[idx],[bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2,bootst_comb_DC3][idx], label="bootstrap sample", color=(:red,0.0), strokecolor=:red,strokewidth = 2)
 		# CairoMakie.xlims!(ax_prior[idx], (-0.0,0.5))
 		CairoMakie.xlims!(ax_prior[idx], (-0.,maximum([bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2,bootst_comb_DC3][idx])*1.2))
@@ -773,10 +790,10 @@ md"## Save priors to harddrive"
 md"We save the new prior parameters both as CSV and BSON files to be used in the downstream analysis and modelling"
 
 # ╔═╡ 17de5082-7c73-11eb-2b3a-c712a6d6664e
-save(datadir("exp_pro", "p_priors_truncatednormal.csv"), df_p_priors_truncated)
+save(datadir("exp_pro", "p_priors_truncatedlognormal.csv"), df_p_priors_truncated)
 
 # ╔═╡ 172900ce-7c73-11eb-1ace-1919cfed3ac0
-save(datadir("exp_pro", "p_priors_truncatednormal.bson"), :df_p_priors=>df_p_priors_truncated)
+save(datadir("exp_pro", "p_priors_truncatedlognormal.bson"), :df_p_priors=>df_p_priors_truncated)
 
 # ╔═╡ efaf5444-2b1e-11eb-1d33-19962296cb3f
 md"## Dependencies"
@@ -853,6 +870,7 @@ set_aog_theme!()
 # ╠═f9f438d7-6a4f-43a8-b3ac-50d080bbab45
 # ╠═075961aa-1ae1-460c-8ff3-34de54542a3e
 # ╠═73ff43f2-bd2d-4b27-a7a1-75ebaacbd772
+# ╠═bb93e961-f87d-41ed-bcca-1a4f11d7ed29
 # ╠═8c1b9ce5-803b-45e4-adc2-1eeabf56a9cd
 # ╠═0f36747b-3392-48ea-a829-9831a5f031e4
 # ╠═1162d297-0776-43cf-b47c-a30d175e70eb

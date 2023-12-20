@@ -151,21 +151,21 @@ end
 function (b::Inverse{<:MyBijector})(y::AbstractVector)
 	x = similar(y)
 
-    x[1] = inv(bijector(b.orig.dp_ASDCbm))(y[1]) #p_ASDCbm
-    x[2] = inv(bijector(b.orig.dp_cDC1bm))(y[2]) #p_cDC1bm
-    x[3] = inv(bijector(b.orig.dp_DC2bm))(y[3]) #p_DC2bm
+    x[1] = inverse(bijector(b.orig.dp_ASDCbm))(y[1]) #p_ASDCbm
+    x[2] = inverse(bijector(b.orig.dp_cDC1bm))(y[2]) #p_cDC1bm
+    x[3] = inverse(bijector(b.orig.dp_DC2bm))(y[3]) #p_DC2bm
     
-    x[7] = inv(bijector(truncated(b.orig.dΔ_cDC1bm, 0.0,  -6e-12 + x[1]) ))(y[7]) #Δ_cDC1bm
-    x[8] = inv(bijector(truncated(b.orig.dΔ_DC2bm, 0.0, -5e-12 +  x[1] - x[7]) ))(y[8]) #Δ_DC2bm
-    x[9] = inv(bijector(truncated(b.orig.dΔ_cDC1b,0.0, -4e-12 + (x[1] - x[7] -x[8])*b.orig.RASDC)))(y[9]) #Δ_cDC1b
-    x[10] = inv(bijector(truncated(b.orig.dΔ_DC2b,0.0, -3e-12 + (x[1] - x[7] -x[8]-x[9]/b.orig.RASDC)*b.orig.RASDC)))(y[10]) #Δ_DC2b
-    x[4] = inv(bijector(truncated(b.orig.dδ_ASDCb,0.0, -2e-12 +  (x[1] - x[7] -x[8]-x[9]/b.orig.RASDC-x[10]/b.orig.RASDC)*b.orig.RASDC)))(y[4]) #δ_ASDCb
+    x[7] = inverse(bijector(truncated(b.orig.dΔ_cDC1bm, 0.0,  -6e-12 + x[1]) ))(y[7]) #Δ_cDC1bm
+    x[8] = inverse(bijector(truncated(b.orig.dΔ_DC2bm, 0.0, -5e-12 +  x[1] - x[7]) ))(y[8]) #Δ_DC2bm
+    x[9] = inverse(bijector(truncated(b.orig.dΔ_cDC1b,0.0, -4e-12 + (x[1] - x[7] -x[8])*b.orig.RASDC)))(y[9]) #Δ_cDC1b
+    x[10] = inverse(bijector(truncated(b.orig.dΔ_DC2b,0.0, -3e-12 + (x[1] - x[7] -x[8]-x[9]/b.orig.RASDC)*b.orig.RASDC)))(y[10]) #Δ_DC2b
+    x[4] = inverse(bijector(truncated(b.orig.dδ_ASDCb,0.0, -2e-12 +  (x[1] - x[7] -x[8]-x[9]/b.orig.RASDC-x[10]/b.orig.RASDC)*b.orig.RASDC)))(y[4]) #δ_ASDCb
     
     
     upper_λ_cDC1 = x[2] + x[7] * b.orig.RASDC_cDC1_bm
     upper_λ_DC2 = x[3] + x[8] * b.orig.RASDC_DC2_bm
-    x[5] = inv(bijector(truncated(b.orig.dλ_cDC1, -Inf, upper_λ_cDC1)))(y[5]) #λ_cDC1
-    x[6] = inv(bijector(truncated(b.orig.dλ_DC2, -Inf, upper_λ_DC2)))(y[6]) #λ_DC2 
+    x[5] = inverse(bijector(truncated(b.orig.dλ_cDC1, -Inf, upper_λ_cDC1)))(y[5]) #λ_cDC1
+    x[6] = inverse(bijector(truncated(b.orig.dλ_DC2, -Inf, upper_λ_DC2)))(y[6]) #λ_DC2 
 
     return x
 end
@@ -191,12 +191,12 @@ function Bijectors.logabsdetjac(b::MyBijector, x::AbstractVector)
 
     return l
 end
-Bijectors.bijector(d::MyDistribution)= MyBijector(d.dp_ASDCbm,d.dp_cDC1bm,d.dp_DC2bm,d.dδ_ASDCb,d.dΔ_cDC1bm,d.dΔ_DC2bm,d.dΔ_cDC1b,d.dΔ_DC2b,d.dλ_cDC1,d.dλ_DC2,d.RASDC,d.RASDC_cDC1_bm,d.RASDC_DC2_bm)
+Bijecyytors.bijector(d::MyDistribution)= MyBijector(d.dp_ASDCbm,d.dp_cDC1bm,d.dp_DC2bm,d.dδ_ASDCb,d.dΔ_cDC1bm,d.dΔ_DC2bm,d.dΔ_cDC1b,d.dΔ_DC2b,d.dλ_cDC1,d.dλ_DC2,d.RASDC,d.RASDC_cDC1_bm,d.RASDC_DC2_bm)
 
 
 
 function prob_func(prob, theta, label_p, saveat)
-    return remake(prob, u0=prob.u0, p=[theta...,label_p...], saveat=saveat, save_idxs=save_idxs,d_discontinuity=[0.5/24.0,label_p[4]])
+    return remake(prob, u0=prob.u0, p=[theta...,label_p...], saveat=saveat, d_discontinuities=[0.5/24.0,label_p[4]])
 end
 
 function solve_dc_ode(ODEprob::DiffEqBase.ODEProblem, theta, label_p::Array{Array{Float64,1},1}, timepoints::Array{Array{Float64,1},1}, parallel_mode; solver = AutoVern9(KenCarp4(autodiff=true),lazy=false),kwargs...)
@@ -229,7 +229,7 @@ end
     ## solve ODE threaded
     sol = solve_dc_ode(ode_prob, theta, metadata.label_p, metadata.timepoints, ode_parallel_mode, solver=solver; dense=false, ode_args...)
 
-
+    
     ## exit sample if ODE solver failed
     if any([j.retcode != :Success for j in sol])
         Turing.@addlogprob! -Inf
@@ -237,13 +237,13 @@ end
     end
 
     ## calculate likelihood (mean)
-    data ~ MvNormal(sol[metadata.order.donor][metadata.order.population, metadata.order.time], σ[metadata.order.population, metadata.order.donor])
+    data ~ MvNormal([sol[metadata.order.donor[j]][metadata.order.population[j], metadata.order.timepoint_idx[j]] for j in 1:metadata.n_meassurements], [σ[metadata.order.population[j], metadata.order.donor[j]] for j in 1:metadata.n_meassurements])
 
    
 
     ## generated_quantities
     return (;sol =sol,
-    log_likelihood = logpdf(MvNormal(sol[metadata.order.donor][metadata.order.population, metadata.order.time], σ[metadata.order.population]), data),
+    log_likelihood = logpdf(MvNormal([sol[metadata.order.donor[j]][metadata.order.population[j], metadata.order.timepoint_idx[j]] for j in 1:metadata.n_meassurements], [σ[metadata.order.population[j], metadata.order.donor[j]] for j in 1:metadata.n_meassurements]), data),
     parameters =(;p_ASDCbm=p_ASDCbm, δ_ASDCbm=δ_ASDCbm, p_cDC1bm=p_cDC1bm, δ_cDC1bm=δ_cDC1bm, p_DC2bm=p_DC2bm, δ_DC2bm=δ_DC2bm, δ_ASDCb=δ_ASDCb, δ_cDC1b=δ_cDC1b, δ_DC2b=δ_DC2b, λ_ASDC=λ_ASDC, λ_cDC1=λ_cDC1, λ_DC2=λ_DC2, Δ_cDC1bm=Δ_cDC1bm, Δ_DC2bm=Δ_DC2bm, Δ_cDC1b=Δ_cDC1b, Δ_DC2b=Δ_DC2b))
 end
 
