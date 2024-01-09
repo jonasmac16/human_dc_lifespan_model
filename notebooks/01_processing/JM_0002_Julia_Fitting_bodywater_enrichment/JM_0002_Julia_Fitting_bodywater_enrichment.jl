@@ -39,7 +39,7 @@ include(projectdir("models","ode", "U_func.jl"))
 folder_name = "JM_0002_Julia_Fitting_bodywater_enrichment"
 
 # ╔═╡ 0aef9c7e-cae1-11ec-0ab1-2fe3cc83abe2
-data_label = CSV.read(datadir("exp_pro", "glucose_data.csv"), DataFrame)
+data_label = CSV.read(datadir("exp_pro", "glucose_data_revision.csv"), DataFrame)
 
 
 # ╔═╡ 0aef9c90-cae1-11ec-00db-45f0282ad055
@@ -108,6 +108,24 @@ for j in gdata_label
 end
 
 
+# ╔═╡ 0aef9cd8-cae1-11ec-19db-5193e044feec
+p0 = Plots.plot(layout=length(res_mle_local));
+
+
+# ╔═╡ 0aef9cd8-cae1-11ec-19ca-27c92d88a69b
+for j in 1:length(res_mle_local)
+    Plots.plot!(p0, tp,  U_smooth_2stp.(tp, res_mle_global[j].minimizer[[1,2]]..., frac_exp, tau_stop, res_mle_global[j].minimizer[3]), lab="MLE fit (global)", subplot=j)
+    Plots.plot!(p0, tp,  U_smooth_2stp.(tp, res_mle_local[j].minimizer[[1,2]]..., frac_exp, tau_stop, res_mle_local[j].minimizer[3]), lab="MLE fit (global + local)", subplot=j)
+    Plots.xlabel!(p0, "time (d)",  subplot=j)
+    Plots.ylabel!(p0, "labelled fraction of BW", subplot=j)
+    @df gdata_label[j] Plots.scatter!(p0, :time, :enrichment, lab=unique(:individual)[1], subplot=j)
+end
+
+
+# ╔═╡ 0aef9ce2-cae1-11ec-2e50-cd375a56e5b5
+p0
+
+
 # ╔═╡ 0aef9ce2-cae1-11ec-372a-07838eecfb43
 res_map_global = Array{Any,1}()
 
@@ -129,6 +147,27 @@ for j in gdata_label
     res_local_tmp = GalacticOptim.solve(gprob_local.prob, Fminbox(LBFGS()); maxiters=1e6, allow_f_increases=false)
     push!(res_map_local, res_local_tmp)
 end
+
+
+# ╔═╡ 0aef9cf6-cae1-11ec-2c31-85021922ee58
+p1 = Plots.plot(layout=length(res_map_local));
+
+
+# ╔═╡ 0aef9d00-cae1-11ec-39a8-09811c80d8a3
+for j in 1:length(res_map_local)
+    Plots.plot!(p1, tp,  U_smooth_2stp.(tp, res_map_global[j].minimizer[[1,2]]...,frac_exp, tau_stop, res_map_global[j].minimizer[3]), lab="MLE fit (global)", subplot=j)
+    Plots.plot!(p1, tp,  U_smooth_2stp.(tp, res_map_local[j].minimizer[[1,2]]...,frac_exp, tau_stop, res_map_local[j].minimizer[3]), lab="MLE fit (global + local)", subplot=j)
+    Plots.xlabel!(p1, "time (d)",  subplot=j)
+    Plots.ylabel!(p1, "labelled fraction of BW", subplot=j)
+    @df gdata_label[j] Plots.scatter!(p1, :time, :enrichment, lab=unique(:individual)[1], subplot=j)
+end
+
+
+# ╔═╡ a5dd9888-fc23-4480-8c5f-981a3fbc64df
+p1
+
+# ╔═╡ 0aef9d00-cae1-11ec-11f6-254c146c5757
+p1
 
 
 # ╔═╡ 0aef9d0a-cae1-11ec-152b-d72930ff7e95
@@ -167,37 +206,13 @@ end
 
 # ╔═╡ 0aef9d34-cae1-11ec-00b0-5f343f7157a9
 begin
-    p0 = Plots.plot(layout=(length(res_mle_local),1)) 
-    p1 = Plots.plot(layout=(length(res_map_local),1)) 
+    # p0 = Plots.plot(layout=(length(res_mle_local),1)) 
+    # p1 = Plots.plot(layout=(length(res_map_local),1)) 
 end# corner(res_posterior[6])
 
 
-# ╔═╡ 0aef9cd8-cae1-11ec-19ca-27c92d88a69b
-for j in 1:length(res_mle_local)
-    Plots.plot!(p0, tp,  U_smooth_2stp.(tp, res_mle_global[j].minimizer[[1,2]]..., frac_exp, tau_stop, res_mle_global[j].minimizer[3]), lab="MLE fit (global)", subplot=j)
-    Plots.plot!(p0, tp,  U_smooth_2stp.(tp, res_mle_local[j].minimizer[[1,2]]..., frac_exp, tau_stop, res_mle_local[j].minimizer[3]), lab="MLE fit (global + local)", subplot=j)
-    Plots.xlabel!(p0, "time (d)",  subplot=j)
-    Plots.ylabel!(p0, "labelled fraction of BW", subplot=j)
-    @df gdata_label[j] Plots.scatter!(p0, :time, :enrichment, lab=unique(:individual)[1], subplot=j)
-end
-
-
-# ╔═╡ 0aef9ce2-cae1-11ec-2e50-cd375a56e5b5
-p0
-
-
-# ╔═╡ 0aef9d00-cae1-11ec-39a8-09811c80d8a3
-for j in 1:length(res_map_local)
-    Plots.plot!(p1, tp,  U_smooth_2stp.(tp, res_map_global[j].minimizer[[1,2]]...,frac_exp, tau_stop, res_map_global[j].minimizer[3]), lab="MLE fit (global)", subplot=j)
-    Plots.plot!(p1, tp,  U_smooth_2stp.(tp, res_map_local[j].minimizer[[1,2]]...,frac_exp, tau_stop, res_map_local[j].minimizer[3]), lab="MLE fit (global + local)", subplot=j)
-    Plots.xlabel!(p1, "time (d)",  subplot=j)
-    Plots.ylabel!(p1, "labelled fraction of BW", subplot=j)
-    @df gdata_label[j] Plots.scatter!(p1, :time, :enrichment, lab=unique(:individual)[1], subplot=j)
-end
-
-
-# ╔═╡ 0aef9d00-cae1-11ec-11f6-254c146c5757
-p1
+# ╔═╡ 0aef9d34-cae1-11ec-22d2-552b36bab767
+# p2 = plot(layout=length(res_posterior))
 
 
 # ╔═╡ 0aef9d34-cae1-11ec-1b78-3d3a1cbfc31a
@@ -221,15 +236,17 @@ p1
 
 
 # ╔═╡ 0aef9d3c-cae1-11ec-2598-4d9467f6864e
-df_ut_sol = DataFrame(time=Float64[], individual=String[], enrichment=Float64[], idx_post_sample = Int[])
 
 
 # ╔═╡ 0aef9d3c-cae1-11ec-3b29-492a471db6d2
-df_ut_max_sol = DataFrame(time=Float64[], individual=String[], enrichment=Float64[], fit = String[])
+
 
 
 # ╔═╡ 0aef9d46-cae1-11ec-08cb-d3af433c1844
-for j in 1:length(res_posterior)
+begin
+	df_ut_sol = DataFrame(time=Float64[], individual=String[], enrichment=Float64[], idx_post_sample = Int[])
+	df_ut_max_sol = DataFrame(time=Float64[], individual=String[], enrichment=Float64[], fit = String[])
+	for j in 1:length(res_mle_local)
     # for k in sample(1:size(posterior_arr,1), 200)
     #     df_ut_sol = vcat(df_ut_sol, DataFrame(
     #     time = tp,  
@@ -237,18 +254,21 @@ for j in 1:length(res_posterior)
     #     idx_post_sample = fill(k, length(tp)),
     #     individual = fill(first(unique(gdata_label[j].individual)), length(tp))))
     # end
-   global df_ut_max_sol = vcat(df_ut_max_sol, DataFrame(
+   		global df_ut_max_sol = vcat(df_ut_max_sol, DataFrame(
         time = tp,  
         enrichment = U_smooth_2stp.(tp, res_mle_local[j].minimizer[[1,2]]...,frac_exp, tau_stop, res_mle_local[j].minimizer[3]),
         fit = fill("MLE", length(tp)),
         individual = fill(first(unique(gdata_label[j].individual)), length(tp))))
-    global df_ut_max_sol = vcat(df_ut_max_sol, DataFrame(
+    	global df_ut_max_sol =  vcat(df_ut_max_sol, DataFrame(
         time = tp,  
         enrichment = U_smooth_2stp.(tp, res_map_local[j].minimizer[[1,2]]...,frac_exp, tau_stop, res_map_local[j].minimizer[3]),
         fit = fill("MAP", length(tp)),
         individual = fill(first(unique(gdata_label[j].individual)), length(tp))))
 end
+end
 
+# ╔═╡ 5c63f5d4-284d-402b-9f04-88503a9abc81
+df_ut_max_sol
 
 # ╔═╡ 0aef9d46-cae1-11ec-11c4-fb27e8670ea0
 axis = (width = 225, height = 225)
@@ -311,7 +331,7 @@ p_dens_mle =Plots.plot(p_dens_mle_arr...)
 
 # ╔═╡ 0aef9d6e-cae1-11ec-3673-2568b90fd439
 begin
-df_label_pars = DataFrame(hcat([j.minimizer[[1,2,3]] for j in res_mle_local]...),[:C66,:C67,:C68, :C52, :C53, :C55])
+df_label_pars = DataFrame(hcat([j.minimizer[[1,2,3]] for j in res_mle_local]...),[:C66,:C67,:C68, :C52, :C53, :C55, :D01, :D02, :D04])
 df_label_pars = hcat(DataFrame(:parameter => ["fr","delta","frac"]), df_label_pars)
 df_label_pars = DataFrames.unstack(DataFrames.stack(df_label_pars, Not(:parameter)),:variable, :parameter, :value)
 
@@ -319,7 +339,7 @@ end
 
 # ╔═╡ 0aef9d78-cae1-11ec-28b0-5f8679a5704f
 begin
-	df_label_pars_map = DataFrame(hcat([j.minimizer[[1,2,3]] for j in res_map_local]...),[:C66,:C67,:C68, :C52, :C53, :C55])
+	df_label_pars_map = DataFrame(hcat([j.minimizer[[1,2,3]] for j in res_map_local]...),[:C66,:C67,:C68, :C52, :C53, :C55, :D01, :D02, :D04])
 	df_label_pars_map = hcat(DataFrame(:parameter => ["fr","delta","frac"]), df_label_pars_map)
 	df_label_pars_map = DataFrames.unstack(DataFrames.stack(df_label_pars_map, Not(:parameter)),:variable, :parameter, :value)
 end
@@ -338,18 +358,6 @@ save(datadir("exp_pro", "labeling_parameters.bson"),  df_label_pars => df_label_
 
 # ╔═╡ 0aef9d8c-cae1-11ec-0848-63e7cfd1eafa
 # save(datadir("exp_pro", "labeling_parameters_map_2stp_frac_all_corrected_updated.bson"),  df_label_pars_map => df_label_pars_map)
-
-
-# ╔═╡ 0aef9cf6-cae1-11ec-2c31-85021922ee58
-p1 = Plots.plot(layout=length(res_map_local))
-
-
-# ╔═╡ 0aef9cd8-cae1-11ec-19db-5193e044feec
-p0 = Plots.plot(layout=length(res_mle_local))
-
-
-# ╔═╡ 0aef9d34-cae1-11ec-22d2-552b36bab767
-# p2 = plot(layout=length(res_posterior))
 
 
 # ╔═╡ Cell order:
@@ -377,6 +385,7 @@ p0 = Plots.plot(layout=length(res_mle_local))
 # ╠═0aef9cf6-cae1-11ec-20a1-55d39fa0bca2
 # ╠═0aef9cf6-cae1-11ec-2c31-85021922ee58
 # ╠═0aef9d00-cae1-11ec-39a8-09811c80d8a3
+# ╠═a5dd9888-fc23-4480-8c5f-981a3fbc64df
 # ╠═0aef9d00-cae1-11ec-11f6-254c146c5757
 # ╠═0aef9d0a-cae1-11ec-152b-d72930ff7e95
 # ╠═0aef9d14-cae1-11ec-26bc-1dbde25fb496
@@ -392,6 +401,7 @@ p0 = Plots.plot(layout=length(res_mle_local))
 # ╠═0aef9d3c-cae1-11ec-2598-4d9467f6864e
 # ╠═0aef9d3c-cae1-11ec-3b29-492a471db6d2
 # ╠═0aef9d46-cae1-11ec-08cb-d3af433c1844
+# ╠═5c63f5d4-284d-402b-9f04-88503a9abc81
 # ╠═0aef9d46-cae1-11ec-11c4-fb27e8670ea0
 # ╠═0aef9d50-cae1-11ec-290d-cd6a65172b4e
 # ╠═0aef9d50-cae1-11ec-1f1d-4d568c628508
