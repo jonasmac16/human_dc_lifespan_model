@@ -39,7 +39,7 @@ include(projectdir("models", "ode", "U_func_c.jl"))
 include(srcdir("dataprep.jl"))
 
 # ╔═╡ 08c11aec-77a7-11eb-361a-618885fecfcb
-donor_ids = ["C66", "C67", "C68", "C52"]
+donor_ids = ["D01", "D02", "D04"]
 
 # ╔═╡ 8b6fd220-7aee-11eb-3954-99cf3a51bc7b
 cell_cycle_approach = 3
