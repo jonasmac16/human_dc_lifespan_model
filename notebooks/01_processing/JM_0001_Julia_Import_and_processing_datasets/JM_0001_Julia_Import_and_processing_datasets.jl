@@ -385,7 +385,7 @@ visual(BoxPlot) |>
 draw(_; facet =(; linkyaxes=:none))
 
 # ╔═╡ 06ce9870-1bdc-4264-b1b0-b644ef83b764
-md"It appears that the new dataset has consistently higher DC cell concentrations compared to the original dataset."
+md"It appears that the new dataset has consistently lower DC cell concentrations compared to the original dataset. After consultating with Simon, he confirmed that the original data was measured using counting beads while the new dataset used the inherent capability of the flow cytometer to count cells per defined volume. The latter approach should yield more accurate numbers and thus will be used in the subsequent step to determine the cell compartment sizes and ratio."
 
 # ╔═╡ 77ee7ac7-9d16-4a52-9aec-aa1c681eb3ff
 md"### Cell popualtion cell cycle status across blood and bone marrow"
@@ -422,9 +422,6 @@ md"#### Package dependecies"
 
 # ╔═╡ 22ee8a6d-1480-43ee-890d-d4bcf4760393
 AlgebraOfGraphics.set_aog_theme!()
-
-# ╔═╡ c0b9f8f3-b4d7-476b-8834-5cf1705d4e97
-
 
 # ╔═╡ Cell order:
 # ╟─141db2a8-e6e3-11ea-1e2f-4d896be01e9a
@@ -508,4 +505,3 @@ AlgebraOfGraphics.set_aog_theme!()
 # ╠═53afd088-5645-4b1d-9db7-3d8e61a1562d
 # ╠═7ac5d39e-e6e3-11ea-1250-81b0b1181a87
 # ╠═22ee8a6d-1480-43ee-890d-d4bcf4760393
-# ╠═c0b9f8f3-b4d7-476b-8834-5cf1705d4e97
