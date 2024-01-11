@@ -291,8 +291,10 @@ plt_fit = draw(layer_2 + layer_3; axis=(axis..., xlabel="time (days)", ylabel="e
 
 
 # ╔═╡ 0aef9d5a-cae1-11ec-110f-ad3f37e7b85d
-save(projectdir("notebooks", "01_processing", folder_name, "MLE_MAP_BW_fit.pdf"), plt_fit)
-
+begin
+    mkpath(projectdir("notebooks", "01_processing", folder_name,"results"))
+    save(projectdir("notebooks", "01_processing", folder_name, "results","MLE_MAP_BW_fit.pdf"), plt_fit)
+end
 
 # ╔═╡ 0aef9d5a-cae1-11ec-1546-5963eb87a8fd
 p_dens_mle_arr = Array{Any,1}()
