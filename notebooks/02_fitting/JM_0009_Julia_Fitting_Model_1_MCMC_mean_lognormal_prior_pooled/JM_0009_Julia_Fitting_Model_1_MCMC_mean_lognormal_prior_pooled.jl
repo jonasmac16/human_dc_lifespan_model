@@ -132,7 +132,7 @@ cell_ratios = DataFrame(load(datadir("exp_pro", "cell_ratios.csv")))
 # cell_cycle = DataFrame(load(datadir("exp_pro","JM_0014", "cell_cycle_status_proliferation_rate_bm.csv")))
 
 # ╔═╡ a34e9244-7200-11eb-0d20-0f8f74e2b6f6
-labelling_data = DataFrame(load(datadir("exp_pro", "labelling_data.csv")))
+labelling_data = DataFrame(load(datadir("exp_pro", "labelling_data_revision.csv")))
 
 # ╔═╡ 6b6ff7d0-7a7c-11eb-3ac1-fd7a3e6086ac
 function aic(logp, npar; k=2)
