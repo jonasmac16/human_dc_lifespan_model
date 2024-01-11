@@ -160,7 +160,7 @@ begin
 
     data_in = prepare_data_turing(labelling_data, cell_ratios, label_ps, tau_stop; population = ["DC3"], individual = donor_ids, ratios = ["R_DC3"], label_p_names = [:fr,:delta, :frac], ratio_approach=ratio_approach, ratio_summary = ratio_summary, mean_data = true)
 	
-	model(du,u,p,t) = eval(Symbol("_model_pdc_"*model_id))(du,u,p,t, U_func, data_in.metadata.R)
+	model(du,u,p,t) = eval(Symbol("_model_dc3_"*model_id))(du,u,p,t, U_func, data_in.metadata.R)
 
 	problem = ODEProblem(model, u0, (0.0, maximum(vcat(data_in.metadata.timepoints...))),p_init)
 
