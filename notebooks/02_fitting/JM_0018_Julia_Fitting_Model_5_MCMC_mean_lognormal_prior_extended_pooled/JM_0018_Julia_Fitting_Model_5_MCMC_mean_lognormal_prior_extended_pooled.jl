@@ -34,7 +34,10 @@ end
 include(projectdir("models", "ode", "U_func_c.jl"))
 
 # ╔═╡ 0b6b2120-7171-11eb-2e58-ff6d10cf5254
-include(srcdir("dataprep.jl"))
+begin
+	include(srcdir("dataprep.jl"))
+	include(srcdir("create_dist.jl"))
+end
 
 # ╔═╡ 08c11aec-77a7-11eb-361a-618885fecfcb
 donor_ids = ["D01", "D02", "D04", "C66", "C67", "C68", "C55"]

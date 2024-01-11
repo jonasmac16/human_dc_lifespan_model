@@ -34,7 +34,10 @@ end
 include(projectdir("models", "ode", "U_func_c.jl"))
 
 # ╔═╡ 0b6b2120-7171-11eb-2e58-ff6d10cf5254
-include(srcdir("dataprep.jl"))
+begin
+	include(srcdir("dataprep.jl"))
+	include(srcdir("create_dist.jl"))
+end
 
 # ╔═╡ e0401a03-70b0-415f-9223-202c1f4aef4f
 begin
