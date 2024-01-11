@@ -99,7 +99,7 @@ end
 
 @model function _turing_model(data::Array{Float64,1}, metadata::NamedTuple, ode_prob::ODEProblem, solver, priors::NamedTuple; ode_parallel_mode=EnsembleSerial(), ode_args = (;))
     ### unpack R data
-    @unpack R_pDC = metadata.R
+    @unpack R_DC3 = metadata.R
 
     
     ### priors
@@ -110,7 +110,7 @@ end
 
     ### compound parameter
     δ_DC3bm = p_DC3bm - λ_DC3
-    δ_DC3b = λ_DC3 * R_pDC
+    δ_DC3b = λ_DC3 * R_DC3
     
     theta = [p_DC3bm, δ_DC3bm, δ_DC3b, λ_DC3]
 

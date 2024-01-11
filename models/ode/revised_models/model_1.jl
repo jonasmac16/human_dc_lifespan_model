@@ -6,15 +6,15 @@ function _model_1(du,u,p,t, U_func, R)
 
     U = U_func(t, fr, delta, frac, tau)
 
-    du[1] = p_ASDCbm * U - (δ_ASDCbm + Δ_cDC1bm + Δ_DC2bm + λ_ASDC) * LASDCm ##preDCm
+    du[1] = p_ASDCbm * U - (δ_ASDCbm + Δ_cDC1bm + Δ_DC2bm + λ_ASDC) * LASDCm ##ASDCm
 
     du[2] = p_cDC1bm * U - (δ_cDC1bm + λ_cDC1) * LcDC1m + Δ_cDC1bm * R_ASDCcDC1bm * LASDCm ##cDC1m
 
-    du[3] = p_DC2bm * U - (δ_DC2bm + λ_DC2) * LDC2m + Δ_DC2bm * R_ASDCDC2bm * LASDCm ##cDC2m
+    du[3] = p_DC2bm * U - (δ_DC2bm + λ_DC2) * LDC2m + Δ_DC2bm * R_ASDCDC2bm * LASDCm ##DC2m
 
-    du[4] = λ_ASDC * R_ASDC * LASDCm - (δ_ASDCb + Δ_cDC1b + Δ_DC2b) * LASDCb ##preDCb
+    du[4] = λ_ASDC * R_ASDC * LASDCm - (δ_ASDCb + Δ_cDC1b + Δ_DC2b) * LASDCb ##ASDCb
 
     du[5] = λ_cDC1 * R_cDC1 * LcDC1m + Δ_cDC1b * R_ASDCcDC1b * LASDCb - δ_cDC1b*LcDC1b ##cDC1b
 
-    du[6] = λ_DC2 * R_DC2 * LDC2m + Δ_DC2b * R_ASDCDC2b * LASDCb - δ_DC2b*LDC2b ##cDC2b
+    du[6] = λ_DC2 * R_DC2 * LDC2m + Δ_DC2b * R_ASDCDC2b * LASDCb - δ_DC2b*LDC2b ##DC2b
 end

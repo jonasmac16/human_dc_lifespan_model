@@ -10,9 +10,9 @@ struct MyDistribution <: ContinuousMultivariateDistribution
     dδ_ASDCb::ContinuousUnivariateDistribution
     dλ_cDC1::ContinuousUnivariateDistribution
     dλ_DC2::ContinuousUnivariateDistribution
-    R_preDC::Float64
-    R_precDC1bm::Float64
-    R_precDC2bm::Float64
+    R_ASDC::Float64
+    R_ASDCcDC1bm::Float64
+    R_ASDCDC2bm::Float64
 end
 
 function Distributions.length(d::MyDistribution)
@@ -26,7 +26,7 @@ function Base.rand(d::MyDistribution)
     b[2] = rand(d.dp_cDC1bm) #p_cDC1bm
     b[3] = rand(d.dp_DC2bm) #p_DC2bm
     
-    b[4] = rand(truncated(d.dδ_ASDCb,0.0, b[1]*d.R_preDC)) #δ_ASDCb
+    b[4] = rand(truncated(d.dδ_ASDCb,0.0, b[1]*d.R_ASDC)) #δ_ASDCb
         
     upper_λ_cDC1 = b[2]
     upper_λ_DC2 = b[3]
@@ -40,7 +40,7 @@ function Distributions._rand!(rng::Random.AbstractRNG,d::MyDistribution, x::Arra
     x[2] = rand(d.dp_cDC1bm) #p_cDC1bm
     x[3] = rand(d.dp_DC2bm) #p_DC2bm
     
-    x[4] = rand(truncated(d.dδ_ASDCb,0.0, x[1]*d.R_preDC)) #δ_ASDCb
+    x[4] = rand(truncated(d.dδ_ASDCb,0.0, x[1]*d.R_ASDC)) #δ_ASDCb
     
     upper_λ_cDC1 = x[2]
     upper_λ_DC2 = x[3]
@@ -62,7 +62,7 @@ function Distributions._logpdf(d::MyDistribution, b::AbstractVector)
     l += logpdf(d.dp_cDC1bm ,b[2]) #p_cDC1bm
     l += logpdf(d.dp_DC2bm ,b[3]) #p_DC2bm
     
-    l += logpdf(truncated(d.dδ_ASDCb,0.0, b[1]*d.R_preDC), b[4]) #δ_ASDCb
+    l += logpdf(truncated(d.dδ_ASDCb,0.0, b[1]*d.R_ASDC), b[4]) #δ_ASDCb
         
     upper_λ_cDC1 = b[2]
     upper_λ_DC2 = b[3]
@@ -78,7 +78,7 @@ function Distributions.logpdf(d::MyDistribution, b::AbstractVector)
     l += logpdf(d.dp_DC2bm ,b[3]) #p_DC2bm
     
 
-    l += logpdf(truncated(d.dδ_ASDCb,0.0, b[1] *d.R_preDC), b[4]) #δ_ASDCb
+    l += logpdf(truncated(d.dδ_ASDCb,0.0, b[1] *d.R_ASDC), b[4]) #δ_ASDCb
     
     
     upper_λ_cDC1 = b[2]
@@ -96,9 +96,9 @@ struct MyBijector <: Bijectors.Bijector{1}
     dδ_ASDCb::ContinuousUnivariateDistribution
     dλ_cDC1::ContinuousUnivariateDistribution
     dλ_DC2::ContinuousUnivariateDistribution
-    R_preDC::Float64
-    R_precDC1bm::Float64
-    R_precDC2bm::Float64
+    R_ASDC::Float64
+    R_ASDCcDC1bm::Float64
+    R_ASDCDC2bm::Float64
 end
 
 function (b::MyBijector)(x::AbstractVector)
@@ -108,7 +108,7 @@ function (b::MyBijector)(x::AbstractVector)
     y[2] = bijector(b.dp_cDC1bm)(x[2]) #p_cDC1bm
     y[3] = bijector(b.dp_DC2bm)(x[3]) #p_DC2bm
     
-    y[4] = bijector(truncated(b.dδ_ASDCb,0.0,  x[1]*b.R_preDC))(x[4]) #δ_ASDCb
+    y[4] = bijector(truncated(b.dδ_ASDCb,0.0,  x[1]*b.R_ASDC))(x[4]) #δ_ASDCb
     
     upper_λ_cDC1 = x[2]
     upper_λ_DC2 = x[3]
@@ -124,7 +124,7 @@ function (b::Inverse{<:MyBijector})(y::AbstractVector)
     x[2] = inv(bijector(b.orig.dp_cDC1bm))(y[2]) #p_cDC1bm
     x[3] = inv(bijector(b.orig.dp_DC2bm))(y[3]) #p_DC2bm
     
-    x[4] = inv(bijector(truncated(b.orig.dδ_ASDCb,0.0, x[1]*b.orig.R_preDC)))(y[4]) #δ_ASDCb
+    x[4] = inv(bijector(truncated(b.orig.dδ_ASDCb,0.0, x[1]*b.orig.R_ASDC)))(y[4]) #δ_ASDCb
     
     upper_λ_cDC1 = x[2]
     upper_λ_DC2 = x[3]
@@ -140,7 +140,7 @@ function Bijectors.logabsdetjac(b::MyBijector, x::AbstractVector)
     l += logabsdetjac(bijector(b.dp_cDC1bm),x[2]) #p_cDC1bm
     l += logabsdetjac(bijector(b.dp_DC2bm),x[3]) #p_DC2bm
     
-    l += logabsdetjac(bijector(truncated(b.dδ_ASDCb,0.0,  x[1]*b.R_preDC)),x[4]) #δ_ASDCb
+    l += logabsdetjac(bijector(truncated(b.dδ_ASDCb,0.0,  x[1]*b.R_ASDC)),x[4]) #δ_ASDCb
     
     upper_λ_cDC1 = x[2]
     upper_λ_DC2 = x[3]
@@ -150,7 +150,7 @@ function Bijectors.logabsdetjac(b::MyBijector, x::AbstractVector)
 
     return l
 end
-Bijectors.bijector(d::MyDistribution)= MyBijector(d.dp_ASDCbm,d.dp_cDC1bm,d.dp_DC2bm,d.dδ_ASDCb,d.dλ_cDC1,d.dλ_DC2,d.R_preDC,d.R_precDC1bm,d.R_precDC2bm)
+Bijectors.bijector(d::MyDistribution)= MyBijector(d.dp_ASDCbm,d.dp_cDC1bm,d.dp_DC2bm,d.dδ_ASDCb,d.dλ_cDC1,d.dλ_DC2,d.R_ASDC,d.R_ASDCcDC1bm,d.R_ASDCDC2bm)
 
 
 
@@ -167,12 +167,12 @@ end
 
 @model function _turing_model(data::Array{Float64,1}, metadata::NamedTuple, ode_prob::ODEProblem, solver, priors::NamedTuple; ode_parallel_mode=EnsembleSerial(), ode_args = (;))
     ### unpack R data
-    @unpack R_preDC, R_cDC1, R_cDC2, R_precDC1bm, R_precDC2bm, R_precDC1b, R_precDC2b = metadata.R
+    @unpack R_ASDC, R_cDC1, R_DC2, R_ASDCcDC1bm, R_ASDCDC2bm, R_ASDCcDC1b, R_ASDCDC2b = metadata.R
     
     ### priors
-    par ~ MyDistribution(priors.p_ASDCbm, priors.p_cDC1bm, priors.p_DC2bm, Uniform(0.0,2.0), Uniform(0.0,2.0), Uniform(0.0,2.0),R_preDC, R_precDC1bm,R_precDC2bm)
+    par ~ MyDistribution(priors.p_ASDCbm, priors.p_cDC1bm, priors.p_DC2bm, Uniform(0.0,2.0), Uniform(0.0,2.0), Uniform(0.0,2.0),R_ASDC, R_ASDCcDC1bm,R_ASDCDC2bm)
     p_ASDCbm, p_cDC1bm, p_DC2bm, δ_ASDCb, λ_cDC1, λ_DC2 = par           
-    λ_ASDC = δ_ASDCb / R_preDC
+    λ_ASDC = δ_ASDCb / R_ASDC
     
     σ ~ filldist(TruncatedNormal(0.0, 1.0, 0.0,Inf),3)
     ν ~ filldist(LogNormal(2.0, 1.0),3)
@@ -183,7 +183,7 @@ end
     δ_cDC1bm = p_cDC1bm .- λ_cDC1
     δ_DC2bm = p_DC2bm .- λ_DC2
     δ_cDC1b = λ_cDC1 .* R_cDC1
-    δ_DC2b = λ_DC2 .* R_cDC2
+    δ_DC2b = λ_DC2 .* R_DC2
 
     theta = [[p_ASDCbm, δ_ASDCbm, p_cDC1bm, δ_cDC1bm, p_DC2bm, δ_DC2bm, δ_ASDCb, δ_cDC1b, δ_DC2b, λ_ASDC, λ_cDC1, λ_DC2] for j in 1:metadata.n_indv]
     
