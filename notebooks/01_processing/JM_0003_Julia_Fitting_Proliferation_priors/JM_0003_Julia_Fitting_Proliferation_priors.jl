@@ -30,13 +30,17 @@ begin
 	using CairoMakie
 	using Pipe
 	using CSV
+	using Random
 end
 
 # ╔═╡ 11944318-873a-11eb-1661-f56a06d1cb4c
-notebook_folder = basename(@__DIR__)
+begin
+	notebook_dir = @__DIR__
+	notebook_dir_name = basename(notebook_dir)
+end
 
 # ╔═╡ b54b0f2e-2b1d-11eb-0334-f32dab087681
-md"## $(notebook_folder)"
+md"## $(notebook_dir_name)"
 
 # ╔═╡ e007a4a2-2b1d-11eb-3649-91130111debc
 md"## Purpose"
@@ -66,7 +70,8 @@ md"### Cell number concentration"
 
 # ╔═╡ 7ce6e982-d06f-4ac2-a8a8-3bb979e695e0
 df_cell_concentration = @pipe datadir("exp_pro", "cell_concentration_data_revision.csv") |>
-CSV.read(_, DataFrame)
+CSV.read(_, DataFrame) |>
+subset(_, :dataset => (x -> x .== "new"))
 
 # ╔═╡ ba837004-2b21-11eb-33f9-efd996b7f6e8
 md"### Cell cycle status"
@@ -349,10 +354,10 @@ begin
 	df_0 = hcat(
 		df_base,
 		DataFrame(
-			RpreDC_mean = R_ASDC.mean,
-			RpreDC_median = R_ASDC.median,
-			RpreDC_min = R_ASDC.min,
-			RpreDC_max = R_ASDC.max,
+			RASDC_mean = R_ASDC.mean,
+			RASDC_median = R_ASDC.median,
+			RASDC_min = R_ASDC.min,
+			RASDC_max = R_ASDC.max,
 			RcDC1_mean = RcDC1.mean,
 			RcDC1_median = RcDC1.median,
 			RcDC1_min = RcDC1.min,
@@ -441,18 +446,18 @@ begin
 	df_2 = hcat(
 		df_base,
 		DataFrame(
-			RpreDC_mean = R_ASDC_2.mean,
-			RpreDC_median = R_ASDC_2.median,
-			RpreDC_min = R_ASDC_2.min,
-			RpreDC_max = R_ASDC_2.max,
+			RASDC_mean = R_ASDC_2.mean,
+			RASDC_median = R_ASDC_2.median,
+			RASDC_min = R_ASDC_2.min,
+			RASDC_max = R_ASDC_2.max,
 			RcDC1_mean = RcDC1_2.mean,
 			RcDC1_median = RcDC1_2.median,
 			RcDC1_min = RcDC1_2.min,
 			RcDC1_max = RcDC1_2.max,
-			RcDC2_mean = RDC2_2.mean,
-			RcDC2_median = RDC2_2.median,
-			RcDC2_min = RDC2_2.min,
-			RcDC2_max = RDC2_2.max
+			RDC2_mean = RDC2_2.mean,
+			RDC2_median = RDC2_2.median,
+			RDC2_min = RDC2_2.min,
+			RDC2_max = RDC2_2.max
 		)
 	)
 	df_all_ratios_2 = @linq DataFrames.stack(df_2) |> DataFrames.transform(:variable => (ByRow(x->match(r"(.*)_([mean|min|max])", x).captures[1])) => :parameter, :variable => (ByRow(x->match(r"(.*)_((mean)|(median)|(min)|(max))", x).captures[2])) => :summary) |> DataFrames.select(Not(:variable))
@@ -485,18 +490,18 @@ begin
 	df_3 = hcat(
 		df_base, 
 		DataFrame(
-			RpreDC_mean = R_ASDC_3.mean,
-			RpreDC_median = R_ASDC_3.median,
-			RpreDC_min = R_ASDC_3.min,
-			RpreDC_max = R_ASDC_3.max,
+			RASDC_mean = R_ASDC_3.mean,
+			RASDC_median = R_ASDC_3.median,
+			RASDC_min = R_ASDC_3.min,
+			RASDC_max = R_ASDC_3.max,
 			RcDC1_mean = RcDC1_3.mean,
 			RcDC1_median = RcDC1_3.median,
 			RcDC1_min = RcDC1_3.min,
 			RcDC1_max = RcDC1_3.max,
-			RcDC2_mean = RDC2_3.mean,
-			RcDC2_median = RDC2_3.median,
-			RcDC2_min = RDC2_3.min,
-			RcDC2_max = RDC2_3.max
+			RDC2_mean = RDC2_3.mean,
+			RDC2_median = RDC2_3.median,
+			RDC2_min = RDC2_3.min,
+			RDC2_max = RDC2_3.max
 		)
 	)
 
@@ -600,28 +605,42 @@ begin
 end
 
 # ╔═╡ 7f41768d-db55-474b-9d3d-d972f87bb396
+begin
+Random.seed!(1234)
 bootst_comb_ASDC = (sample((@pipe df_cycle_long_bm |> subset(_, :population => (x -> x .== "ASDC")) |> select(_, :value) |> Array |> reshape(_,:)), 10000, replace=true)./ rand(Uniform(mintime, maxtime), 10000)) .* 24.0
+end
 
 # ╔═╡ 0d3a3a1a-0bcf-4bdd-80db-8769728f2d58
+begin
+	Random.seed!(1234)
 bootst_comb_cDC1 = (sample((@pipe df_cycle_long_bm |> subset(_, :population => (x -> x .== "cDC1")) |> select(_, :value) |> Array |> reshape(_,:)), 10000, replace=true)./ rand(Uniform(mintime, maxtime), 10000)) .* 24.0
+end
 
 # ╔═╡ f9f438d7-6a4f-43a8-b3ac-50d080bbab45
+begin
+	Random.seed!(1234)
 bootst_comb_DC2 = (sample((@pipe df_cycle_long_bm |> subset(_, :population => (x -> x .== "DC2")) |> select(_, :value) |> Array |> reshape(_,:)), 10000, replace=true)./ rand(Uniform(mintime, maxtime), 10000)) .* 24.0
+end
 
 # ╔═╡ 075961aa-1ae1-460c-8ff3-34de54542a3e
+begin
+	Random.seed!(1234)
 bootst_comb_DC3 = (sample((@pipe df_cycle_long_bm |> subset(_, :population => (x -> x .== "DC3")) |> select(_, :value) |> Array |> reshape(_,:)), 10000, replace=true)./ rand(Uniform(mintime, maxtime), 10000)) .* 24.0
+end
 
 # ╔═╡ 8c1b9ce5-803b-45e4-adc2-1eeabf56a9cd
 begin
 	galac_prob_ASDC = Turing.optim_problem(truncnormal_model(bootst_comb_ASDC), MLE();constrained=true, autoad = GalacticOptim.AutoForwardDiff(), lb=[0.0,0.0], ub=[2.0,2.0])	
-	res_ASDC= solve(galac_prob_ASDC.prob, BBO(), maxiters = 1e7);
+	Random.seed!(1234)
+	res_ASDC= solve(galac_prob_ASDC.prob, BBO(), maxiters = 1e6);
 	res_ASDC_GD= solve(remake(galac_prob_ASDC.prob, u0=res_ASDC.u), Fminbox(GradientDescent()), maxiters = 1e6);
 end
 
 # ╔═╡ dc0bd7bb-293d-4163-b4df-073596852f33
 begin
 	galac_prob_ASDC_lognormal = Turing.optim_problem(lognormal_model(bootst_comb_ASDC), MLE();constrained=true, autoad = GalacticOptim.AutoForwardDiff(), lb=[-5.0,0.0], ub=[5.0,5.0])	
-	res_ASDC_lognormal= solve(galac_prob_ASDC_lognormal.prob, BBO(), maxiters = 1e7);
+	Random.seed!(1234)
+	res_ASDC_lognormal= solve(galac_prob_ASDC_lognormal.prob, BBO(), maxiters = 1e6);
 	res_ASDC_GD_lognormal= solve(remake(galac_prob_ASDC_lognormal.prob, u0=res_ASDC_lognormal.u), Fminbox(GradientDescent()), maxiters = 1e6);
 end
 
@@ -631,14 +650,16 @@ res_ASDC_dist_opt = fit_mle(LogNormal, bootst_comb_ASDC)
 # ╔═╡ 0f36747b-3392-48ea-a829-9831a5f031e4
 begin
 	galac_prob_cDC1 = Turing.optim_problem(truncnormal_model(bootst_comb_cDC1), MLE();constrained=true, autoad = GalacticOptim.AutoForwardDiff(), lb=[0.0,0.0], ub=[2.0,2.0])	
-	res_cDC1= solve(galac_prob_cDC1.prob, BBO(), maxiters = 1e7);
+	Random.seed!(1234)
+	res_cDC1= solve(galac_prob_cDC1.prob, BBO(), maxiters = 1e6);
 	res_cDC1_GD= solve(remake(galac_prob_cDC1.prob, u0=res_cDC1.u), Fminbox(GradientDescent()), maxiters = 1e6);
 end
 
 # ╔═╡ 203e018a-2487-4ffc-b356-51ba47ff3403
 begin
 	galac_prob_cDC1_lognormal = Turing.optim_problem(lognormal_model(bootst_comb_cDC1), MLE();constrained=true, autoad = GalacticOptim.AutoForwardDiff(), lb=[-5.0,0.0], ub=[5.0,5.0])	
-	res_cDC1_lognormal= solve(galac_prob_cDC1_lognormal.prob, BBO(), maxiters = 1e7);
+	Random.seed!(1234)
+	res_cDC1_lognormal= solve(galac_prob_cDC1_lognormal.prob, BBO(), maxiters = 1e6);
 	res_cDC1_GD_lognormal= solve(remake(galac_prob_cDC1_lognormal.prob, u0=res_cDC1_lognormal.u), Fminbox(GradientDescent()), maxiters = 1e6);
 end
 
@@ -648,14 +669,16 @@ res_cDC1_dist_opt = fit_mle(LogNormal, bootst_comb_cDC1.+ eps())
 # ╔═╡ 1162d297-0776-43cf-b47c-a30d175e70eb
 begin
 	galac_prob_DC2 = Turing.optim_problem(truncnormal_model(bootst_comb_DC2), MLE();constrained=true, autoad = GalacticOptim.AutoForwardDiff(), lb=[0.0,0.0], ub=[2.0,2.0])	
-	res_DC2= solve(galac_prob_DC2.prob, BBO(), maxiters = 1e7);
+	Random.seed!(1234)
+	res_DC2= solve(galac_prob_DC2.prob, BBO(), maxiters = 1e6);
 	res_DC2_GD= solve(remake(galac_prob_DC2.prob, u0=res_DC2.u), Fminbox(GradientDescent()), maxiters = 1e6);
 end
 
 # ╔═╡ 1ed28869-c6b9-4ec5-b84a-e11c64501d47
 begin
 	galac_prob_DC2_lognormal = Turing.optim_problem(lognormal_model(bootst_comb_DC2), MLE();constrained=true, autoad = GalacticOptim.AutoForwardDiff(), lb=[-5.0,0.0], ub=[5.0,5.0])	
-	res_DC2_lognormal= solve(galac_prob_DC2_lognormal.prob, BBO(), maxiters = 1e7);
+	Random.seed!(1234)
+	res_DC2_lognormal= solve(galac_prob_DC2_lognormal.prob, BBO(), maxiters = 1e6);
 	res_DC2_GD_lognormal= solve(remake(galac_prob_DC2_lognormal.prob, u0=res_DC2_lognormal.u), Fminbox(GradientDescent()), maxiters = 1e6);
 end
 
@@ -665,14 +688,16 @@ res_DC2_dist_opt = fit_mle(Normal, bootst_comb_DC2.+ .1)
 # ╔═╡ c6d5216b-1981-41b3-8c44-3d75f19b0a7d
 begin
 	galac_prob_DC3 = Turing.optim_problem(truncnormal_model(bootst_comb_DC3), MLE();constrained=true, autoad = GalacticOptim.AutoForwardDiff(), lb=[0.0,0.0], ub=[2.0,2.0])	
-	res_DC3= solve(galac_prob_DC3.prob, BBO(), maxiters = 1e7);
+	Random.seed!(1234)
+	res_DC3= solve(galac_prob_DC3.prob, BBO(), maxiters = 1e6);
 	res_DC3_GD= solve(remake(galac_prob_DC3.prob, u0=res_DC3.u), Fminbox(GradientDescent()), maxiters = 1e6);
 end
 
 # ╔═╡ 6ff33721-f9a6-43c3-b1cb-a11794714151
 begin
 	galac_prob_DC3_lognormal = Turing.optim_problem(lognormal_model(bootst_comb_DC3), MLE();constrained=true, autoad = GalacticOptim.AutoForwardDiff(), lb=[-5.0,0.0], ub=[5.0,5.0])	
-	res_DC3_lognormal= solve(galac_prob_DC3_lognormal.prob, BBO(), maxiters = 1e7);
+	Random.seed!(1234)
+	res_DC3_lognormal= solve(galac_prob_DC3_lognormal.prob, BBO(), maxiters = 1e6);
 	res_DC3_GD_lognormal= solve(remake(galac_prob_DC3_lognormal.prob, u0=res_DC3_lognormal.u), Fminbox(GradientDescent()), maxiters = 1e6);
 end
 
@@ -680,7 +705,7 @@ end
 res_DC3_dist_opt = fit_mle(Normal, bootst_comb_DC3 .+ eps())
 
 # ╔═╡ 91a9b444-7c71-11eb-3858-17f5c2b4c884
-md"Both bootstrap and plain sampling yield comparable results. We will be using the bootstrapping method, which in essence combines bootstrap samples from G2 fraction with samples from a uniform distribution U(5.0, 15.0). The priors of the proliferation rates used in the inference are the following:"
+md"Both bootstrap and plain sampling yielded comparable results. We will be using the bootstrapping method, which in essence combines bootstrap samples from G2 fraction with samples from a uniform distribution U(5.0, 15.0). The priors of the proliferation rates used in the inference are the following:"
 
 # ╔═╡ 41aa65d3-5367-4e2c-9a3b-041909ec49ad
 df_p_priors_truncated_normal = DataFrame(
@@ -711,7 +736,7 @@ begin
 	for (idx, j) in enumerate(eachrow(df_p_priors_truncated_normal))
 		ax_prior_normal[idx].title= j.parameter
 		CairoMakie.plot!(ax_prior_normal[idx], Truncated(Normal(j.μ, j.σ), 0.0, Inf), label="prior",strokewidth = 2)
-		CairoMakie.density!(ax_prior_normal[idx],[bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2.+ .1,bootst_comb_DC3][idx], label="bootstrap sample", color=(:red,0.0), strokecolor=:red,strokewidth = 2)
+		CairoMakie.hist!(ax_prior_normal[idx],[bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2.+ .1,bootst_comb_DC3][idx], normalization=:pdf, label="bootstrap sample", color=(:red,0.0), strokecolor=:red,strokewidth = 2)
 		CairoMakie.xlims!(ax_prior_normal[idx], (-0.1,maximum([bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2,bootst_comb_DC3][idx])*1.2))
 	end
 	
@@ -733,7 +758,7 @@ begin
 	for (idx, j) in enumerate(eachrow(df_p_priors_lognormal))
 		ax_prior_lognormal[idx].title= j.parameter
 		CairoMakie.plot!(ax_prior_lognormal[idx], LogNormal(j.μ, j.σ), label="prior",strokewidth = 2)
-		CairoMakie.density!(ax_prior_lognormal[idx],[bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2.+ .1,bootst_comb_DC3][idx], label="bootstrap sample", color=(:red,0.0), strokecolor=:red,strokewidth = 2)
+		CairoMakie.hist!(ax_prior_lognormal[idx],[bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2.+ .1,bootst_comb_DC3][idx], normalization=:pdf, label="bootstrap sample", color=(:red,0.0), strokecolor=:red,strokewidth = 2)
 		CairoMakie.xlims!(ax_prior_lognormal[idx], (-0.1,maximum([bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2,bootst_comb_DC3][idx])*1.2))
 	end
 	
@@ -779,7 +804,7 @@ begin
 		
 		CairoMakie.plot!(ax_prior[idx], tmp_prior_dist, label="prior",strokewidth = 2)
 		
-		CairoMakie.density!(ax_prior[idx],[bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2.+ .1,bootst_comb_DC3][idx], label="bootstrap sample", color=(:red,0.0), strokecolor=:red,strokewidth = 2)
+		CairoMakie.hist!(ax_prior[idx],[bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2.+ .1,bootst_comb_DC3][idx], normalization=:pdf, label="bootstrap sample", color=(:red,0.0), strokecolor=:red,strokewidth = 2)
 		CairoMakie.xlims!(ax_prior[idx], (-0.1,maximum([bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2,bootst_comb_DC3][idx])*1.2))
 	end
 	
@@ -791,6 +816,55 @@ begin
 	
 	
 	fig_prior
+end
+
+# ╔═╡ 25cf0054-8c86-49ad-addc-d0149f5e02cb
+md"### Plot and save prior distribution figures"
+
+# ╔═╡ 2e72fba3-b157-43c6-9417-5d76ca0e4e42
+begin
+	f_prior_arr = [Figure(; resolution=(600,600)) for j in 1:4]
+	ax_prior_arr = [Axis(f_prior_arr[j][1,1], ylabel="pdf", xlabel="proliferation rate", titlesize=22.0f0) for j in 1:4]
+	
+	color_map = Dict([ j => cgrad(:roma, 2, categorical = true)[idx] for (idx, j) in enumerate(["prior", "sample"])])
+	
+	for (idx, j) in enumerate(eachrow(df_p_priors))
+		ax_prior_arr[idx].title= j.parameter
+		tmp_prior_dist = create_dist(j.dist, j.μ, j.σ, j.truncated, j.lower,j.upper)
+		
+		CairoMakie.hist!(ax_prior_arr[idx],[bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2.+ .1,bootst_comb_DC3][idx], normalization=:pdf, label="bootstraped proliferation rate",  strokecolor=(color_map["sample"], 0.75), color = (color_map["sample"], 0), strokewidth = 2)
+		
+		CairoMakie.plot!(ax_prior_arr[idx], tmp_prior_dist, label="fitted prior",linewidth = 3, color=color_map["prior"])
+		
+		CairoMakie.xlims!(ax_prior_arr[idx], (-0.1,maximum([bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2,bootst_comb_DC3][idx])*1.2))
+		
+		axislegend(ax_prior_arr[idx])	
+	end
+	
+
+	
+	f_prior_arr
+end
+
+# ╔═╡ 02d40ebe-ce25-40dd-8fef-ba3889951895
+f_prior_arr[1]
+
+# ╔═╡ bc635c77-106f-4291-895b-db936e336f7e
+f_prior_arr[2]
+
+# ╔═╡ f3e0b4bd-2a52-4b26-b130-47f370ad693f
+f_prior_arr[3]
+
+# ╔═╡ b42c3a72-f166-488f-a79f-beded6ca35a6
+f_prior_arr[4]
+
+# ╔═╡ 0b4e15a2-4b77-4596-b6ef-30a7fdfb7219
+begin
+	mkpath(projectdir("notebooks", "01_processing", notebook_dir_name, "results"))
+	for j in f_prior_arr
+		DrWatson.save
+		save(projectdir("notebooks", "01_processing", notebook_dir_name, "results","prior_proliferation_"* j.current_axis.x.title[]*".pdf"), j)
+	end
 end
 
 # ╔═╡ 078601d7-bb0e-4178-b99c-499e0ff4162c
@@ -821,7 +895,7 @@ md"## Dependencies"
 set_aog_theme!()
 
 # ╔═╡ Cell order:
-# ╟─b54b0f2e-2b1d-11eb-0334-f32dab087681
+# ╠═b54b0f2e-2b1d-11eb-0334-f32dab087681
 # ╠═11944318-873a-11eb-1661-f56a06d1cb4c
 # ╟─e007a4a2-2b1d-11eb-3649-91130111debc
 # ╟─dd13ffa2-2b1d-11eb-00db-47d4a6ad1305
@@ -891,6 +965,13 @@ set_aog_theme!()
 # ╠═58e06554-c1ee-4223-8231-a237c7554e20
 # ╠═8eaf4eae-948e-45d7-968b-14984b44089d
 # ╠═1b3b5331-f983-410e-9f11-8e486d184d70
+# ╠═25cf0054-8c86-49ad-addc-d0149f5e02cb
+# ╠═2e72fba3-b157-43c6-9417-5d76ca0e4e42
+# ╠═02d40ebe-ce25-40dd-8fef-ba3889951895
+# ╠═bc635c77-106f-4291-895b-db936e336f7e
+# ╠═f3e0b4bd-2a52-4b26-b130-47f370ad693f
+# ╠═b42c3a72-f166-488f-a79f-beded6ca35a6
+# ╠═0b4e15a2-4b77-4596-b6ef-30a7fdfb7219
 # ╠═078601d7-bb0e-4178-b99c-499e0ff4162c
 # ╠═aba96283-01c7-4450-bd5d-3e04043d2075
 # ╠═eba36176-d1cf-4e7a-b2bd-0134467365e4
