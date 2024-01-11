@@ -209,7 +209,7 @@ end
 begin
 	p_diag_1 = plot(chains, title=permutedims(vcat([[j, j] for j in par_range_names]...)), label=permutedims([("Chain " .* string.(collect(1:n_chains)))...]))
 	for k in 1:(length(p_init)-10)
-		density!(p_diag_1, [rand(MyDistribution(priors.p_preDCbm, priors.p_cDC1bm, priors.p_cDC2bm, [Uniform(0.0,2.0) for j in 1:(length(p_init)-13)]..., data_in.metadata.R.R_preDC, data_in.metadata.R.R_precDC1bm,data_in.metadata.R.R_precDC2bm))[k] for j in 1:1000], subplot=(k-1)*2+2, c=:black, legend=true, label="prior")
+		density!(p_diag_1, [rand(MyDistribution(priors.p_ASDCbm, priors.p_cDC1bm, priors.p_DC2bm, [Uniform(0.0,2.0) for j in 1:(length(p_init)-13)]..., data_in.metadata.R.R_preDC, data_in.metadata.R.R_precDC1bm,data_in.metadata.R.R_precDC2bm))[k] for j in 1:1000], subplot=(k-1)*2+2, c=:black, legend=true, label="prior")
 	end
 	savefig(p_diag_1, projectdir("notebooks", "02_fitting", notebook_folder,"diagnostic_all.pdf"))
 	p_diag_1
@@ -400,7 +400,7 @@ end
 # ╔═╡ 69182965-21a3-442a-971e-2e27840a658e
 begin
 	if !(isfile(projectdir("notebooks", "02_fitting", notebook_folder,"df_mcmc_comp.jlso")))
-		df_par_all = DataFrame(p_pDCbm=Float64[], δ_pDCbm=Float64[], δ_pDCb=Float64[], δ_cDC1bm=Float64[], λ_pDC=Float64[], tau=Float64[], σ=Float64[])
+		df_par_all = DataFrame(p_DC3bm=Float64[], δ_DC3bm=Float64[], δ_DC3b=Float64[], δ_cDC1bm=Float64[], λ_DC3=Float64[], tau=Float64[], σ=Float64[])
 
 		@pipe parameter_est |>
 		for j in _
