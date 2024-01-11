@@ -158,7 +158,7 @@ solver_in = AutoTsit5(KenCarp4())
 begin
 	Turing.setadbackend(:forwarddiff)
 
-    data_in = prepare_data_turing(labelling_data, cell_ratios, label_ps, tau_stop; population = ["preDC", "cDC1", "cDC2"], individual = donor_ids, label_p_names = [:fr,:delta, :frac], ratio_approach=ratio_approach, ratio_summary = ratio_summary, mean_data = true)
+    data_in = prepare_data_turing(labelling_data, cell_ratios, label_ps, tau_stop; population = ["ASDC", "cDC1", "DC2"], individual = donor_ids, label_p_names = [:fr,:delta, :frac], ratio_approach=ratio_approach, ratio_summary = ratio_summary, mean_data = true)
 	
 	model(du,u,p,t) = eval(Symbol("_model_"*model_id))(du,u,p,t, U_func, data_in.metadata.R)
 
