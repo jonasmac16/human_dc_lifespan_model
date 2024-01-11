@@ -69,7 +69,7 @@ Fitting the new implementation of model $(model_id) and the corresponding *Turin
 include(projectdir("models", "ode","revised_models", "model_pdc_"*model_id*".jl"))
 
 # ╔═╡ f3c8a1a0-7170-11eb-2af4-3b0a7b4989f8
-include(projectdir("models", "turing", "revised_models", "mean", "pooled", "turing_pdc_model_"*model_id*".jl"))
+include(projectdir("models", "turing", "revised_models", "mean", "pooled", "turing_dc3_model_"*model_id*".jl"))
 
 # ╔═╡ f891cf0c-7b40-11eb-0c5f-930711de036e
 begin	
