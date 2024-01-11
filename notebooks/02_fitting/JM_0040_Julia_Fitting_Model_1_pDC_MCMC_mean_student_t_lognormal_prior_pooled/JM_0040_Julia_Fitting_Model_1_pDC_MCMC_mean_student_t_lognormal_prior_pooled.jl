@@ -115,9 +115,9 @@ label_ps
 
 # ╔═╡ fb05c902-7c76-11eb-1d23-ed6b66f9ab21
 begin
-	df_p_priors = DataFrame(load(datadir("exp_pro", "p_priors_truncatedlognormal.csv")))
+	df_p_priors = CSV.read(datadir("exp_pro", "p_priors.csv"), DataFrame)
 
-	priors = (;p_pDCbm = truncated(LogNormal((@linq df_p_priors |> where(:parameter .== "pDC") |> DataFrames.select([:µ, :σ]) |> Array |> reshape(:))...), 2e-11, 2.0))
+	priors = (;p_DC3bm = (@pipe df_p_priors |> subset(_, :parameter => (x -> x .== "DC3")) |> _[1,:] |> create_dist(_.dist, _.μ, _.σ, _.truncated, 2e-11, _.upper)))
 end
 
 # ╔═╡ a3d2f836-7200-11eb-0d49-a7d5a55ab8e5

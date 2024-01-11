@@ -127,11 +127,12 @@ label_ps
 
 # ╔═╡ fb05c902-7c76-11eb-1d23-ed6b66f9ab21
 begin
-	df_p_priors = DataFrame(load(datadir("exp_pro", "p_priors_truncatedlognormal.csv")))
+	df_p_priors = CSV.read(datadir("exp_pro", "p_priors.csv"), DataFrame)
 
-	priors = (p_preDCbm = truncated(LogNormal((@linq df_p_priors |> where(:parameter .== "preDC") |> DataFrames.select([:µ, :σ]) |> Array |> reshape(:))...), 2e-11, 2.0),
-							p_cDC1bm = truncated(LogNormal((@linq df_p_priors |> where(:parameter .== "cDC1") |> DataFrames.select([:µ, :σ]) |> Array |> reshape(:))...), 2e-11, 2.0),
-							p_cDC2bm = truncated(LogNormal((@linq df_p_priors |> where(:parameter .== "cDC2") |> DataFrames.select([:µ, :σ]) |> Array |> reshape(:))...), 2e-11, 2.0))
+	priors = (
+		p_ASDCbm = (@pipe df_p_priors |> subset(_, :parameter => (x -> x .== "ASDC")) |> _[1,:] |> create_dist(_.dist, _.μ, _.σ, _.truncated, 2e-11, _.upper)),
+		p_cDC1bm = (@pipe df_p_priors |> subset(_, :parameter => (x -> x .== "cDC1")) |> _[1,:] |> create_dist(_.dist, _.μ, _.σ, _.truncated, 2e-11, _.upper)),
+		p_DC2bm = (@pipe df_p_priors |> subset(_, :parameter => (x -> x .== "DC2")) |> _[1,:] |> create_dist(_.dist, _.μ, _.σ, _.truncated, 2e-11, _.upper)))
 end
 
 # ╔═╡ a3d2f836-7200-11eb-0d49-a7d5a55ab8e5
