@@ -360,7 +360,7 @@ begin
 
 		# ppc_bm = @pipe get_posterior_predictive(turing_model_ppc_bm, sample_mcmc(chains, 50)) |>[_[j] for j in 1:length(_)]
 
-	p_ppc_bm = plot_ppc(ppc, [1], subplotkwargs=(; alpha=0.1),pop=["pDC"];title= permutedims([((permutedims(donor_ids) .* " ") .* ["pDC (bm)"])...]), size=(1000,1000), legend=false)
+	p_ppc_bm = plot_ppc(ppc, [1], subplotkwargs=(; alpha=0.1),pop=["DC3"];title= permutedims([((permutedims(donor_ids) .* " ") .* ["DC3 (bm)"])...]), size=(1000,1000), legend=false)
 	else
 		load(projectdir("notebooks", "02_fitting", notebook_folder,"ppc_fit_bm.pdf"))
 	end
@@ -368,7 +368,7 @@ begin
 	if !(isfile(projectdir("notebooks", "02_fitting", notebook_folder,"ppc_fit.pdf")))
 
 		# ppc_b = @pipe get_posterior_predictive(turing_model, sample_mcmc(chains, 50)) |>[_[j] for j in 1:length(_)]
-		p_ppc = plot_ppc(ppc, data_in, [2], subplotkwargs=(; alpha=0.1),pop=["pDC"];title= permutedims([((permutedims(donor_ids) .* " ") .* ["pDC"])...]), size=(1000,1000), legend=false)
+		p_ppc = plot_ppc(ppc, data_in, [2], subplotkwargs=(; alpha=0.1),pop=["DC3"];title= permutedims([((permutedims(donor_ids) .* " ") .* ["DC3"])...]), size=(1000,1000), legend=false)
 	else
 		load(projectdir("notebooks", "02_fitting", notebook_folder,"ppc_fit.pdf"))
 	end
