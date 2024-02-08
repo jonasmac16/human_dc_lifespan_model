@@ -13,7 +13,7 @@ include(projectdir("scripts", "run_project", "00_threads.jl"))
 for j in fitting_notebooks
     println("Started running " * j)
     println("...")
-    file_tmp = projectdir("notebooks", "02_fitting", j, j*".jl")
+    file_tmp = projectdir("notebooks", "02_fitting", "02_uniform_prior", j, j*".jl")
     cmd_tmp = `julia -t $n_threads $file_tmp`
     run(cmd_tmp)
     println("Finished running " * j)
