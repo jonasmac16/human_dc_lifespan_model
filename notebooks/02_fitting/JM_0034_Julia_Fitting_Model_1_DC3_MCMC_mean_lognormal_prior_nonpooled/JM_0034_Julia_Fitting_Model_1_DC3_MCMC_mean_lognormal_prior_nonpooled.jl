@@ -24,12 +24,20 @@ begin
 	using CSV
 	using JLSO
 	using MCMCChains
-	using RCall
+	# using RCall
 	using DelimitedFiles
 	using Pipe: @pipe
 	using BenchmarkTools
 	using Logging
 	include(srcdir("mcmcchains_diagnostics.jl"))
+end
+
+# ╔═╡ f891cf0c-7b40-11eb-0c5f-930711de036e
+begin	
+	include(projectdir("scripts", "run_project", "00_mcmc_settings.jl"))
+	warm_up = Int(mcmc_iters/2)
+	sample_iters = mcmc_iters
+	accept_rate = 0.94
 end
 
 # ╔═╡ e4e12340-7172-11eb-22b0-f7a72dfbb863
@@ -40,6 +48,9 @@ begin
 	include(srcdir("dataprep.jl"))
 	include(srcdir("create_dist.jl"))
 end
+
+# ╔═╡ da7b2e6e-784d-11eb-01fa-5f95a00dca93
+# load(projectdir("plots", "model_figures","model_"*model_id*".pdf"))
 
 # ╔═╡ 08c11aec-77a7-11eb-361a-618885fecfcb
 donor_ids = ["D01", "D02", "D04"]
@@ -62,22 +73,11 @@ md"""
 Fitting the new implementation of model $(model_id) and the corresponding *Turing.jl* model with upper and lower bounds on the proliferation rates for all populations on the basis of cell cycle phase data approach 1.
 """
 
-# ╔═╡ da7b2e6e-784d-11eb-01fa-5f95a00dca93
-# load(projectdir("plots", "model_figures","model_"*model_id*".pdf"))
-
 # ╔═╡ ca40c6b4-7170-11eb-3088-eb5f0cff44ea
-include(projectdir("models", "ode","revised_models", "model_pdc_"*model_id*".jl"))
+include(projectdir("models", "ode","revised_models", "model_dc3_"*model_id*".jl"))
 
 # ╔═╡ f3c8a1a0-7170-11eb-2af4-3b0a7b4989f8
 include(projectdir("models", "turing", "revised_models", "mean", "nonpooled", "turing_dc3_model_"*model_id*".jl"))
-
-# ╔═╡ f891cf0c-7b40-11eb-0c5f-930711de036e
-begin	
-	include(projectdir("scripts", "run_project", "00_mcmc_settings.jl"))
-	warm_up = Int(mcmc_iters/2)
-	sample_iters = mcmc_iters
-	accept_rate = 0.94
-end
 
 # ╔═╡ 83ac0efc-7ce7-11eb-32bc-c92fa3d52078
 begin
@@ -106,7 +106,7 @@ md"# $(notebook_folder_title)"
 # ╔═╡ 5159f562-7171-11eb-0d12-37cacdc3e84f
 begin
 	for j in 1:2
-		global label_ps = DataFrame(load(datadir("exp_pro", "labeling_parameters.csv")))
+		global label_ps = DataFrame(load(datadir("exp_pro", "labeling_parameters_revision.csv")))
 	end
 end
 
@@ -115,14 +115,14 @@ label_ps
 
 # ╔═╡ fb05c902-7c76-11eb-1d23-ed6b66f9ab21
 begin
-	df_p_priors = CSV.read(datadir("exp_pro", "p_priors.csv"), DataFrame)
+	df_p_priors = CSV.read(datadir("exp_pro", "p_priors_revision.csv"), DataFrame)
 
 	priors = (;p_DC3bm = (@pipe df_p_priors |> subset(_, :parameter => (x -> x .== "DC3")) |> _[1,:] |> create_dist(_.dist, _.μ, _.σ, _.truncated, 2e-11, _.upper)))
 end
 
 # ╔═╡ a3d2f836-7200-11eb-0d49-a7d5a55ab8e5
 # cell_ratios = DataFrame(load(datadir("exp_pro", "cell_ratios.csv")))
-cell_ratios = @linq DataFrame(load(datadir("exp_pro", "cell_ratios.csv"))) |> DataFrames.transform(:approach => (x -> string.(x)) => :approach)
+cell_ratios = @linq DataFrame(load(datadir("exp_pro", "cell_ratios_revision.csv"))) |> DataFrames.transform(:approach => (x -> string.(x)) => :approach)
 
 # ╔═╡ a38b9a86-7200-11eb-2dcb-e1b7967f37f0
 # cell_cycle = DataFrame(load(datadir("exp_pro","JM_0014", "cell_cycle_status_proliferation_rate_bm.csv")))
@@ -183,6 +183,9 @@ begin
 	end
 end
 
+# ╔═╡ 20b20bc2-43a2-418e-a529-8a2d489dc309
+data_in
+
 # ╔═╡ 08cc7a0e-7a86-11eb-138b-c5bcd9a4bd37
 md"## Chain diagnostics"
 
@@ -208,8 +211,10 @@ end
 # ╔═╡ 53543fac-7cd0-11eb-3b38-919570f85aae
 begin
 	p_diag_1 = plot(chains, title=permutedims(vcat([[j, j] for j in par_range_names]...)), label=permutedims([("Chain " .* string.(collect(1:n_chains)))...]))
-	for k in 1:(length(p_init)-10)
-		density!(p_diag_1, [rand(MyDistribution(priors.p_ASDCbm, priors.p_cDC1bm, priors.p_DC2bm, [Uniform(0.0,2.0) for j in 1:(length(p_init)-13)]..., data_in.metadata.R.R_ASDC, data_in.metadata.R.R_ASDCcDC1bm,data_in.metadata.R.R_ASDCDC2bm))[k] for j in 1:1000], subplot=(k-1)*2+2, c=:black, legend=true, label="prior")
+	for k in 1:length(donor_ids)
+		for l in 1:2
+			density!(p_diag_1, [rand(MyDistribution(priors.p_DC3bm, Uniform(0.0,2.0)))[l] for j in 1:1000], subplot=6*(k-1)+(l*2), c=:black, legend=true, label="prior")
+		end
 	end
 	savefig(p_diag_1, projectdir("notebooks", "02_fitting", notebook_folder,"diagnostic_all.pdf"))
 	p_diag_1
@@ -218,7 +223,7 @@ end
 # ╔═╡ a4c3be9f-1561-4d5e-88fb-e36979f27f93
 begin
 	function create_model_prediction_df(vec_sol)
-	df_wide = vcat([(@pipe vec_sol[k].u |> _[j] |> DataFrame(_) |> rename(_, "x₁(t)" => "pDC_bm", "x₂(t)" => "pDC_b") |> insertcols!(_, :donor => donor_ids[j], :sample_idx=>k)) for k in 1:length(vec_sol) for j in 1:length(vec_sol[k])]...)
+	df_wide = vcat([(@pipe vec_sol[k].u |> _[j] |> DataFrame(_) |> rename(_, "x₁(t)" => "DC3_bm", "x₂(t)" => "DC3_b") |> insertcols!(_, :donor => donor_ids[j], :sample_idx=>k)) for k in 1:length(vec_sol) for j in 1:length(vec_sol[k])]...)
 
 	df_combined = @pipe df_wide |> DataFrames.stack(_, Not([:timestamp, :donor, :sample_idx])) |> transform(_, :variable => ByRow(x -> (;zip((:population, :location),Tuple(split(x, "_")))...))=> AsTable) |> select(_, Not(:variable))
 	
@@ -349,7 +354,7 @@ end
 # ╔═╡ cd1a937c-7951-4bdc-b48a-da490fcbc25d
 begin
 	if !isfile(projectdir("notebooks", "02_fitting", notebook_folder,"df_ppc.csv"))
-		ppc = @pipe get_posterior_predictive(turing_model_ppc, sample_mcmc(chains, 50)) |> [_[j] for j in 1:length(_)]
+		ppc = @pipe sample_mcmc(chains, 50) |> get_posterior_predictive(turing_model_ppc, _) |> [_[j] for j in 1:length(_)]
 		df_ppc = create_model_prediction_df(ppc)
 		save(projectdir("notebooks", "02_fitting", notebook_folder,"df_ppc.csv"), df_ppc)
 	end
@@ -401,7 +406,7 @@ end
 # ╔═╡ 69182965-21a3-442a-971e-2e27840a658e
 begin
 	if !(isfile(projectdir("notebooks", "02_fitting", notebook_folder,"df_mcmc_comp.jlso")))
-		df_par_all = DataFrame(p_DC3bm=Float64[], δ_DC3bm=Float64[], δ_DC3b=Float64[], δ_cDC1bm=Float64[], λ_DC3=Float64[], tau=Float64[], σ=Float64[])
+		df_par_all = DataFrame(p_DC3bm=Float64[], δ_DC3bm=Float64[], δ_DC3b=Float64[], λ_DC3=Float64[], tau=Float64[], σ=Float64[])
 
 		@pipe parameter_est |>
 		for j in _
@@ -505,6 +510,7 @@ md"## Libraries"
 # ╠═79d513e6-7176-11eb-0080-f7d16330d1c4
 # ╠═9c6a5860-717a-11eb-11b4-11109f68f8c9
 # ╠═398c6598-7ccd-11eb-20d2-fbabb2a08251
+# ╠═20b20bc2-43a2-418e-a529-8a2d489dc309
 # ╟─08cc7a0e-7a86-11eb-138b-c5bcd9a4bd37
 # ╠═c6545e24-85a4-11eb-2262-c3a7ed2a61fb
 # ╠═53543fac-7cd0-11eb-3b38-919570f85aae

@@ -24,7 +24,7 @@ begin
 	using CSV
 	using JLSO
 	using MCMCChains
-	using RCall
+	# using RCall
 	using DelimitedFiles
 	using Pipe: @pipe
 	using BenchmarkTools
@@ -66,7 +66,7 @@ Fitting the new implementation of model $(model_id) and the corresponding *Turin
 # load(projectdir("plots", "model_figures","model_"*model_id*".pdf"))
 
 # ╔═╡ ca40c6b4-7170-11eb-3088-eb5f0cff44ea
-include(projectdir("models", "ode","revised_models", "model_pdc_"*model_id*".jl"))
+include(projectdir("models", "ode","revised_models", "model_dc3_"*model_id*".jl"))
 
 # ╔═╡ f3c8a1a0-7170-11eb-2af4-3b0a7b4989f8
 include(projectdir("models", "turing", "revised_models", "mean_student_t", "nonpooled", "turing_dc3_model_"*model_id*".jl"))
@@ -209,7 +209,7 @@ end
 begin
 	p_diag_1 = plot(chains, title=permutedims(vcat([[j, j] for j in par_range_names]...)), label=permutedims([("Chain " .* string.(collect(1:n_chains)))...]))
 	for k in 1:(length(p_init)-10)
-		density!(p_diag_1, [rand(MyDistribution(priors.p_ASDCbm, priors.p_cDC1bm, priors.p_DC2bm, [Uniform(0.0,2.0) for j in 1:(length(p_init)-13)]..., data_in.metadata.R.R_ASDC, data_in.metadata.R.R_ASDCcDC1bm,data_in.metadata.R.R_ASDCDC2bm))[k] for j in 1:1000], subplot=(k-1)*2+2, c=:black, legend=true, label="prior")
+		density!(p_diag_1, [rand(MyDistribution(priors.p_DC3bm, Uniform(0.0,2.0)))[k] for j in 1:1000], subplot=(k-1)*2+2, c=:black, legend=true, label="prior")
 	end
 	savefig(p_diag_1, projectdir("notebooks", "02_fitting", notebook_folder,"diagnostic_all.pdf"))
 	p_diag_1
@@ -218,7 +218,7 @@ end
 # ╔═╡ a4c3be9f-1561-4d5e-88fb-e36979f27f93
 begin
 	function create_model_prediction_df(vec_sol)
-	df_wide = vcat([(@pipe vec_sol[k].u |> _[j] |> DataFrame(_) |> rename(_, "x₁(t)" => "pDC_bm", "x₂(t)" => "pDC_b") |> insertcols!(_, :donor => donor_ids[j], :sample_idx=>k)) for k in 1:length(vec_sol) for j in 1:length(vec_sol[k])]...)
+	df_wide = vcat([(@pipe vec_sol[k].u |> _[j] |> DataFrame(_) |> rename(_, "x₁(t)" => "DC3_bm", "x₂(t)" => "DC3_b") |> insertcols!(_, :donor => donor_ids[j], :sample_idx=>k)) for k in 1:length(vec_sol) for j in 1:length(vec_sol[k])]...)
 
 	df_combined = @pipe df_wide |> DataFrames.stack(_, Not([:timestamp, :donor, :sample_idx])) |> transform(_, :variable => ByRow(x -> (;zip((:population, :location),Tuple(split(x, "_")))...))=> AsTable) |> select(_, Not(:variable))
 	
@@ -401,7 +401,7 @@ end
 # ╔═╡ 69182965-21a3-442a-971e-2e27840a658e
 begin
 	if !(isfile(projectdir("notebooks", "02_fitting", notebook_folder,"df_mcmc_comp.jlso")))
-		df_par_all = DataFrame(p_DC3bm=Float64[], δ_DC3bm=Float64[], δ_DC3b=Float64[], δ_cDC1bm=Float64[], λ_DC3=Float64[], tau=Float64[], σ=Float64[])
+		df_par_all = DataFrame(p_DC3bm=Float64[], δ_DC3bm=Float64[], δ_DC3b=Float64[], λ_DC3=Float64[], tau=Float64[], σ=Float64[])
 
 		@pipe parameter_est |>
 		for j in _
