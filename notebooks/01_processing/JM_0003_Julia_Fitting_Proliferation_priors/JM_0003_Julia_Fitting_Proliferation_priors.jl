@@ -54,10 +54,10 @@ Estimating proliferation rate priors and intra- and inter-compartment population
 md"## Data"
 
 # ╔═╡ d76acba8-7690-11eb-37b5-f903fb128ee0
-raw_data_folder = datadir("exp_pro");
+processed_data_folder = datadir("exp_pro");
 
 # ╔═╡ 3a59091e-2b21-11eb-13e1-9707f83f67de
-md"The `processed` data is located here $(raw_data_folder)"
+md"The `processed` data is located here $(processed_data_folder)"
 
 # ╔═╡ 73e87950-2b21-11eb-22b0-f70d8354e6c0
 md"## Data Input"
@@ -604,28 +604,41 @@ begin
 	end
 end
 
+# ╔═╡ 2b6e2dc8-968a-42c2-ae0d-ab19440f627f
+@model gamma_model(x) = begin
+
+	α ~ Uniform(eps(),5) 
+	θ ~ Uniform(eps(),5) 
+
+	x .~ Gamma(α,θ)
+
+end
+
+# ╔═╡ 4105b6d8-e446-4b48-b039-04059c7bdce0
+logpdf(LogNormal(), eps())
+
 # ╔═╡ 7f41768d-db55-474b-9d3d-d972f87bb396
 begin
 Random.seed!(1234)
-bootst_comb_ASDC = (sample((@pipe df_cycle_long_bm |> subset(_, :population => (x -> x .== "ASDC")) |> select(_, :value) |> Array |> reshape(_,:)), 10000, replace=true)./ rand(Uniform(mintime, maxtime), 10000)) .* 24.0
+bootst_comb_ASDC = (sample((@pipe df_cycle_long_bm |> subset(_, :population => (x -> x .== "ASDC")) |> select(_, :value) |> subset(_, :value => (x -> x .!= 0.0)) |> Array |> reshape(_,:)), 10000, replace=true)./ rand(Uniform(mintime, maxtime), 10000)) .* 24.0
 end
 
 # ╔═╡ 0d3a3a1a-0bcf-4bdd-80db-8769728f2d58
 begin
 	Random.seed!(1234)
-bootst_comb_cDC1 = (sample((@pipe df_cycle_long_bm |> subset(_, :population => (x -> x .== "cDC1")) |> select(_, :value) |> Array |> reshape(_,:)), 10000, replace=true)./ rand(Uniform(mintime, maxtime), 10000)) .* 24.0
+bootst_comb_cDC1 = (sample((@pipe df_cycle_long_bm |> subset(_, :population => (x -> x .== "cDC1")) |> select(_, :value) |> subset(_, :value => (x -> x .!= 0.0)) |> Array |> reshape(_,:)), 10000, replace=true)./ rand(Uniform(mintime, maxtime), 10000)) .* 24.0
 end
 
 # ╔═╡ f9f438d7-6a4f-43a8-b3ac-50d080bbab45
 begin
 	Random.seed!(1234)
-bootst_comb_DC2 = (sample((@pipe df_cycle_long_bm |> subset(_, :population => (x -> x .== "DC2")) |> select(_, :value) |> Array |> reshape(_,:)), 10000, replace=true)./ rand(Uniform(mintime, maxtime), 10000)) .* 24.0
+bootst_comb_DC2 = (sample((@pipe df_cycle_long_bm |> subset(_, :population => (x -> x .== "DC2")) |> select(_, :value) |> subset(_, :value => (x -> x .!= 0.0)) |> Array |> reshape(_,:)), 10000, replace=true)./ rand(Uniform(mintime, maxtime), 10000)) .* 24.0
 end
 
 # ╔═╡ 075961aa-1ae1-460c-8ff3-34de54542a3e
 begin
 	Random.seed!(1234)
-bootst_comb_DC3 = (sample((@pipe df_cycle_long_bm |> subset(_, :population => (x -> x .== "DC3")) |> select(_, :value) |> Array |> reshape(_,:)), 10000, replace=true)./ rand(Uniform(mintime, maxtime), 10000)) .* 24.0
+bootst_comb_DC3 = (sample((@pipe df_cycle_long_bm |> subset(_, :population => (x -> x .== "DC3")) |> select(_, :value) |> subset(_, :value => (x -> x .!= 0.0)) |> Array |> reshape(_,:)), 10000, replace=true)./ rand(Uniform(mintime, maxtime), 10000)) .* 24.0
 end
 
 # ╔═╡ 8c1b9ce5-803b-45e4-adc2-1eeabf56a9cd
@@ -644,8 +657,19 @@ begin
 	res_ASDC_GD_lognormal= solve(remake(galac_prob_ASDC_lognormal.prob, u0=res_ASDC_lognormal.u), Fminbox(GradientDescent()), maxiters = 1e6);
 end
 
+# ╔═╡ 60075185-1cc9-4dc2-ab66-ae8c33a71008
+begin
+	galac_prob_ASDC_gamma = Turing.optim_problem(gamma_model(bootst_comb_ASDC), MLE();constrained=true, autoad = GalacticOptim.AutoForwardDiff(), lb=[0.0,0.0], ub=[5.0,5.0])
+	Random.seed!(1234)
+	res_ASDC_gamma= solve(galac_prob_ASDC_gamma.prob, BBO(), maxiters = 1e6);
+	res_ASDC_GD_gamma= solve(remake(galac_prob_ASDC_gamma.prob, u0=res_ASDC_gamma.u), Fminbox(GradientDescent()), maxiters = 1e6);
+end
+
 # ╔═╡ 9204bc74-3c46-4acd-92cf-89e70a426076
 res_ASDC_dist_opt = fit_mle(LogNormal, bootst_comb_ASDC)
+
+# ╔═╡ 163246f1-eb81-45e7-8cc7-8b401eb03b74
+res_ASDC_dist_opt_gamma = fit_mle(Gamma, bootst_comb_ASDC)
 
 # ╔═╡ 0f36747b-3392-48ea-a829-9831a5f031e4
 begin
@@ -663,8 +687,19 @@ begin
 	res_cDC1_GD_lognormal= solve(remake(galac_prob_cDC1_lognormal.prob, u0=res_cDC1_lognormal.u), Fminbox(GradientDescent()), maxiters = 1e6);
 end
 
+# ╔═╡ 4f603035-4d8d-40e0-8ee0-2383e6e3eb5c
+begin
+	galac_prob_cDC1_gamma = Turing.optim_problem(gamma_model(bootst_comb_cDC1), MLE();constrained=true, autoad = GalacticOptim.AutoForwardDiff(), lb=[0.0,0.0] .+eps(), ub=[5.0,5.0])	
+	Random.seed!(1234)
+	res_cDC1_gamma= solve(galac_prob_cDC1_gamma.prob, BBO(), maxiters = 1e5);
+	res_cDC1_GD_gamma= solve(remake(galac_prob_cDC1_gamma.prob, u0=res_cDC1_gamma.u), Fminbox(GradientDescent()), maxiters = 1e6);
+end
+
 # ╔═╡ 4ec04374-5190-4358-851c-b2558eab676d
 res_cDC1_dist_opt = fit_mle(LogNormal, bootst_comb_cDC1.+ eps())
+
+# ╔═╡ 138905a3-d8db-4065-b5df-c60ee9a17438
+res_cDC1_dist_opt_gamma = fit_mle(Gamma, bootst_comb_cDC1 .+ eps())
 
 # ╔═╡ 1162d297-0776-43cf-b47c-a30d175e70eb
 begin
@@ -682,8 +717,19 @@ begin
 	res_DC2_GD_lognormal= solve(remake(galac_prob_DC2_lognormal.prob, u0=res_DC2_lognormal.u), Fminbox(GradientDescent()), maxiters = 1e6);
 end
 
+# ╔═╡ 0c0b94bd-b9df-4f7f-905a-e26e6b7e0336
+begin
+	galac_prob_DC2_gamma = Turing.optim_problem(gamma_model(bootst_comb_DC2), MLE();constrained=true, autoad = GalacticOptim.AutoForwardDiff(), lb=[0.0,0.0] .+eps(), ub=[5.0,5.0])	
+	Random.seed!(1234)
+	res_DC2_gamma= solve(galac_prob_DC2_gamma.prob, BBO(), maxiters = 1e5);
+	res_DC2_GD_gamma= solve(remake(galac_prob_DC2_gamma.prob, u0=res_DC2_gamma.u), Fminbox(GradientDescent()), maxiters = 1e6);
+end
+
 # ╔═╡ c09d1291-914d-491c-9ec2-e9f1ca1f6b56
-res_DC2_dist_opt = fit_mle(Normal, bootst_comb_DC2.+ .1)
+res_DC2_dist_opt = fit_mle(Normal, bootst_comb_DC2)
+
+# ╔═╡ 26d09995-2e7b-40b5-ba24-7d1e8dcbfaea
+res_DC2_dist_opt_gamma = fit_mle(Gamma, bootst_comb_DC2 .+ eps())
 
 # ╔═╡ c6d5216b-1981-41b3-8c44-3d75f19b0a7d
 begin
@@ -701,8 +747,19 @@ begin
 	res_DC3_GD_lognormal= solve(remake(galac_prob_DC3_lognormal.prob, u0=res_DC3_lognormal.u), Fminbox(GradientDescent()), maxiters = 1e6);
 end
 
+# ╔═╡ dd8c8d81-7aa1-4c03-8037-7a88398a9971
+begin
+	galac_prob_DC3_gamma = Turing.optim_problem(gamma_model(bootst_comb_DC3), MLE();constrained=true, autoad = GalacticOptim.AutoForwardDiff(), lb=[0.0,0.0] .+eps(), ub=[5.0,5.0])	
+	Random.seed!(1234)
+	res_DC3_gamma= solve(galac_prob_DC3_gamma.prob, BBO(), maxiters = 1e5);
+	res_DC3_GD_gamma= solve(remake(galac_prob_DC3_gamma.prob, u0=res_DC3_gamma.u), Fminbox(GradientDescent()), maxiters = 1e6);
+end
+
 # ╔═╡ 5c92cc2b-d677-4861-ae90-66eded3fdaab
 res_DC3_dist_opt = fit_mle(Normal, bootst_comb_DC3 .+ eps())
+
+# ╔═╡ 92f5e1ab-06a9-493f-b630-53e8327cf07a
+res_DC3_dist_opt_gamma = fit_mle(Gamma, bootst_comb_DC3 .+ eps())
 
 # ╔═╡ 91a9b444-7c71-11eb-3858-17f5c2b4c884
 md"Both bootstrap and plain sampling yielded comparable results. We will be using the bootstrapping method, which in essence combines bootstrap samples from G2 fraction with samples from a uniform distribution U(5.0, 15.0). The priors of the proliferation rates used in the inference are the following:"
@@ -710,8 +767,8 @@ md"Both bootstrap and plain sampling yielded comparable results. We will be usin
 # ╔═╡ 41aa65d3-5367-4e2c-9a3b-041909ec49ad
 df_p_priors_truncated_normal = DataFrame(
 	parameter = ["ASDC","cDC1", "DC2", "DC3"],
-	µ = [res_ASDC_GD.u[1],res_cDC1_GD.u[1],res_DC2_GD.u[1], res_DC3_GD.u[1]],
-	σ = [res_ASDC_GD.u[2],res_cDC1_GD.u[2],res_DC2_GD.u[2], res_DC3_GD.u[2]],
+	µ = [res_ASDC_GD.u[1],res_cDC1_GD.u[1],res_DC2_GD.u[1], res_DC3_GD_gamma.u[1]],
+	σ = [res_ASDC_GD.u[2],res_cDC1_GD.u[2],res_DC2_GD.u[2], res_DC3_GD_gamma.u[2]],
 	dist = "Normal",
 	truncated = 1,
 	lower = 0.0,
@@ -719,7 +776,8 @@ df_p_priors_truncated_normal = DataFrame(
 )
 
 # ╔═╡ 0fb66180-d1b3-4c63-bdb4-3e86f69fb4d2
-df_p_priors_lognormal = DataFrame(
+begin
+	df_p_priors_lognormal = DataFrame(
 	parameter = ["ASDC","cDC1", "DC2", "DC3"],
 	µ = [res_ASDC_GD_lognormal.u[1],res_cDC1_GD_lognormal.u[1],res_DC2_GD_lognormal.u[1], res_DC3_GD_lognormal.u[1]],
 	σ = [res_ASDC_GD_lognormal.u[2],res_cDC1_GD_lognormal.u[2],res_DC2_GD_lognormal.u[2], res_DC3_GD_lognormal.u[2]],
@@ -727,6 +785,40 @@ df_p_priors_lognormal = DataFrame(
 	truncated = 0,
 	lower = -Inf,
 	upper = Inf)
+	
+# 	df_p_priors_lognormal = DataFrame(
+# parameter = ["ASDC","cDC1", "DC2", "DC3"],
+# µ = [res_ASDC_dist_opt.μ,res_cDC1_dist_opt.μ, res_DC2_dist_opt.μ, res_DC3_dist_opt.μ],
+# σ = [res_ASDC_dist_opt.σ,res_cDC1_dist_opt.σ, res_DC2_dist_opt.σ, res_DC3_dist_opt.σ],
+# dist = "LogNormal",
+# truncated = 0,
+# lower = -Inf,
+# upper = Inf)
+	
+end
+
+# ╔═╡ 36d34538-defd-444a-a3e5-587248481e05
+begin
+	df_p_priors_Gamma = DataFrame(
+	parameter = ["ASDC","cDC1", "DC2", "DC3"],
+	µ = [res_ASDC_GD_gamma.u[1],res_cDC1_GD_gamma.u[1],res_DC2_GD_gamma.u[1],res_DC3_GD_gamma.u[1]],
+	σ = [res_ASDC_GD_gamma.u[2],res_cDC1_GD_gamma.u[2],res_DC2_GD_gamma.u[2],res_DC3_GD_gamma.u[2]],
+	dist = "Gamma",
+	truncated = 0,
+	lower = -Inf,
+	upper = Inf)
+	
+	df_p_priors_Gamma = DataFrame(
+	parameter = ["ASDC","cDC1", "DC2", "DC3"],
+	µ = [res_ASDC_dist_opt_gamma.α, res_cDC1_dist_opt_gamma.α, res_DC2_dist_opt_gamma.α, res_DC3_dist_opt_gamma.α],
+	σ = [res_ASDC_dist_opt_gamma.θ, res_cDC1_dist_opt_gamma.θ, res_DC2_dist_opt_gamma.θ, res_DC3_dist_opt_gamma.θ],
+	dist = "Gamma",
+	truncated = 0,
+	lower = -Inf,
+	upper = Inf)
+	
+	
+end
 
 # ╔═╡ 587d774d-6a95-4a5f-8927-d3443fc9bf5c
 begin
@@ -736,7 +828,7 @@ begin
 	for (idx, j) in enumerate(eachrow(df_p_priors_truncated_normal))
 		ax_prior_normal[idx].title= j.parameter
 		CairoMakie.plot!(ax_prior_normal[idx], Truncated(Normal(j.μ, j.σ), 0.0, Inf), label="prior",strokewidth = 2)
-		CairoMakie.hist!(ax_prior_normal[idx],[bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2.+ .1,bootst_comb_DC3][idx], normalization=:pdf, label="bootstrap sample", color=(:red,0.0), strokecolor=:red,strokewidth = 2)
+		CairoMakie.hist!(ax_prior_normal[idx],[bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2,bootst_comb_DC3][idx], normalization=:pdf, label="bootstrap sample", color=(:red,0.0), strokecolor=:red,strokewidth = 2)
 		CairoMakie.xlims!(ax_prior_normal[idx], (-0.1,maximum([bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2,bootst_comb_DC3][idx])*1.2))
 	end
 	
@@ -750,33 +842,15 @@ begin
 	fig_prior_normal
 end
 
-# ╔═╡ 0bf0e0d2-7d2c-49e0-b647-c28bae21785d
-begin
-	fig_prior_lognormal = Figure()
-	ax_prior_lognormal = [Axis(fig_prior_lognormal[j,i], ylabel="density") for j in 1:2 for i in 1:2]
-
-	for (idx, j) in enumerate(eachrow(df_p_priors_lognormal))
-		ax_prior_lognormal[idx].title= j.parameter
-		CairoMakie.plot!(ax_prior_lognormal[idx], LogNormal(j.μ, j.σ), label="prior",strokewidth = 2)
-		CairoMakie.hist!(ax_prior_lognormal[idx],[bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2.+ .1,bootst_comb_DC3][idx], normalization=:pdf, label="bootstrap sample", color=(:red,0.0), strokecolor=:red,strokewidth = 2)
-		CairoMakie.xlims!(ax_prior_lognormal[idx], (-0.1,maximum([bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2,bootst_comb_DC3][idx])*1.2))
-	end
-	
-	# legend_ax = Axis(fig_prior[3,:])
-	ax_prior_lognormal[2].ylabel=""
-	ax_prior_lognormal[4].ylabel=""
-	
-	Legend(fig_prior_lognormal[3,:], ax_prior_lognormal[1],  orientation = :horizontal, tellwidth = false, tellheight = true)
-	
-	
-	fig_prior_lognormal
-end
-
 # ╔═╡ 58e06554-c1ee-4223-8231-a237c7554e20
-df_p_priors = vcat(
-	DataFrame(df_p_priors_lognormal[1,:]),
-	df_p_priors_truncated_normal[2:4,:],
-)
+# df_p_priors = vcat(
+# 	DataFrame(df_p_priors_Gamma[1,:]),
+# 	df_p_priors_truncated_normal[2:3,:],
+# 	DataFrame(df_p_priors_Gamma[4,:])
+# )
+
+# ╔═╡ d2165116-022b-4826-8b0e-ee495a57799c
+df_p_priors =df_p_priors_lognormal
 
 # ╔═╡ 8eaf4eae-948e-45d7-968b-14984b44089d
 function create_dist(dist::AbstractString, mu::Real, sigma::Real, truncated::Real, lower=-Inf, upper=Inf)
@@ -793,6 +867,43 @@ function create_dist(dist::AbstractString, mu::Real, sigma::Real, truncated::Rea
 	return eval(Meta.parse(dist_string))
 end
 
+# ╔═╡ 0bf0e0d2-7d2c-49e0-b647-c28bae21785d
+begin
+	fig_prior_lognormal = Figure()
+	ax_prior_lognormal = [Axis(fig_prior_lognormal[j,i], ylabel="density") for j in 1:2 for i in 1:2]
+
+	for (idx, j) in enumerate(eachrow(df_p_priors_lognormal))
+		ax_prior_lognormal[idx].title= j.parameter
+		
+		
+		
+		# CairoMakie.plot!(ax_prior_lognormal[idx], LogNormal(j.μ, j.σ), label="prior",strokewidth = 2)
+		
+		CairoMakie.hist!(ax_prior_lognormal[idx],[bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2,bootst_comb_DC3][idx], normalization=:pdf, label="bootstrap sample", color=(:red,0.0), strokecolor=:red,strokewidth = 2)
+		
+		tmp_prior_dist = create_dist(j.dist, j.μ, j.σ, j.truncated, j.lower,j.upper)
+
+		
+		points = collect(0:0.00001:maximum([bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2,bootst_comb_DC3][idx])*1.2)
+		
+		w = pdf.(tmp_prior_dist, points)
+		# CairoMakie.plot!(ax_prior_arr[idx], tmp_prior_dist, label="fitted prior",linewidth = 3, color=color_map["prior"])
+		CairoMakie.lines!(ax_prior_lognormal[idx], points, w, label="fitted prior",linewidth = 2, color=:black)
+		
+		
+		CairoMakie.xlims!(ax_prior_lognormal[idx], (-0.1,maximum([bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2,bootst_comb_DC3][idx])*1.2))
+	end
+	
+	# legend_ax = Axis(fig_prior[3,:])
+	ax_prior_lognormal[2].ylabel=""
+	ax_prior_lognormal[4].ylabel=""
+	
+	Legend(fig_prior_lognormal[3,:], ax_prior_lognormal[1],  orientation = :horizontal, tellwidth = false, tellheight = true)
+	
+	
+	fig_prior_lognormal
+end
+
 # ╔═╡ 1b3b5331-f983-410e-9f11-8e486d184d70
 begin
 	fig_prior = Figure()
@@ -804,7 +915,7 @@ begin
 		
 		CairoMakie.plot!(ax_prior[idx], tmp_prior_dist, label="prior",strokewidth = 2)
 		
-		CairoMakie.hist!(ax_prior[idx],[bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2.+ .1,bootst_comb_DC3][idx], normalization=:pdf, label="bootstrap sample", color=(:red,0.0), strokecolor=:red,strokewidth = 2)
+		CairoMakie.hist!(ax_prior[idx],[bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2,bootst_comb_DC3][idx], normalization=:pdf, label="bootstrap sample", color=(:red,0.0), strokecolor=:red,strokewidth = 2)
 		CairoMakie.xlims!(ax_prior[idx], (-0.1,maximum([bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2,bootst_comb_DC3][idx])*1.2))
 	end
 	
@@ -823,8 +934,8 @@ md"### Plot and save prior distribution figures"
 
 # ╔═╡ 2e72fba3-b157-43c6-9417-5d76ca0e4e42
 begin
-	f_prior_arr = [Figure(; resolution=(600,600)) for j in 1:4]
-	ax_prior_arr = [Axis(f_prior_arr[j][1,1], ylabel="pdf", xlabel="proliferation rate", titlesize=22.0f0) for j in 1:4]
+	f_prior_arr = [Figure(; resolution=(650,600)) for j in 1:4]
+	ax_prior_arr = [Axis(f_prior_arr[j][1,1], ylabel="pdf", xlabel="proliferation rate (day⁻¹)", titlesize=22.0f0) for j in 1:4]
 	
 	color_map = Dict([ j => cgrad(:roma, 2, categorical = true)[idx] for (idx, j) in enumerate(["prior", "sample"])])
 	
@@ -832,10 +943,12 @@ begin
 		ax_prior_arr[idx].title= j.parameter
 		tmp_prior_dist = create_dist(j.dist, j.μ, j.σ, j.truncated, j.lower,j.upper)
 		
-		CairoMakie.hist!(ax_prior_arr[idx],[bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2.+ .1,bootst_comb_DC3][idx], normalization=:pdf, label="bootstraped proliferation rate",  strokecolor=(color_map["sample"], 0.75), color = (color_map["sample"], 0), strokewidth = 2)
+		CairoMakie.hist!(ax_prior_arr[idx],[bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2,bootst_comb_DC3][idx], normalization=:pdf, label="Estimated proliferation rate\n(Bootstrapping)",  strokecolor=(color_map["sample"], 0.75), color = (color_map["sample"], 0), strokewidth = 2)
 		
-		CairoMakie.plot!(ax_prior_arr[idx], tmp_prior_dist, label="fitted prior",linewidth = 3, color=color_map["prior"])
-		
+		points = collect(0:0.00001:maximum([bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2,bootst_comb_DC3][idx])*1.2)
+		w = pdf.(tmp_prior_dist, points)
+		# CairoMakie.plot!(ax_prior_arr[idx], tmp_prior_dist, label="fitted prior",linewidth = 3, color=color_map["prior"])
+		CairoMakie.lines!(ax_prior_arr[idx], points, w, label="fitted prior\n" * String(typeof(tmp_prior_dist).name.name) * "(μ="*string(round(tmp_prior_dist.μ; digits= 4))*",σ="*string(round(tmp_prior_dist.σ; digits= 4))*")",linewidth = 3, color=color_map["prior"])
 		CairoMakie.xlims!(ax_prior_arr[idx], (-0.1,maximum([bootst_comb_ASDC,bootst_comb_cDC1,bootst_comb_DC2,bootst_comb_DC3][idx])*1.2))
 		
 		axislegend(ax_prior_arr[idx])	
@@ -871,10 +984,10 @@ end
 md"## Save ratios to hardrive"
 
 # ╔═╡ aba96283-01c7-4450-bd5d-3e04043d2075
-save(datadir("exp_pro", "cell_ratios.csv"), df_ratio_approaches_combined_wdc3)
+save(datadir("exp_pro", "cell_ratios_revision.csv"), df_ratio_approaches_combined_wdc3)
 
 # ╔═╡ eba36176-d1cf-4e7a-b2bd-0134467365e4
-save(datadir("exp_pro", "cell_ratios.bson"), :df_ratios=>df_ratio_approaches_combined_wdc3)
+save(datadir("exp_pro", "cell_ratios_revision.bson"), :df_ratios=>df_ratio_approaches_combined_wdc3)
 
 # ╔═╡ b18056b8-2b24-11eb-3cf9-b54bd1f27a09
 md"## Save priors to harddrive"
@@ -883,10 +996,10 @@ md"## Save priors to harddrive"
 md"We save the new prior parameters both as CSV and BSON files to be used in the downstream analysis and modelling"
 
 # ╔═╡ 17de5082-7c73-11eb-2b3a-c712a6d6664e
-save(datadir("exp_pro", "p_priors.csv"), df_p_priors)
+save(datadir("exp_pro", "p_priors_revision.csv"), df_p_priors)
 
 # ╔═╡ 172900ce-7c73-11eb-1ace-1919cfed3ac0
-save(datadir("exp_pro", "p_priors.bson"), :df_p_priors=>df_p_priors)
+save(datadir("exp_pro", "p_priors_revision.bson"), :df_p_priors=>df_p_priors)
 
 # ╔═╡ efaf5444-2b1e-11eb-1d33-19962296cb3f
 md"## Dependencies"
@@ -941,28 +1054,40 @@ set_aog_theme!()
 # ╟─0f6a34ae-7c49-11eb-0701-079184b4cc45
 # ╠═5323669a-7c4f-11eb-14e8-cdb2539e5d7e
 # ╠═f9882475-6e97-4026-9f08-9d50d74d41b8
+# ╠═2b6e2dc8-968a-42c2-ae0d-ab19440f627f
+# ╠═4105b6d8-e446-4b48-b039-04059c7bdce0
 # ╠═7f41768d-db55-474b-9d3d-d972f87bb396
 # ╠═0d3a3a1a-0bcf-4bdd-80db-8769728f2d58
 # ╠═f9f438d7-6a4f-43a8-b3ac-50d080bbab45
 # ╠═075961aa-1ae1-460c-8ff3-34de54542a3e
 # ╠═8c1b9ce5-803b-45e4-adc2-1eeabf56a9cd
 # ╠═dc0bd7bb-293d-4163-b4df-073596852f33
+# ╠═60075185-1cc9-4dc2-ab66-ae8c33a71008
 # ╠═9204bc74-3c46-4acd-92cf-89e70a426076
+# ╠═163246f1-eb81-45e7-8cc7-8b401eb03b74
 # ╠═0f36747b-3392-48ea-a829-9831a5f031e4
 # ╠═203e018a-2487-4ffc-b356-51ba47ff3403
+# ╠═4f603035-4d8d-40e0-8ee0-2383e6e3eb5c
 # ╠═4ec04374-5190-4358-851c-b2558eab676d
+# ╠═138905a3-d8db-4065-b5df-c60ee9a17438
 # ╠═1162d297-0776-43cf-b47c-a30d175e70eb
 # ╠═1ed28869-c6b9-4ec5-b84a-e11c64501d47
+# ╠═0c0b94bd-b9df-4f7f-905a-e26e6b7e0336
 # ╠═c09d1291-914d-491c-9ec2-e9f1ca1f6b56
+# ╠═26d09995-2e7b-40b5-ba24-7d1e8dcbfaea
 # ╠═c6d5216b-1981-41b3-8c44-3d75f19b0a7d
 # ╠═6ff33721-f9a6-43c3-b1cb-a11794714151
+# ╠═dd8c8d81-7aa1-4c03-8037-7a88398a9971
 # ╠═5c92cc2b-d677-4861-ae90-66eded3fdaab
+# ╠═92f5e1ab-06a9-493f-b630-53e8327cf07a
 # ╟─91a9b444-7c71-11eb-3858-17f5c2b4c884
 # ╠═41aa65d3-5367-4e2c-9a3b-041909ec49ad
 # ╠═0fb66180-d1b3-4c63-bdb4-3e86f69fb4d2
+# ╠═36d34538-defd-444a-a3e5-587248481e05
 # ╠═587d774d-6a95-4a5f-8927-d3443fc9bf5c
 # ╠═0bf0e0d2-7d2c-49e0-b647-c28bae21785d
 # ╠═58e06554-c1ee-4223-8231-a237c7554e20
+# ╠═d2165116-022b-4826-8b0e-ee495a57799c
 # ╠═8eaf4eae-948e-45d7-968b-14984b44089d
 # ╠═1b3b5331-f983-410e-9f11-8e486d184d70
 # ╠═25cf0054-8c86-49ad-addc-d0149f5e02cb
