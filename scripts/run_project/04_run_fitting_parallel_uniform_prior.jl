@@ -6,7 +6,7 @@ Pkg.activate(projectdir_name)
 using DrWatson
 DrWatson.@quickactivate "Model of DC Differentiation"
 
-fitting_notebooks = readdir(projectdir("notebooks", "02_fitting"))[1:30]
+fitting_notebooks = readdir(projectdir("notebooks", "02_fitting", "02_uniform_prior"))
 
 include(srcdir("parallel_run.jl"))
 # include(scriptsdir("run_project", "00_mcmc_settings.jl"))
