@@ -23,13 +23,3 @@ end
 commands_arr = [build_cmd(j) for j in fitting_notebooks[31:38]]
 
 parallel_run(commands_arr; ntasks = parallel_task)
-
-# for j in fitting_notebooks[[1]]
-#     println("Started running " * j)
-#     println("...")
-#     file_tmp = projectdir("notebooks", "02_fitting", j, j*".jl")
-#     cmd_tmp = `julia -t $n_threads $file_tmp`
-#     run(cmd_tmp)
-#     println("Finished running " * j)
-#     println("")
-# end
