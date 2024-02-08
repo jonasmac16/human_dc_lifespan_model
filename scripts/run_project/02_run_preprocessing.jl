@@ -14,7 +14,7 @@ for j in processing_notebooks
     println("Started running " * j)
     println("...")
     file_tmp = projectdir("notebooks", "01_processing", j, j*".jl")
-    cmd_tmp = `julia -t $n_threads $file_tmp`
+    cmd_tmp = `julia +1.6.1 -t $n_threads $file_tmp`
     run(cmd_tmp)
     println("Finished running " * j)
     println("")
