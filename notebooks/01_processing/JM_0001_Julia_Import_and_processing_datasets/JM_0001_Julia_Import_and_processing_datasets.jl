@@ -279,6 +279,9 @@ insertcols!(_, :dataset .=> "original")
 # ╔═╡ b52019ff-11f6-4693-a79f-664213a5ed9d
 md"#### New dataset"
 
+# ╔═╡ e3c9b3c5-6154-4661-9c6d-f49c84615453
+md"The new dataset contains the data for ASDC and cDC1 from the dataset part of original submission. Thus, we will just use this new dataset for the analysis of the revised manuscript submission."
+
 # ╔═╡ 50eeb30e-8d6e-4375-b991-1112c66f9668
 md"##### Blood"
 
@@ -320,7 +323,7 @@ insertcols!(_, :dataset .=> "new")
 md"#### Combine the original and new cell cycle datasets"
 
 # ╔═╡ b2a613fe-fb87-4aa8-9ed2-42f43452fcdc
-df_cycle_long = vcat(df_cycle_long_old, df_cycle_long_new)
+df_cycle_long = df_cycle_long_new
 
 # ╔═╡ d6468240-e6e3-11ea-0803-d5cb9a2e6625
 md"## Visualise experimental data"
@@ -398,9 +401,6 @@ mapping(:population,:value, color = :dataset, dodge=:dataset, col=:location) *
 visual(BoxPlot) |>
 draw(_; facet =(; linkyaxes=:minimal))
 
-# ╔═╡ da8d6738-5164-478e-bb9f-7a465c299d81
-md"The data of the original and new dataset appear in agreement with each other."
-
 # ╔═╡ 30661c72-e6e4-11ea-2608-e9ab333397bc
 md"## Save data in concise format to be used later"
 
@@ -475,9 +475,10 @@ AlgebraOfGraphics.set_aog_theme!()
 # ╠═3720d03f-4f05-4c45-a695-83b385a2a944
 # ╟─0f447211-438b-4e3a-a559-d308a7da96d0
 # ╠═e89d05ef-cf4f-45ef-b986-a4a197e3f267
-# ╠═e85ffe11-4317-45f8-8dfd-4196e752af9f
+# ╟─e85ffe11-4317-45f8-8dfd-4196e752af9f
 # ╠═94d3873b-49b3-4bb5-8409-d84e06cf0442
 # ╟─b52019ff-11f6-4693-a79f-664213a5ed9d
+# ╟─e3c9b3c5-6154-4661-9c6d-f49c84615453
 # ╟─50eeb30e-8d6e-4375-b991-1112c66f9668
 # ╠═6c6fde96-c4cc-477b-aa4a-741e7985a8a1
 # ╟─a022b119-d994-4b79-bbb8-a5378518d59c
@@ -496,7 +497,6 @@ AlgebraOfGraphics.set_aog_theme!()
 # ╟─06ce9870-1bdc-4264-b1b0-b644ef83b764
 # ╟─77ee7ac7-9d16-4a52-9aec-aa1c681eb3ff
 # ╟─d767393d-8ee8-464f-b36a-4a76232ab748
-# ╟─da8d6738-5164-478e-bb9f-7a465c299d81
 # ╟─30661c72-e6e4-11ea-2608-e9ab333397bc
 # ╠═8847baba-fc0e-11ea-092b-0907836dda6d
 # ╠═3fcf90b4-e6e4-11ea-3b2b-51f2749c1f91
