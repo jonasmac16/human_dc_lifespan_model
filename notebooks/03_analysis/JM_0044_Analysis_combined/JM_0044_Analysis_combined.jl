@@ -114,10 +114,10 @@ nonpooled_results_notebooks = filter(x -> !isnothing(match(r"JM_00(([1][9])|([2]
 nonpooled_results_normal_notebooks = filter(x -> !isnothing(match(r"JM_000[4-8]",x)),readdir(projectdir("notebooks", "02_fitting"), join=true))
 
 # ╔═╡ e82c870e-8b63-4ddd-9289-2eb7c9e3cd72
-pooled_pdc_results_notebooks = filter(x -> !isnothing(match(r"JM_00((3[6,7])|(4[0,1]))",x)),readdir(projectdir("notebooks", "02_fitting"), join=true))
+pooled_dc3_results_notebooks = filter(x -> !isnothing(match(r"JM_00((3[6,7])|(4[0,1]))",x)),readdir(projectdir("notebooks", "02_fitting"), join=true))
 
 # ╔═╡ 8691540d-c347-4fff-914b-00cea31dc22c
-nonpooled_pdc_results_notebooks = filter(x -> !isnothing(match(r"JM_003[4,5,8,9]",x)),readdir(projectdir("notebooks", "02_fitting"), join=true))
+nonpooled_dc3_results_notebooks = filter(x -> !isnothing(match(r"JM_003[4,5,8,9]",x)),readdir(projectdir("notebooks", "02_fitting"), join=true))
 
 # ╔═╡ 8f25ba44-552a-41a3-b7ec-32fe28702964
 begin
@@ -135,9 +135,9 @@ end
 
 # ╔═╡ df7db22c-79c2-4c1e-8f20-cfeb75bcf7c6
 begin
-	model_id_pdc_pooled  = [tryparse(Int, match(r"Model_(\d)", j).captures[1]) for j in pooled_pdc_results_notebooks]
+	model_id_dc3_pooled  = [tryparse(Int, match(r"Model_(\d)", j).captures[1]) for j in pooled_dc3_results_notebooks]
 	
-	model_id_pdc_nonpooled  = [tryparse(Int, match(r"Model_(\d)", j).captures[1]) for j in nonpooled_pdc_results_notebooks]
+	model_id_dc3_nonpooled  = [tryparse(Int, match(r"Model_(\d)", j).captures[1]) for j in nonpooled_dc3_results_notebooks]
 end
 
 # ╔═╡ e128f1e6-b3ef-4d48-97b7-c96248bc84f1
@@ -154,8 +154,8 @@ end
 
 # ╔═╡ d6f0af2f-3449-417e-bf97-5fdbb8646c46
 begin
-	strata_pdc_pooled  = [match(r"_(pooled)", j).captures[1] for j in pooled_pdc_results_notebooks]
-	strata_pdc_nonpooled  = [match(r"_(nonpooled)", j).captures[1] for j in nonpooled_pdc_results_notebooks]
+	strata_dc3_pooled  = [match(r"_(pooled)", j).captures[1] for j in pooled_dc3_results_notebooks]
+	strata_dc3_nonpooled  = [match(r"_(nonpooled)", j).captures[1] for j in nonpooled_dc3_results_notebooks]
 end
 
 # ╔═╡ 8e9b4cfe-25bf-4311-bbb0-e96b183ac8a0
@@ -172,8 +172,8 @@ end
 
 # ╔═╡ d84a78ea-394c-4151-b5e4-1dff040e634f
 begin
-	data_input_pdc_pooled  = [isnothing(match(r"_(extended)_pooled", j)) ? "original" : match(r"_(extended)_pooled", j).captures[1] for j in pooled_pdc_results_notebooks]
-	data_input_pdc_nonpooled  = [isnothing(match(r"_(extended)_pooled", j)) ? "original" : match(r"_(extended)_pooled", j).captures[1] for j in nonpooled_pdc_results_notebooks]
+	data_input_dc3_pooled  = [isnothing(match(r"_(extended)_pooled", j)) ? "original" : match(r"_(extended)_pooled", j).captures[1] for j in pooled_dc3_results_notebooks]
+	data_input_dc3_nonpooled  = [isnothing(match(r"_(extended)_pooled", j)) ? "original" : match(r"_(extended)_pooled", j).captures[1] for j in nonpooled_dc3_results_notebooks]
 end
 
 # ╔═╡ a123f0fa-b0c9-4bf3-a2a3-166339bc1999
@@ -190,16 +190,16 @@ end
 
 # ╔═╡ 12454b5d-a771-4044-8ef9-ba08ebcb3ff4
 begin
-	priors_pdc_pooled = [match(r"\w+_(\w+?)_prior", j).captures[1]  for j in pooled_pdc_results_notebooks]
-	priors_pdc_nonpooled = [match(r"\w+_(\w+?)_prior", j).captures[1] for j in nonpooled_pdc_results_notebooks]
+	priors_dc3_pooled = [match(r"\w+_(\w+?)_prior", j).captures[1]  for j in pooled_dc3_results_notebooks]
+	priors_dc3_nonpooled = [match(r"\w+_(\w+?)_prior", j).captures[1] for j in nonpooled_dc3_results_notebooks]
 end
 
 # ╔═╡ 0e40f982-bc34-491f-bdef-143c6b2008cd
 begin
 	likelihood_nonpooled = [(isnothing(match(r"mean_((student_t)|(studentt))_((lognormal)|(uniform))", j)) ? "normal" : "student_t") for j in nonpooled_results_notebooks]
 	likelihood_pooled = [(isnothing(match(r"mean_((student_t)|(studentt))_((lognormal)|(uniform))", j)) ? "normal" : "student_t") for j in pooled_results_notebooks]
-	likelihood_pdc_nonpooled = [(isnothing(match(r"mean_((student_t)|(studentt))_((lognormal)|(uniform))", j)) ? "normal" : "student_t") for j in pooled_pdc_results_notebooks]
-	likelihood_pdc_pooled = [(isnothing(match(r"mean_((student_t)|(studentt))_((lognormal)|(uniform))", j)) ? "normal" : "student_t") for j in pooled_pdc_results_notebooks]
+	likelihood_dc3_nonpooled = [(isnothing(match(r"mean_((student_t)|(studentt))_((lognormal)|(uniform))", j)) ? "normal" : "student_t") for j in pooled_dc3_results_notebooks]
+	likelihood_dc3_pooled = [(isnothing(match(r"mean_((student_t)|(studentt))_((lognormal)|(uniform))", j)) ? "normal" : "student_t") for j in pooled_dc3_results_notebooks]
 end	
 
 # ╔═╡ 251e83f8-fb1e-431d-ae95-1d3639a5db2a
@@ -219,7 +219,7 @@ begin
 	end
 	rename!(df, :timestamp => :time)
 	transform!(df, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
-	transform!(df, :population=> x -> categorical(x, levels=["preDC","cDC1", "cDC2"], compress=true), renamecols=false)
+	transform!(df, :population=> x -> categorical(x, levels=["ASDC","cDC1", "DC2"], compress=true), renamecols=false)
 	subset!(df, :model => x -> x .∈ Ref([1,2,4,5]))
 	transform!(df, :model => (x -> replace(x, 4=> 3, 5 => 4)), renamecols=false)
 end
@@ -235,42 +235,42 @@ begin
 	end
 	rename!(df_nonpooled, :timestamp => :time)
 	transform!(df_nonpooled, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
-	transform!(df_nonpooled, :population=> x -> categorical(x, levels=["preDC","cDC1", "cDC2"], compress=true), renamecols=false)
+	transform!(df_nonpooled, :population=> x -> categorical(x, levels=["ASDC","cDC1", "DC2"], compress=true), renamecols=false)
 	subset!(df_nonpooled, :model => x -> x .∈ Ref([1,2,4,5]))
 	transform!(df_nonpooled, :model => (x -> replace(x, 4=> 3, 5 => 4)), renamecols=false)
 end
 
 # ╔═╡ 80000554-c2aa-4c96-88d0-c2ac7a452b04
 begin
-	df_pdc_pooled=DataFrame()
+	df_dc3_pooled=DataFrame()
 	
-	for (idx, j) in enumerate(pooled_pdc_results_notebooks)
+	for (idx, j) in enumerate(pooled_dc3_results_notebooks)
 		df_tmp = CSV.read(joinpath(j, "results", "df_ppc.csv"), DataFrame)
-		insertcols!(df_tmp, :data => data_input_pdc_nonpooled[idx], :strata => strata_pdc_nonpooled[idx], :model => model_id_pdc_nonpooled[idx], :prior=>priors_pdc_nonpooled[idx], :likelihood_f => likelihood_pdc_pooled[idx])
-		df_pdc_pooled = vcat(df_pdc_pooled, df_tmp, cols=:union)
+		insertcols!(df_tmp, :data => data_input_dc3_nonpooled[idx], :strata => strata_dc3_nonpooled[idx], :model => model_id_dc3_nonpooled[idx], :prior=>priors_dc3_nonpooled[idx], :likelihood_f => likelihood_dc3_pooled[idx])
+		df_dc3_pooled = vcat(df_dc3_pooled, df_tmp, cols=:union)
 	end
-	rename!(df_pdc_pooled, :timestamp => :time)
-	transform!(df_pdc_pooled, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
+	rename!(df_dc3_pooled, :timestamp => :time)
+	transform!(df_dc3_pooled, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
 end
 
 # ╔═╡ 008601a2-75b8-4114-ac56-8b52f27735c7
 begin
-	df_pdc_nonpooled=DataFrame()
+	df_dc3_nonpooled=DataFrame()
 	
-	for (idx, j) in enumerate(nonpooled_pdc_results_notebooks)
+	for (idx, j) in enumerate(nonpooled_dc3_results_notebooks)
 		df_tmp = CSV.read(joinpath(j, "results", "df_ppc.csv"), DataFrame)
-		insertcols!(df_tmp, :data => data_input_pdc_nonpooled[idx], :strata => strata_pdc_nonpooled[idx], :model => model_id_pdc_nonpooled[idx], :prior=>priors_pdc_nonpooled[idx], :likelihood_f => likelihood_pdc_nonpooled[idx])
-		df_pdc_nonpooled = vcat(df_pdc_nonpooled, df_tmp, cols=:union)
+		insertcols!(df_tmp, :data => data_input_dc3_nonpooled[idx], :strata => strata_dc3_nonpooled[idx], :model => model_id_dc3_nonpooled[idx], :prior=>priors_dc3_nonpooled[idx], :likelihood_f => likelihood_dc3_nonpooled[idx])
+		df_dc3_nonpooled = vcat(df_dc3_nonpooled, df_tmp, cols=:union)
 	end
-	rename!(df_pdc_nonpooled, :timestamp => :time)
-	transform!(df_pdc_nonpooled, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
+	rename!(df_dc3_nonpooled, :timestamp => :time)
+	transform!(df_dc3_nonpooled, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
 end
 
 # ╔═╡ 08d9207a-7494-4688-90d6-e88548a66da7
 md"## Load experimental data"
 
 # ╔═╡ 3fa70e63-ac7b-42e7-87b7-12a0408d0ba6
-labelling_data = CSV.read(datadir("exp_pro", "labelling_data.csv"), DataFrame)
+labelling_data = CSV.read(datadir("exp_pro", "labelling_data_revision.csv"), DataFrame)
 
 # ╔═╡ c3b1af35-75ad-40d6-a192-bc03e1f3da92
 labelling_data_mean = @pipe labelling_data |> groupby(_, [:time, :individual,:population]) |> combine(_, :enrichment => (x -> (mean=mean(x), std= std(x))) => AsTable) |> rename(_, :individual => :donor)
@@ -321,7 +321,7 @@ end
 
 # ╔═╡ 56ab98d5-fba1-4644-9b9b-2a1197756dbc
 begin
-	function plot_predictions(df; donors_plotted = ["C66", "C67", "C68", "C53", "C55"], populations=["preDC", "cDC1", "cDC2"], dataset="extended", location="b", prior="lognormal", colors=:roma, data_color = [colorant"#755494",colorant"#de3458" ,colorant"#4e65a3"], models=[1,2,4,5], max_models=4, alpha=0.5, f_kwargs = (;), f = CairoMakie.Figure(;f_kwargs...), ax = hcat([[Axis(f[k,j], aspect=1.5) for k in 1:length(donors_plotted)] for j in 1:length(populations)]...))
+	function plot_predictions(df; donors_plotted = ["D01", "D02", "D04", "C66", "C67", "C68", "C55"], populations=["ASDC", "cDC1", "DC2"], dataset="extended", location="b", prior="lognormal", colors=:roma, data_color = [colorant"#755494",colorant"#de3458" ,colorant"#4e65a3"], models=[1,2,4,5], max_models=4, alpha=0.5, f_kwargs = (;), f = CairoMakie.Figure(;f_kwargs...), ax = hcat([[Axis(f[k,j], aspect=1.5) for k in 1:length(donors_plotted)] for j in 1:length(populations)]...))
 		
 		
 		color_scheme=cgrad(colors, max_models, categorical=true, alpha=alpha)[models]
@@ -377,40 +377,40 @@ begin
 end
 
 # ╔═╡ 76a3b35a-8c27-43d3-8148-d8af071bb338
-ppc_1 = plot_predictions(df;donors_plotted = ["C66", "C67", "C68"], populations=["preDC", "cDC1", "cDC2"], dataset="original", models=[1,2,3,4], location ="b", f_kwargs =(;resolution = (800, 600)))[1]
+ppc_1 = plot_predictions(df;donors_plotted = ["D01", "D02", "D04"], populations=["ASDC", "cDC1", "DC2"], dataset="original", models=[1,2,3,4], location ="b", f_kwargs =(;resolution = (800, 600)))[1]
 
 # ╔═╡ 7810af6d-d557-42b3-b585-7e80f57747d6
 save(joinpath(res_folder, "ppc_preDC_original_pooled.pdf"), ppc_1)
 
 # ╔═╡ 5eef1a9e-10fe-4e89-82d5-8df105e7f911
-ppc_2 = plot_predictions(df_nonpooled;donors_plotted = ["C66", "C67", "C68"], populations=["preDC", "cDC1", "cDC2"], dataset="original", models=[1,2,3,4], location ="b", f_kwargs =(;resolution = (800, 600)))[1]
+ppc_2 = plot_predictions(df_nonpooled;donors_plotted = ["D01", "D02", "D04"], populations=["ASDC", "cDC1", "DC2"], dataset="original", models=[1,2,3,4], location ="b", f_kwargs =(;resolution = (800, 600)))[1]
 
 # ╔═╡ 95ffc485-1cde-4429-9e4e-9d0062ac57ee
 save(joinpath(res_folder, "ppc_preDC_original_nonpooled.pdf"), ppc_2)
 
 # ╔═╡ fc1777c6-ad4e-4a43-938a-729c5cb84f18
-ppc_3 = plot_predictions(df;donors_plotted = ["C66", "C67", "C68", "C53", "C55"], populations=["preDC", "cDC1", "cDC2"], dataset="extended", models=[1,2,3,4], location ="b", f_kwargs =(;resolution = (800, 900)))[1]
+ppc_3 = plot_predictions(df;donors_plotted = ["D01", "D02", "D04", "C66", "C67", "C68", "C55"], populations=["ASDC", "cDC1", "DC2"], dataset="extended", models=[1,2,3,4], location ="b", f_kwargs =(;resolution = (800, 900)))[1]
 
 # ╔═╡ b7583245-ed9c-49e4-b8a7-890f814ac3c5
 save(joinpath(res_folder, "ppc_preDC_extended_pooled.pdf"), ppc_3)
 
 # ╔═╡ 27bec401-50f4-4fed-9a5a-b5acd59902ab
-ppc_4 = plot_predictions(df_pdc_pooled;donors_plotted = ["C66", "C67", "C68", "C52"], populations=["pDC"], dataset="original", models=[1,2], location ="b", data_color = [colorant"#c8ab37ff"], max_models=2, f_kwargs =(;resolution = (800, 1000)))[1]
+ppc_4 = plot_predictions(df_dc3_pooled;donors_plotted = ["D01", "D02", "D04"], populations=["DC3"], dataset="original", models=[1,2], location ="b", data_color = [colorant"#c8ab37ff"], max_models=2, f_kwargs =(;resolution = (800, 1000)))[1]
 
 # ╔═╡ eff9e5df-ee87-401e-b97a-1a80a3667477
-save(joinpath(res_folder, "ppc_pDC_extended_pooled.pdf"), ppc_4)
+save(joinpath(res_folder, "ppc_DC3_extended_pooled.pdf"), ppc_4)
 
 # ╔═╡ b79ed428-994c-4683-ac87-18e453e6a261
-ppc_5 = plot_predictions(df_pdc_nonpooled;donors_plotted = ["C66", "C67", "C68", "C52"], populations=["pDC"], dataset="original", models=[1,2], location ="b", data_color = [colorant"#c8ab37ff"], max_models=2, f_kwargs =(;resolution = (800, 1000)))[1]
+ppc_5 = plot_predictions(df_dc3_nonpooled;donors_plotted = ["D01", "D02", "D04"], populations=["DC3"], dataset="original", models=[1,2], location ="b", data_color = [colorant"#c8ab37ff"], max_models=2, f_kwargs =(;resolution = (800, 1000)))[1]
 
 # ╔═╡ c17d27c8-dcce-4c11-82d6-3ba3ad5ea66e
-save(joinpath(res_folder, "ppc_pDC_extended_nonpooled.pdf"), ppc_5)
+save(joinpath(res_folder, "ppc_DC3_extended_nonpooled.pdf"), ppc_5)
 
 # ╔═╡ 16154f55-7e5e-4741-9ad8-9ec8d7fc391c
 md"## Bone marrow prediction"
 
 # ╔═╡ 11f5be0c-2663-4ca0-adf7-a70203161ed7
-f = plot_predictions(df;donors_plotted = ["C68"], populations=["preDC"], dataset="extended", models=[1,2], location ="bm",  max_models=4, alpha = 0.5, f_kwargs =(;resolution = (800, 400)))
+f = plot_predictions(df;donors_plotted = ["C68"], populations=["ASDC"], dataset="extended", models=[1,2], location ="bm",  max_models=4, alpha = 0.5, f_kwargs =(;resolution = (800, 400)))
 
 # ╔═╡ a5ca7261-198f-4f06-ad1a-fd2870fa0bd4
 CairoMakie.xlims!(f[2][1], 0, 4)
@@ -425,31 +425,31 @@ save(joinpath(res_folder, "ppc_preDC_extended_pooled_bone_marrow.pdf"), f[1])
 md"## Model comparison"
 
 # ╔═╡ 715b9bf0-17c5-415c-a1d1-c22d864fd6af
-df_loo_pDC = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0043_Julia_Analysis_pDC","results","PSIS_LOO_CV_Model_comparison_pDC_leave_out_sample.csv"), DataFrame) |>
+df_loo_DC3 = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0043_Julia_Analysis_DC3","results","PSIS_LOO_CV_Model_comparison_DC3_leave_out_sample.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
 
 # ╔═╡ 15716182-57e9-4f7a-b685-af321fdb8d8a
-df_loo_subset_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_preDC_cDC1_cDC2","results","PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.csv"), DataFrame) |>
+df_loo_subset_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
 
 # ╔═╡ 25c18a6a-3e7b-4eab-b38c-b6f6156d65e1
-df_loo_sample_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_preDC_cDC1_cDC2","results","PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.csv"), DataFrame) |>
+df_loo_sample_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
 
 # ╔═╡ 56d68aaa-bf87-460d-beb5-420fd7f60fc3
-df_loo_subset = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_preDC_cDC1_cDC2","results","PSIS_LOO_CV_Model_comparison_leave_out_subset.csv"), DataFrame) |>
+df_loo_subset = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_subset.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
 
 # ╔═╡ ab3577de-6f11-4e9f-b171-f38948b0de09
-df_loo_sample = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_preDC_cDC1_cDC2","results","PSIS_LOO_CV_Model_comparison_leave_out_sample.csv"), DataFrame) |>
+df_loo_sample = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_sample.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
@@ -484,15 +484,15 @@ end
 
 # ╔═╡ ae35a1df-d594-4de8-946c-de827309cece
 begin
-	fig_pdc_model_comparison = CairoMakie.Figure(resolution = (400, 350))
-	ax_pdc_model_comparison = Axis(fig_pdc_model_comparison[1,1], title="sample")
+	fig_dc3_model_comparison = CairoMakie.Figure(resolution = (400, 350))
+	ax_dc3_model_comparison = Axis(fig_dc3_model_comparison[1,1], title="sample")
 	
-	plot_model_comparison(df_loo_pDC; ax = ax_pdc_model_comparison)
-	fig_pdc_model_comparison
+	plot_model_comparison(df_loo_DC3; ax = ax_dc3_model_comparison)
+	fig_dc3_model_comparison
 end
 
 # ╔═╡ d811ceb6-b60f-420a-962c-8d6a121588d1
-save(joinpath(res_folder, "model_comparison_pDC_extended_pooled.pdf"), fig_pdc_model_comparison)
+save(joinpath(res_folder, "model_comparison_DC3_extended_pooled.pdf"), fig_dc3_model_comparison)
 
 # ╔═╡ 444f287e-883f-4f43-a6fd-5c01474d635d
 plot_model_comparison(df_loo_sample)
@@ -511,18 +511,18 @@ noto_sans_bold = assetpath("fonts", "NotoSans-Bold.ttf")
 
 # ╔═╡ 9fc567d3-5519-4ec1-b749-ec36ceea856b
 begin
-	fig_pdc_ppc_combined = CairoMakie.Figure(; resolution = (800,1000))
-	ax1 = hcat([[Axis(fig_pdc_ppc_combined[k,j]) for k in 1:4] for j in 1:1]...)
-	ax2 = hcat([[Axis(fig_pdc_ppc_combined[k,j]) for k in 1:4] for j in 2:2]...)
-	plot_predictions(df_pdc_pooled;donors_plotted = ["C66", "C67", "C68", "C52"], populations=["pDC"], dataset="original", models=[1,2], location ="b", data_color = [colorant"#c8ab37ff"], max_models=2, ax = ax1)[2]
-plot_predictions(df_pdc_nonpooled;donors_plotted = ["C66", "C67", "C68", "C52"], populations=["pDC"], dataset="original", models=[1,2], location ="b", data_color = [colorant"#c8ab37ff"], max_models=2, ax=ax2)[2]
+	fig_dc3_ppc_combined = CairoMakie.Figure(; resolution = (800,1000))
+	ax1 = hcat([[Axis(fig_dc3_ppc_combined[k,j]) for k in 1:4] for j in 1:1]...)
+	ax2 = hcat([[Axis(fig_dc3_ppc_combined[k,j]) for k in 1:4] for j in 2:2]...)
+	plot_predictions(df_dc3_pooled;donors_plotted = ["D01", "D02", "D04"], populations=["DC3"], dataset="original", models=[1,2], location ="b", data_color = [colorant"#c8ab37ff"], max_models=2, ax = ax1)[2]
+plot_predictions(df_dc3_nonpooled;donors_plotted = ["D01", "D02", "D04"], populations=["DC3"], dataset="original", models=[1,2], location ="b", data_color = [colorant"#c8ab37ff"], max_models=2, ax=ax2)[2]
 
-	donor_ax = [Axis(fig_pdc_ppc_combined[j, 2], yaxisposition = :right, yticksvisible=false, aspect=1.5) for j in 1:4]
+	donor_ax = [Axis(fig_dc3_ppc_combined[j, 2], yaxisposition = :right, yticksvisible=false, aspect=1.5) for j in 1:4]
 	[hidexdecorations!(j) for j in donor_ax]
 	[hideydecorations!(j, label = false) for j in donor_ax]
 	[hidespines!(j) for j in donor_ax]
 	
-	[donor_ax[j].ylabel=["C66", "C67", "C68", "C52"][j] for j in 1:4]
+	[donor_ax[j].ylabel=["D01", "D02", "D04"][j] for j in 1:4]
 	[hideydecorations!(j, ticklabels=false, ticks=false) for j in ax2]
 	[linkyaxes!(ax1[j], ax2[j]) for j in 1:4]
 	
@@ -530,27 +530,27 @@ plot_predictions(df_pdc_nonpooled;donors_plotted = ["C66", "C67", "C68", "C52"],
 
 	model_color = [PolyElement(color = color, strokecolor = :transparent) for color in cgrad(:roma, 2, categorical =true, alpha=0.5)]
 		
-	cb = fig_pdc_ppc_combined[4+1,:]
+	cb = fig_dc3_ppc_combined[4+1,:]
 	# Legend(cb, ax[1], "prediction")
-	Legend(cb, [model_color, data_marker],["model " .* string.([1,2]),["pDC"]], ["prediction","data"], orientation=:horizontal, titlealign=:left)
+	Legend(cb, [model_color, data_marker],["model " .* string.([1,2]),["DC3"]], ["prediction","data"], orientation=:horizontal, titlealign=:left)
 	
-	ax1[1].title = "pDC - pooled model"
-	ax2[1].title = "pDC - nonpooled model"
+	ax1[1].title = "DC3 - pooled model"
+	ax2[1].title = "DC3 - nonpooled model"
 
-	for (label, layout) in zip(["A", "B"], [fig_pdc_ppc_combined[1,1], fig_pdc_ppc_combined[1,2]])
+	for (label, layout) in zip(["A", "B"], [fig_dc3_ppc_combined[1,1], fig_dc3_ppc_combined[1,2]])
     Label(layout[1, 1, TopLeft()], label,
         textsize = 26,
         font = noto_sans_bold,
         padding = (0, label == "A" ? 45 : 30, 5, 0),
         halign = :left)
 	end
-	# Legend(fig_pdc_ppc_combined[5,:], ax1[1], orientation=:horizontal)
-	# fig_pdc_ppc_combined.resolution= (100,100)
-	fig_pdc_ppc_combined
+	# Legend(fig_dc3_ppc_combined[5,:], ax1[1], orientation=:horizontal)
+	# fig_dc3_ppc_combined.resolution= (100,100)
+	fig_dc3_ppc_combined
 end
 
 # ╔═╡ 2f790fe7-6b7d-4b7a-8b60-89b416b790e1
-save(joinpath(res_folder, "ppc_pDC_extended_combined_nonpooled_pooled.pdf"), fig_pdc_ppc_combined)
+save(joinpath(res_folder, "ppc_DC3_extended_combined_nonpooled_pooled.pdf"), fig_dc3_ppc_combined)
 
 # ╔═╡ d6fa1146-712d-4e2d-a69c-aaadfaf480fa
 noto_sans = assetpath("fonts", "NotoSans-Regular.ttf")
@@ -621,7 +621,7 @@ md"Load posterior dataframes"
 begin
 	df_full_posterior_extended = DataFrame()
 	for j in [1,2,3,4]
-		global df_full_posterior_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis", "JM_0042_Julia_Analysis_preDC_cDC1_cDC2","results","Parameter_full_posterior_model_$(j).csv"), DataFrame) |> vcat(df_full_posterior_extended,_, cols=:union)
+		global df_full_posterior_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis", "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","Parameter_full_posterior_model_$(j).csv"), DataFrame) |> vcat(df_full_posterior_extended,_, cols=:union)
 	end
 	df_full_posterior_extended = @pipe df_full_posterior_extended |> rename(_, :model_id => :model)
 end
@@ -785,15 +785,15 @@ save(joinpath(res_folder, "marginal_posteriors_differentiation_preDC_extended_po
 md"Posterior plots of proliferation rate and dwell time in more detail"
 
 # ╔═╡ 968d82e2-8307-41e9-880e-409c3c405add
-md"## pDC estimates"
+md"## DC3 estimates"
 
 # ╔═╡ 4d70cb69-5e66-4f72-8fc5-ac8f60abc055
 begin
-	df_full_pDC_posterior_extended = DataFrame()
+	df_full_DC3_posterior_extended = DataFrame()
 	for j in [1,2]
-		global df_full_pDC_posterior_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis", "JM_0043_Julia_Analysis_pDC","results","Parameter_full_posterior_pDC_model_$(j).csv"), DataFrame) |> vcat(df_full_pDC_posterior_extended,_, cols=:union)
+		global df_full_DC3_posterior_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis", "JM_0043_Julia_Analysis_DC3","results","Parameter_full_posterior_DC3_model_$(j).csv"), DataFrame) |> vcat(df_full_DC3_posterior_extended,_, cols=:union)
 	end
-	df_full_pDC_posterior_extended = @pipe df_full_pDC_posterior_extended |> rename(_, :model_id => :model)
+	df_full_DC3_posterior_extended = @pipe df_full_DC3_posterior_extended |> rename(_, :model_id => :model)
 end
 
 # ╔═╡ e2a1684e-0771-4d17-ba08-c14389f14781
@@ -804,15 +804,15 @@ begin
 	sf_trans_pdc2 = fig_trans_pdc[1,2]
 
 	
-plot_posterior_distribution(df_full_pDC_posterior_extended, [:λ_pDC], [1,2]; sf=sf_trans_pdc1, alpha=0.5, offset_factor=0.3, xlabel="day⁻¹")
+plot_posterior_distribution(df_full_DC3_posterior_extended, [:λ_DC3], [1,2]; sf=sf_trans_pdc1, alpha=0.5, offset_factor=0.3, xlabel="day⁻¹")
 	
-	plot_posterior_distribution(df_full_pDC_posterior_extended, [:tau], [2]; sf=sf_trans_pdc2, alpha=0.5, offset_factor=0.3, xlabel="days")
+	plot_posterior_distribution(df_full_DC3_posterior_extended, [:tau], [2]; sf=sf_trans_pdc2, alpha=0.5, offset_factor=0.3, xlabel="days")
 	
 	fig_trans_pdc
 end
 
 # ╔═╡ d124ac4f-bb0e-4a22-aa15-985d91ebc7c4
-save(joinpath(res_folder, "marginal_posteriors_transition_pDC_extended_pooled.pdf"), fig_trans_pdc)
+save(joinpath(res_folder, "marginal_posteriors_transition_DC3_extended_pooled.pdf"), fig_trans_pdc)
 
 # ╔═╡ 090bc205-3be5-4c2c-a8a1-fcc7729ef8b6
 begin
@@ -820,7 +820,7 @@ begin
 	fig_tau_pdc = CairoMakie.Figure(resolution=(600,400))
 	sf_tau_pdc = fig_tau_pdc[1,1]
 
-	plot_posterior_distribution(df_full_pDC_posterior_extended, [:tau], [2]; sf=sf_tau_pdc, alpha=0.5, offset_factor=0.3, xlabel="days")
+	plot_posterior_distribution(df_full_DC3_posterior_extended, [:tau], [2]; sf=sf_tau_pdc, alpha=0.5, offset_factor=0.3, xlabel="days")
 	
 	fig_tau_pdc
 end
@@ -831,13 +831,13 @@ begin
 	fig_prol_pdc = CairoMakie.Figure(resolution=(600,400))
 	sf_prol_pdc = fig_prol_pdc[1,1]
 
-plot_posterior_distribution(df_full_pDC_posterior_extended, Symbol.(filter(x -> startswith(x, "p_"), DataFrames.names(df_full_pDC_posterior_extended))), [1,2]; sf=sf_prol_pdc, alpha=0.5, offset_factor=0.3, lims_factor=6, xlabel="day⁻¹")
+plot_posterior_distribution(df_full_DC3_posterior_extended, Symbol.(filter(x -> startswith(x, "p_"), DataFrames.names(df_full_DC3_posterior_extended))), [1,2]; sf=sf_prol_pdc, alpha=0.5, offset_factor=0.3, lims_factor=6, xlabel="day⁻¹")
 	
 	fig_prol_pdc
 end
 
 # ╔═╡ 5eed1036-5316-4ce6-a65f-000e80e04087
-save(joinpath(res_folder, "marginal_posteriors_proliferation_pDC_extended_pooled.pdf"), fig_prol_pdc)
+save(joinpath(res_folder, "marginal_posteriors_proliferation_DC3_extended_pooled.pdf"), fig_prol_pdc)
 
 # ╔═╡ df146e27-5d96-4300-bac7-2e496aeea834
 begin
@@ -845,13 +845,13 @@ begin
 	fig_death_pdc = CairoMakie.Figure(resolution=(600,400))
 	sf_death_pdc = fig_death_pdc[1,1]
 
-plot_posterior_distribution(df_full_pDC_posterior_extended, Symbol.(filter(x -> startswith(x, "δ_"), DataFrames.names(df_full_pDC_posterior_extended))), [1,2]; sf=sf_death_pdc, alpha=0.5, offset_factor=0.3, lims_factor=5, xlabel="day⁻¹")
+plot_posterior_distribution(df_full_DC3_posterior_extended, Symbol.(filter(x -> startswith(x, "δ_"), DataFrames.names(df_full_DC3_posterior_extended))), [1,2]; sf=sf_death_pdc, alpha=0.5, offset_factor=0.3, lims_factor=5, xlabel="day⁻¹")
 	
 	fig_death_pdc
 end
 
 # ╔═╡ 5e07ffe2-5ce1-4b1e-94bd-624ec13753dd
-save(joinpath(res_folder, "marginal_posteriors_death_pDC_extended_pooled.pdf"), fig_death_pdc)
+save(joinpath(res_folder, "marginal_posteriors_death_DC3_extended_pooled.pdf"), fig_death_pdc)
 
 # ╔═╡ 715e8518-bb57-42a7-936d-f4437953c887
 begin
@@ -859,16 +859,16 @@ begin
 	fig_dwell_pdc = CairoMakie.Figure(resolution=(600,400))
 	sf_dwell_pdc = fig_dwell_pdc[1,1]
 
-plot_posterior_distribution(df_full_pDC_posterior_extended, Symbol.(filter(x -> startswith(x, "dwell_"), DataFrames.names(df_full_pDC_posterior_extended))), [1,2]; sf=sf_dwell_pdc, alpha=0.5, offset_factor=4, lims_factor=5, xlabel="day⁻¹")
+plot_posterior_distribution(df_full_DC3_posterior_extended, Symbol.(filter(x -> startswith(x, "dwell_"), DataFrames.names(df_full_DC3_posterior_extended))), [1,2]; sf=sf_dwell_pdc, alpha=0.5, offset_factor=4, lims_factor=5, xlabel="day⁻¹")
 	
 	fig_dwell_pdc
 end
 
 # ╔═╡ 41e3d9f5-32a4-4942-be5a-ae66c2180612
-save(joinpath(res_folder, "marginal_posteriors_dwell_pDC_extended_pooled.pdf"), fig_dwell_pdc)
+save(joinpath(res_folder, "marginal_posteriors_dwell_DC3_extended_pooled.pdf"), fig_dwell_pdc)
 
 # ╔═╡ ef43158e-2659-4657-9164-c59ab9735e2e
-# @pipe df_full_pDC_posterior_extended |>
+# @pipe df_full_DC3_posterior_extended |>
 # subset(_, :model => x -> x .== 2) |>
 # select(_, Not([:model, :model_type, :donor, :prior])) |>
 # transform(_, :tau => (x -> Array{Float64,1}(x)), renamecols=false) |>
@@ -877,7 +877,7 @@ save(joinpath(res_folder, "marginal_posteriors_dwell_pDC_extended_pooled.pdf"), 
 # combine(_, :value => (x -> (mean=mean(x), (; zip((:lower, :upper), MCMCChains._hpd(Array(x)))...)...))=> AsTable) |>
 # rename(_, :variable => :parameter) |>
 # DataFrames.transform(_, DataFrames.names(_, Float64) .=> (x -> round.(x, digits=4)), renamecols=false) |>
-# df2latex(_, joinpath(res_folder, "tab_pDC_posterior_model_2_summary.tex"))
+# df2latex(_, joinpath(res_folder, "tab_DC3_posterior_model_2_summary.tex"))
 
 # ╔═╡ b2907b71-fde3-4e90-8b9e-8c0774db3cb7
 res_folder
@@ -948,8 +948,8 @@ end
 # ╔═╡ ffbd64f9-1d69-4156-b609-3045db464ecc
 begin
 	df_divergence_pooled_pdc = DataFrame()
-	for (idx, j) in enumerate(pooled_pdc_results_notebooks)
-		df_tmp = DataFrame(:n_divergence => sum(get(JLSO.load(joinpath(j,"results", "mcmc_res.jlso"))[:chain], :numerical_error)[1]), :data => data_input_pdc_pooled[idx], :strata => strata_pdc_pooled[idx], :model => model_id_pdc_pooled[idx], :prior=>priors_pdc_pooled[idx], :likelihood_f => likelihood_pdc_pooled[idx])
+	for (idx, j) in enumerate(pooled_dc3_results_notebooks)
+		df_tmp = DataFrame(:n_divergence => sum(get(JLSO.load(joinpath(j,"results", "mcmc_res.jlso"))[:chain], :numerical_error)[1]), :data => data_input_dc3_pooled[idx], :strata => strata_dc3_pooled[idx], :model => model_id_dc3_pooled[idx], :prior=>priors_dc3_pooled[idx], :likelihood_f => likelihood_dc3_pooled[idx])
 		
 		df_divergence_pooled_pdc = vcat(df_divergence_pooled_pdc, df_tmp, cols=:union)
 	end
@@ -959,8 +959,8 @@ end
 # ╔═╡ 76ec3dc3-7f7b-4af7-8569-02458f6df245
 begin
 	df_divergence_nonpooled_pdc = DataFrame()
-	for (idx, j) in enumerate(nonpooled_pdc_results_notebooks)
-		df_tmp = DataFrame(:n_divergence => sum(get(JLSO.load(joinpath(j,"results", "mcmc_res.jlso"))[:chain], :numerical_error)[1]), :data => data_input_pdc_nonpooled[idx], :strata => strata_pdc_nonpooled[idx], :model => model_id_pdc_nonpooled[idx], :prior=>priors_pdc_nonpooled[idx], :likelihood_f => likelihood_pdc_nonpooled[idx])
+	for (idx, j) in enumerate(nonpooled_dc3_results_notebooks)
+		df_tmp = DataFrame(:n_divergence => sum(get(JLSO.load(joinpath(j,"results", "mcmc_res.jlso"))[:chain], :numerical_error)[1]), :data => data_input_dc3_nonpooled[idx], :strata => strata_dc3_nonpooled[idx], :model => model_id_dc3_nonpooled[idx], :prior=>priors_dc3_nonpooled[idx], :likelihood_f => likelihood_dc3_nonpooled[idx])
 		
 		df_divergence_nonpooled_pdc = vcat(df_divergence_nonpooled_pdc, df_tmp, cols=:union)
 	end

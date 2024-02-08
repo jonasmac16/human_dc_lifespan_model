@@ -8,9 +8,9 @@ using Pipe
 using CategoricalArrays
 
 
-pdc_loo_df = CSV.read(projectdir("notebooks","03_analysis", "JM_0043_Julia_Analysis_pDC", "results", "PSIS_LOO_CV_Model_comparison_pDC_leave_out_sample.csv"), DataFrame)
-predc_loo_df = CSV.read(projectdir("notebooks","03_analysis", "JM_0042_Julia_Analysis_preDC_cDC1_cDC2", "results", "PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.csv"), DataFrame)
-predc_loo_subsets_df = CSV.read(projectdir("notebooks","03_analysis", "JM_0042_Julia_Analysis_preDC_cDC1_cDC2", "results", "PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.csv"), DataFrame)
+dc3_loo_df = CSV.read(projectdir("notebooks","03_analysis", "JM_0043_Julia_Analysis_pDC", "results", "PSIS_LOO_CV_Model_comparison_pDC_leave_out_sample.csv"), DataFrame)
+asdc_loo_df = CSV.read(projectdir("notebooks","03_analysis", "JM_0042_Julia_Analysis_ASDC_cDC1_DC2", "results", "PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.csv"), DataFrame)
+asdc_loo_subsets_df = CSV.read(projectdir("notebooks","03_analysis", "JM_0042_Julia_Analysis_ASDC_cDC1_DC2", "results", "PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.csv"), DataFrame)
 
 
 function make_loo_df(df)
@@ -22,12 +22,12 @@ function make_loo_df(df)
     transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
 end
 
-pdc_loo_df_scaled = make_loo_df(pdc_loo_df)
-predc_loo_df_scaled = make_loo_df(predc_loo_df)
-predc_loo_subsets_df_scaled = make_loo_df(predc_loo_subsets_df)
+dc3_loo_df_scaled = make_loo_df(dc3_loo_df)
+asdc_loo_df_scaled = make_loo_df(asdc_loo_df)
+asdc_loo_subsets_df_scaled = make_loo_df(asdc_loo_subsets_df)
 
-pdc_loo_df_striped = @pipe pdc_loo_df_scaled |> select(_, Not([:d_loo, :dse]))
-predc_loo_df_striped = @pipe predc_loo_df_scaled |> select(_, Not([:d_loo, :dse]))
+dc3_loo_df_striped = @pipe dc3_loo_df_scaled |> select(_, Not([:d_loo, :dse]))
+asdc_loo_df_striped = @pipe asdc_loo_df_scaled |> select(_, Not([:d_loo, :dse]))
 set_aog_theme!()
 
 function df_plot(df)
@@ -52,15 +52,15 @@ function df_plot(df)
     return f
 end
 
-df_plot(pdc_loo_df_scaled)
-df_plot(predc_loo_df_scaled)
-df_plot(predc_loo_subsets_df_scaled)
+df_plot(dc3_loo_df_scaled)
+df_plot(asdc_loo_df_scaled)
+df_plot(asdc_loo_subsets_df_scaled)
 
 mkpath(projectdir("notebooks", "03_analysis", basename(@__DIR__), "results"))
 
-CSV.write(projectdir("notebooks", "03_analysis", basename(@__DIR__), "results","pdc_loo_sample.csv"), pdc_loo_df_scaled)
-CSV.write(projectdir("notebooks", "03_analysis", basename(@__DIR__), "results","predc_loo_sample.csv"), predc_loo_df_scaled)
-CSV.write(projectdir("notebooks", "03_analysis", basename(@__DIR__), "results","predc_loo_subsets.csv"), predc_loo_subsets_df_scaled)
+CSV.write(projectdir("notebooks", "03_analysis", basename(@__DIR__), "results","dc3_loo_sample.csv"), dc3_loo_df_scaled)
+CSV.write(projectdir("notebooks", "03_analysis", basename(@__DIR__), "results","asdc_loo_sample.csv"), asdc_loo_df_scaled)
+CSV.write(projectdir("notebooks", "03_analysis", basename(@__DIR__), "results","asdc_loo_subsets.csv"), asdc_loo_subsets_df_scaled)
 
-CSV.write(projectdir("notebooks", "03_analysis", basename(@__DIR__), "results","pdc_loo_sample_paper.csv"), pdc_loo_df_striped)
-CSV.write(projectdir("notebooks", "03_analysis", basename(@__DIR__), "results","predc_loo_sample_paper.csv"), predc_loo_df_striped)
+CSV.write(projectdir("notebooks", "03_analysis", basename(@__DIR__), "results","dc3_loo_sample_paper.csv"), dc3_loo_df_striped)
+CSV.write(projectdir("notebooks", "03_analysis", basename(@__DIR__), "results","asdc_loo_sample_paper.csv"), asdc_loo_df_striped)
