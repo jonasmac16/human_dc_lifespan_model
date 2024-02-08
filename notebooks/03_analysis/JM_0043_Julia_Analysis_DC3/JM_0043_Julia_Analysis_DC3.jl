@@ -159,15 +159,15 @@ begin
 	# insertcols!(_, :prior=>"lognormal")
 
 	df_par = @pipe vcat(vcat(dfs_par_pooled...)) |> #	vcat(dfs_par_nonpooled...)
-	transform(_,[:δ_pDCbm, :λ_pDC, :tau] => ByRow((x...) -> dwell_time(x)) => :dwell_pDC_bm,
-	[:δ_pDCb] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_pDC_b) |>
+	transform(_,[:δ_DC3bm, :λ_DC3, :tau] => ByRow((x...) -> dwell_time(x)) => :dwell_DC3_bm,
+	[:δ_DC3b] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_DC3_b) |>
 	insertcols!(_, :prior=>"lognormal")
 end
 
 # ╔═╡ 99db6e93-5ec4-4a60-bb26-cbabef78793e
 begin
 	include(srcdir("dataprep.jl"))
-	donor_ids = ["C66", "C67", "C68", "C52"]
+	donor_ids = ["D01", "D02", "D04"]
 	cell_cycle_approach = 3
 	ratio_approach = "2"
 	ratio_summary = "median"
@@ -175,8 +175,8 @@ begin
 	bc = 0.73
 	label_ps = DataFrame(load(datadir("exp_pro","labeling_parameters.csv")))
 	cell_ratios = @linq DataFrame(load(datadir("exp_pro", "cell_ratios.csv"))) |> DataFrames.transform(:approach => (x -> string.(x)) => :approach)
-	labelling_data = DataFrame(load(datadir("exp_pro","labelling_data.csv")))
-	data_in = prepare_data_turing(labelling_data, cell_ratios, label_ps, tau_stop; population = ["pDC"], individual = donor_ids, ratios = ["R_pDC"], label_p_names = [:fr,:delta, :frac], ratio_approach=ratio_approach, ratio_summary = ratio_summary, mean_data = true)
+	labelling_data = DataFrame(load(datadir("exp_pro","labelling_data_revision.csv")))
+	data_in = prepare_data_turing(labelling_data, cell_ratios, label_ps, tau_stop; population = ["DC3"], individual = donor_ids, ratios = ["R_DC3"], label_p_names = [:fr,:delta, :frac], ratio_approach=ratio_approach, ratio_summary = ratio_summary, mean_data = true)
 		
 	arr_ifd_arviz_loo = Dict{String, Any}() 
 
@@ -199,7 +199,7 @@ begin
 	## save parameter estimates
 	for l in 1:2
 		@pipe df_par |> subset(_,:model_id => x -> x .== string(l)) |> 
-		select(_, [:p_pDCbm, :δ_pDCbm, :δ_pDCb, :λ_pDC, :tau, :dwell_pDC_bm, :dwell_pDC_b, :σ]) |>
+		select(_, [:p_DC3bm, :δ_DC3bm, :δ_DC3b, :λ_DC3, :tau, :dwell_DC3_bm, :dwell_DC3_b, :σ]) |>
 		DataFrames.stack(_) |>
 		dropmissing(_) |>
 		groupby(_, :variable) |>
