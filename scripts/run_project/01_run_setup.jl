@@ -21,7 +21,7 @@ Conda.add("matplotlib")
 
 
 # build RCall
-ENV["R_HOME"] = ENV["HOME"]*"/.julia/conda/3/lib/R/"
+ENV["R_HOME"] = "/.julia/conda/3/lib/R/"
 # Potentially you need to link to theup-to-date system libstdc++.so.6 due to outdated version packaged with julia 
 # see https://discourse.julialang.org/t/glibcxx-3-4-26-not-found-in-rcall/29113/10?u=laborg
 # and https://github.com/JuliaLang/julia/issues/34276
