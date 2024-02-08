@@ -104,7 +104,7 @@ md"# $(notebook_folder_title)"
 # ╔═╡ 5159f562-7171-11eb-0d12-37cacdc3e84f
 begin
 	for j in 1:2
-		global label_ps = DataFrame(load(datadir("exp_pro", "labeling_parameters.csv")))
+		global label_ps = DataFrame(load(datadir("exp_pro", "labeling_parameters_revision.csv")))
 	end
 end
 
@@ -113,7 +113,7 @@ label_ps
 
 # ╔═╡ fb05c902-7c76-11eb-1d23-ed6b66f9ab21
 begin
-	df_p_priors = CSV.read(datadir("exp_pro", "p_priors.csv"), DataFrame)
+	df_p_priors = CSV.read(datadir("exp_pro", "p_priors_revision.csv"), DataFrame)
 
 	
 	
@@ -124,7 +124,7 @@ begin
 end
 
 # ╔═╡ a3d2f836-7200-11eb-0d49-a7d5a55ab8e5
-cell_ratios = DataFrame(load(datadir("exp_pro", "cell_ratios.csv")))
+cell_ratios = DataFrame(load(datadir("exp_pro", "cell_ratios_revision.csv")))
 
 # ╔═╡ a38b9a86-7200-11eb-2dcb-e1b7967f37f0
 # cell_cycle = DataFrame(load(datadir("exp_pro","JM_0014", "cell_cycle_status_proliferation_rate_bm.csv")))

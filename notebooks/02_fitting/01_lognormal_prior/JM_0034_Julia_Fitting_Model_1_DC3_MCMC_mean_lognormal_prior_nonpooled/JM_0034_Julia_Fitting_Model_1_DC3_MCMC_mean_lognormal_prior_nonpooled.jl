@@ -121,7 +121,7 @@ begin
 end
 
 # ╔═╡ a3d2f836-7200-11eb-0d49-a7d5a55ab8e5
-# cell_ratios = DataFrame(load(datadir("exp_pro", "cell_ratios.csv")))
+# cell_ratios = DataFrame(load(datadir("exp_pro", "cell_ratios_revision.csv")))
 cell_ratios = @linq DataFrame(load(datadir("exp_pro", "cell_ratios_revision.csv"))) |> DataFrames.transform(:approach => (x -> string.(x)) => :approach)
 
 # ╔═╡ a38b9a86-7200-11eb-2dcb-e1b7967f37f0
