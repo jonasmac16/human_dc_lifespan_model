@@ -1,1 +1,1 @@
-n_threads = 2
+n_threads = 4
