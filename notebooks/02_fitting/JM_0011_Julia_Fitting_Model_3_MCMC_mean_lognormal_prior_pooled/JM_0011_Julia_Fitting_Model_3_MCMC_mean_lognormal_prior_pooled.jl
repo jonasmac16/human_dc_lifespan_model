@@ -22,7 +22,7 @@ begin
 	using CSV
 	using JLSO
 	using MCMCChains
-	using RCall
+	# using RCall
 	using DelimitedFiles
 	using Pipe: @pipe
 	using BenchmarkTools
