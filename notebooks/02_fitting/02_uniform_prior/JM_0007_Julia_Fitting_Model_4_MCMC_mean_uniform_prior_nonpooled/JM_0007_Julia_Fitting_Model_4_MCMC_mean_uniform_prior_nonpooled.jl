@@ -116,9 +116,9 @@ begin
 	df_p_priors = CSV.read(datadir("exp_pro", "p_priors_revision.csv"), DataFrame)
 
 	priors = (
-		p_ASDCbm = (@pipe df_p_priors |> subset(_, :parameter => (x -> x .== "ASDC")) |> _[1,:] |> create_dist(_.dist, _.μ, _.σ, _.truncated, 2e-11, _.upper)),
-		p_cDC1bm = (@pipe df_p_priors |> subset(_, :parameter => (x -> x .== "cDC1")) |> _[1,:] |> create_dist(_.dist, _.μ, _.σ, _.truncated, 2e-11, _.upper)),
-		p_DC2bm = (@pipe df_p_priors |> subset(_, :parameter => (x -> x .== "DC2")) |> _[1,:] |> create_dist(_.dist, _.μ, _.σ, _.truncated, 2e-11, _.upper)))
+		p_ASDCbm = Uniform(8e-12, 2.5),
+		p_cDC1bm = Uniform(8e-12, 2.5),
+		p_DC2bm = Uniform(8e-12, 2.5))
 end
 
 # ╔═╡ a3d2f836-7200-11eb-0d49-a7d5a55ab8e5
