@@ -118,9 +118,9 @@ begin
 	
 	
 	priors = (
-		p_ASDCbm = (@pipe df_p_priors |> subset(_, :parameter => (x -> x .== "ASDC")) |> _[1,:] |> create_dist(_.dist, _.μ, _.σ, _.truncated, 2e-11, _.upper)),
-		p_cDC1bm = (@pipe df_p_priors |> subset(_, :parameter => (x -> x .== "cDC1")) |> _[1,:] |> create_dist(_.dist, _.μ, _.σ, _.truncated, 2e-11, _.upper)),
-		p_DC2bm = (@pipe df_p_priors |> subset(_, :parameter => (x -> x .== "DC2")) |> _[1,:] |> create_dist(_.dist, _.μ, _.σ, _.truncated, 2e-11, _.upper)))
+		p_ASDCbm = (@pipe df_p_priors |> subset(_, :parameter => (x -> x .== "ASDC")) |> _[1,:] |> create_dist(_.dist, _.μ, _.σ, 1, 8e-12, _.upper)),
+		p_cDC1bm = (@pipe df_p_priors |> subset(_, :parameter => (x -> x .== "cDC1")) |> _[1,:] |> create_dist(_.dist, _.μ, _.σ, 1, 8e-12, _.upper)),
+		p_DC2bm = (@pipe df_p_priors |> subset(_, :parameter => (x -> x .== "DC2")) |> _[1,:] |> create_dist(_.dist, _.μ, _.σ, 1, 8e-12, _.upper)))
 end
 
 # ╔═╡ a3d2f836-7200-11eb-0d49-a7d5a55ab8e5

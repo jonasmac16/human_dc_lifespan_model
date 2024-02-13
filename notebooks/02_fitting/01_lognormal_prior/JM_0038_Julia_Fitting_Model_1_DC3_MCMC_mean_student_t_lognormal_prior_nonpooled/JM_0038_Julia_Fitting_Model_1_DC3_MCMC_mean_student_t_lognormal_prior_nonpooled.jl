@@ -117,7 +117,7 @@ label_ps
 begin
 	df_p_priors = CSV.read(datadir("exp_pro", "p_priors_revision.csv"), DataFrame)
 
-	priors = (;p_DC3bm = (@pipe df_p_priors |> subset(_, :parameter => (x -> x .== "DC3")) |> _[1,:] |> create_dist(_.dist, _.μ, _.σ, _.truncated, 2e-11, _.upper)))
+	priors = (;p_DC3bm = (@pipe df_p_priors |> subset(_, :parameter => (x -> x .== "DC3")) |> _[1,:] |> create_dist(_.dist, _.μ, _.σ, 1, 8e-12, _.upper)))
 end
 
 # ╔═╡ a3d2f836-7200-11eb-0d49-a7d5a55ab8e5
