@@ -96,7 +96,7 @@ end
 begin
 	notebook_folder_title = basename(@__DIR__)
 	notebook_folder = joinpath(basename(@__DIR__), "results")
-	mkpath(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder))
+	mkpath(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder))
 	data_folder = "data_derek_20210823"
 end
 
@@ -171,15 +171,15 @@ begin
 
 	turing_model = _turing_model(data_in.data, data_in.metadata, problem, solver_in, priors; ode_parallel_mode=solver_parallel_methods, ode_args=(abstol=1e-10, reltol=1e-10, maxiters=1e8))
 	
-	if !(isfile(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"mcmc_res.jlso")))
+	if !(isfile(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"mcmc_res.jlso")))
 		if isnothing(parallel_sampling_method)
 			chains = mapreduce(c -> sample(turing_model, NUTS(warm_up, accept_rate), mcmc_iters, progress=false), chainscat, 1:n_chains)
 		else
 			chains = sample(turing_model, NUTS(warm_up, accept_rate), parallel_sampling_method, mcmc_iters, n_chains, progress=false);
 		end
-		JLSO.save(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"mcmc_res.jlso"), :chain => chains)
+		JLSO.save(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"mcmc_res.jlso"), :chain => chains)
 	else
-		chains = JLSO.load(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"mcmc_res.jlso"))[:chain]
+		chains = JLSO.load(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"mcmc_res.jlso"))[:chain]
 	end
 end
 
@@ -188,7 +188,7 @@ md"## Chain diagnostics"
 
 # ╔═╡ c6545e24-85a4-11eb-2262-c3a7ed2a61fb
 begin
-	io = open(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"check_diagnostics.txt"), "w+")
+	io = open(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"check_diagnostics.txt"), "w+")
 	logger = SimpleLogger(io)
 
 	with_logger(logger) do
@@ -198,7 +198,7 @@ begin
 	flush(io)
 	close(io)
 
-	io_read = open(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"check_diagnostics.txt"), "r")
+	io_read = open(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"check_diagnostics.txt"), "r")
 	check_out = readlines(io_read)
 	close(io_read)
 	
@@ -211,7 +211,7 @@ begin
 	for k in 1:(length(p_init)-10)
 		density!(p_diag_1, [rand(MyDistribution(priors.p_DC3bm, Uniform(0.0,2.0)))[k] for j in 1:1000], subplot=(k-1)*2+2, c=:black, legend=true, label="prior")
 	end
-	savefig(p_diag_1, projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"diagnostic_all.pdf"))
+	savefig(p_diag_1, projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"diagnostic_all.pdf"))
 	p_diag_1
 end
 
@@ -348,10 +348,10 @@ end
 
 # ╔═╡ cd1a937c-7951-4bdc-b48a-da490fcbc25d
 begin
-	if !isfile(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"df_ppc.csv"))
+	if !isfile(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"df_ppc.csv"))
 		ppc = @pipe get_posterior_predictive(turing_model_ppc, sample_mcmc(chains, 50)) |> [_[j] for j in 1:length(_)]
 		df_ppc = create_model_prediction_df(ppc)
-		save(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"df_ppc.csv"), df_ppc)
+		save(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"df_ppc.csv"), df_ppc)
 	end
 end
 
@@ -360,36 +360,36 @@ end
 
 # ╔═╡ 29b023e3-879d-438e-bef8-f290bf3d4a55
 begin
-	if !(isfile(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"ppc_fit_bm.pdf")))
+	if !(isfile(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"ppc_fit_bm.pdf")))
 
 		# ppc_bm = @pipe get_posterior_predictive(turing_model_ppc_bm, sample_mcmc(chains, 50)) |>[_[j] for j in 1:length(_)]
 
 	p_ppc_bm = plot_ppc(ppc, [1], subplotkwargs=(; alpha=0.1),pop=["DC3"];title= permutedims([((permutedims(donor_ids) .* " ") .* ["DC3 (bm)"])...]), size=(1000,1000), legend=false)
 	else
-		load(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"ppc_fit_bm.pdf"))
+		load(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"ppc_fit_bm.pdf"))
 	end
 	
-	if !(isfile(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"ppc_fit.pdf")))
+	if !(isfile(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"ppc_fit.pdf")))
 
 		# ppc_b = @pipe get_posterior_predictive(turing_model, sample_mcmc(chains, 50)) |>[_[j] for j in 1:length(_)]
 		p_ppc = plot_ppc(ppc, data_in, [2], subplotkwargs=(; alpha=0.1),pop=["DC3"];title= permutedims([((permutedims(donor_ids) .* " ") .* ["DC3"])...]), size=(1000,1000), legend=false)
 	else
-		load(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"ppc_fit.pdf"))
+		load(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"ppc_fit.pdf"))
 	end
 end
 
 # ╔═╡ 46158577-9672-44f8-bcf3-57eec228d5b0
 begin
-	if !(isfile(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"ppc_fit.pdf")))
-		savefig(p_ppc, projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"ppc_fit.pdf"))
-		savefig(p_ppc, projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"ppc_fit.png"))
-		savefig(p_ppc, projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"ppc_fit.svg"))
+	if !(isfile(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"ppc_fit.pdf")))
+		savefig(p_ppc, projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"ppc_fit.pdf"))
+		savefig(p_ppc, projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"ppc_fit.png"))
+		savefig(p_ppc, projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"ppc_fit.svg"))
 	end
 	
-	if !(isfile(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"ppc_fit_bm.pdf")))
-		savefig(p_ppc_bm, projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"ppc_fit_bm.pdf"))
-		savefig(p_ppc_bm, projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"ppc_fit_bm.png"))
-		savefig(p_ppc_bm, projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"ppc_fit_bm.svg"))
+	if !(isfile(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"ppc_fit_bm.pdf")))
+		savefig(p_ppc_bm, projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"ppc_fit_bm.pdf"))
+		savefig(p_ppc_bm, projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"ppc_fit_bm.png"))
+		savefig(p_ppc_bm, projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"ppc_fit_bm.svg"))
 	end
 end
 
@@ -397,23 +397,23 @@ end
 md"## Parameter dataframe"
 
 # ╔═╡ a64bb46f-189d-466b-83b2-0f17602f5a46
-if !(isfile(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"df_mcmc_comp.jlso")))
+if !(isfile(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"df_mcmc_comp.jlso")))
 	parameter_est = get_parameters(turing_model, chains)
 end
 
 # ╔═╡ 69182965-21a3-442a-971e-2e27840a658e
 begin
-	if !(isfile(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"df_mcmc_comp.jlso")))
+	if !(isfile(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"df_mcmc_comp.jlso")))
 		df_par_all = DataFrame(p_DC3bm=Float64[], δ_DC3bm=Float64[], δ_DC3b=Float64[], λ_DC3=Float64[], tau=Float64[], σ=Float64[])
 
 		@pipe parameter_est |>
 		for j in _
 			push!(df_par_all, j, cols=:subset)
 		end
-		JLSO.save(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"df_mcmc_comp.jlso"), :df_par_all => df_par_all)
-		save(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"df_mcmc_comp.csv"), df_par_all)
+		JLSO.save(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"df_mcmc_comp.jlso"), :df_par_all => df_par_all)
+		save(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"df_mcmc_comp.csv"), df_par_all)
 	else
-		df_par_all = JLSO.load(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"df_mcmc_comp.jlso"))[:df_par_all]
+		df_par_all = JLSO.load(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"df_mcmc_comp.jlso"))[:df_par_all]
 	
 	end
 end
@@ -430,13 +430,13 @@ begin
 end
 
 # ╔═╡ 82cfa81f-a990-4c55-b05b-f35c7e3649b0
-if !(isfile(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"logp_3d_mat.jlso")))
+if !(isfile(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"logp_3d_mat.jlso")))
 	loglike= get_loglikelihood(turing_model, chains)
 end
 
 # ╔═╡ 19b5416e-85b4-11eb-04ea-3551dd6da8a8
 begin
-	if !(isfile(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"logp_3d_mat.jlso")))
+	if !(isfile(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"logp_3d_mat.jlso")))
 
 		loglike_2d = @pipe loglike |>
 		hcat(_...) |>
@@ -452,12 +452,12 @@ begin
 		loglike_3d = permutedims(loglike_3d, [3,1,2])
 
 		for j in 1:size(loglike_3d,3)
-			DelimitedFiles.writedlm(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"logp_3d_mat_$(j).txt"), loglike_3d[:,:,j])
+			DelimitedFiles.writedlm(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"logp_3d_mat_$(j).txt"), loglike_3d[:,:,j])
 		end
 		
-		JLSO.save(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"logp_3d_mat.jlso"), :loglike_3d=>loglike_3d)
+		JLSO.save(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"logp_3d_mat.jlso"), :loglike_3d=>loglike_3d)
 	else
-		loglike_3d = JLSO.load(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"logp_3d_mat.jlso"))[:loglike_3d]
+		loglike_3d = JLSO.load(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"logp_3d_mat.jlso"))[:loglike_3d]
 	end
 	loglike_3d
 end
