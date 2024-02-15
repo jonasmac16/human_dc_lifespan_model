@@ -138,29 +138,6 @@ begin
 	DataFrames.combine(:ratio => (x -> [mean(x) median(x) std(x) minimum(x) maximum(x)] )=> [:mean, :median, :sd, :min, :max])
 end
 
-# ╔═╡ 708537f8-76b7-11eb-2cb2-d19676df1dfd
-# begin
-# 	RpreDCcDC1b_mean = (@linq df_ratios_intra |> where(:population .== "cDC1", :location .== "blood") |> select(:mean) |> Array)[1]
-# 	RpreDCcDC1bm_mean = (@linq df_ratios_intra |> where(:population .== "cDC1", :location .== "bm") |> select(:mean) |> Array)[1]
-# 	RpreDCcDC2b_mean = (@linq df_ratios_intra |> where(:population .== "cDC2", :location .== "blood") |> select(:mean) |> Array)[1]
-# 	RpreDCcDC2bm_mean = (@linq df_ratios_intra |> where(:population .== "cDC2", :location .== "bm") |> select(:mean) |> Array)[1]
-	
-# 	RpreDCcDC1b_median = (@linq df_ratios_intra |> where(:population .== "cDC1", :location .== "blood") |> select(:median) |> Array)[1]
-# 	RpreDCcDC1bm_median = (@linq df_ratios_intra |> where(:population .== "cDC1", :location .== "bm") |> select(:median) |> Array)[1]
-# 	RpreDCcDC2b_median = (@linq df_ratios_intra |> where(:population .== "cDC2", :location .== "blood") |> select(:median) |> Array)[1]
-# 	RpreDCcDC2bm_median = (@linq df_ratios_intra |> where(:population .== "cDC2", :location .== "bm") |> select(:median) |> Array)[1]
-	
-# 	RpreDCcDC1b_min = (@linq df_ratios_intra |> where(:population .== "cDC1", :location .== "blood") |> select(:min) |> Array)[1]
-# 	RpreDCcDC1bm_min = (@linq df_ratios_intra |> where(:population .== "cDC1", :location .== "bm") |> select(:min) |> Array)[1]
-# 	RpreDCcDC2b_min = (@linq df_ratios_intra |> where(:population .== "cDC2", :location .== "blood") |> select(:min) |> Array)[1]
-# 	RpreDCcDC2bm_min = (@linq df_ratios_intra |> where(:population .== "cDC2", :location .== "bm") |> select(:min) |> Array)[1]
-	
-# 	RpreDCcDC1b_max = (@linq df_ratios_intra |> where(:population .== "cDC1", :location .== "blood") |> select(:max) |> Array)[1]
-# 	RpreDCcDC1bm_max = (@linq df_ratios_intra |> where(:population .== "cDC1", :location .== "bm") |> select(:max) |> Array)[1]
-# 	RpreDCcDC2b_max = (@linq df_ratios_intra |> where(:population .== "cDC2", :location .== "blood") |> select(:max) |> Array)[1]
-# 	RpreDCcDC2bm_max = (@linq df_ratios_intra |> where(:population .== "cDC2", :location .== "bm") |> select(:max) |> Array)[1];
-# end
-
 # ╔═╡ 520dbc20-fdd8-451a-80fb-8e2d3232466f
 begin
 	RASDCcDC1b = (;
@@ -614,9 +591,6 @@ end
 
 end
 
-# ╔═╡ 4105b6d8-e446-4b48-b039-04059c7bdce0
-logpdf(LogNormal(), eps())
-
 # ╔═╡ 7f41768d-db55-474b-9d3d-d972f87bb396
 begin
 Random.seed!(1234)
@@ -775,6 +749,9 @@ df_p_priors_truncated_normal = DataFrame(
 	upper = Inf
 )
 
+# ╔═╡ e4566b0c-27f3-493b-9949-0f760a258e4f
+fit_mle(LogNormal, bootst_comb_DC3)
+
 # ╔═╡ 0fb66180-d1b3-4c63-bdb4-3e86f69fb4d2
 begin
 	df_p_priors_lognormal = DataFrame(
@@ -841,13 +818,6 @@ begin
 	
 	fig_prior_normal
 end
-
-# ╔═╡ 58e06554-c1ee-4223-8231-a237c7554e20
-# df_p_priors = vcat(
-# 	DataFrame(df_p_priors_Gamma[1,:]),
-# 	df_p_priors_truncated_normal[2:3,:],
-# 	DataFrame(df_p_priors_Gamma[4,:])
-# )
 
 # ╔═╡ d2165116-022b-4826-8b0e-ee495a57799c
 df_p_priors =df_p_priors_lognormal
@@ -935,7 +905,7 @@ md"### Plot and save prior distribution figures"
 # ╔═╡ 2e72fba3-b157-43c6-9417-5d76ca0e4e42
 begin
 	f_prior_arr = [Figure(; resolution=(650,600)) for j in 1:4]
-	ax_prior_arr = [Axis(f_prior_arr[j][1,1], ylabel="pdf", xlabel="proliferation rate (day⁻¹)", titlesize=22.0f0) for j in 1:4]
+	ax_prior_arr = [Axis(f_prior_arr[j][1,1], ylabel="probability density", xlabel="proliferation rate (day⁻¹)", titlesize=22.0f0) for j in 1:4]
 	
 	color_map = Dict([ j => cgrad(:roma, 2, categorical = true)[idx] for (idx, j) in enumerate(["prior", "sample"])])
 	
@@ -979,6 +949,22 @@ begin
 		save(projectdir("notebooks", "01_processing", notebook_dir_name, "results","prior_proliferation_"* j.current_axis.x.title[]*".pdf"), j)
 	end
 end
+
+# ╔═╡ f97daf2c-c807-4047-b453-0642de1f0500
+md"### Calculate and save prior distribution statistics"
+
+# ╔═╡ 4190956c-da5d-422f-98cd-902501a2905c
+function calc_lognormal_statistics(dist)
+	return((; mean = mean(dist), median = median(dist), mode = mode(dist)))
+end
+
+# ╔═╡ 20cf92ce-8a8b-47ea-b0cc-604cd067320c
+df_prior_statistics =  @pipe df_p_priors |>
+transform(_, AsTable(:) => ByRow(x -> calc_lognormal_statistics(create_dist(x.dist, x.μ, x.σ, x.truncated, x.lower, x.upper))) => AsTable) |>
+select(_, :parameter, :dist, :μ, :σ, :mean, :median, :mode) 
+
+# ╔═╡ f93f4905-b50b-4b9d-8e74-deb0e439527a
+save(projectdir("notebooks", "01_processing", notebook_dir_name, "results","p_priors_revision_statistics.csv"), df_prior_statistics)
 
 # ╔═╡ 078601d7-bb0e-4178-b99c-499e0ff4162c
 md"## Save ratios to hardrive"
@@ -1029,7 +1015,6 @@ set_aog_theme!()
 # ╟─b859d2da-7691-11eb-3c4b-23aaf806d05c
 # ╠═ec6f9ad2-7691-11eb-1f9a-1f4ea84d92d7
 # ╠═0a981ce6-7697-11eb-30d4-318124f079a5
-# ╠═708537f8-76b7-11eb-2cb2-d19676df1dfd
 # ╠═520dbc20-fdd8-451a-80fb-8e2d3232466f
 # ╟─27af2e26-7b7b-11eb-1eaa-f5cabf39942a
 # ╠═80290752-7b7b-11eb-2a1d-5707c650a0b0
@@ -1055,7 +1040,6 @@ set_aog_theme!()
 # ╠═5323669a-7c4f-11eb-14e8-cdb2539e5d7e
 # ╠═f9882475-6e97-4026-9f08-9d50d74d41b8
 # ╠═2b6e2dc8-968a-42c2-ae0d-ab19440f627f
-# ╠═4105b6d8-e446-4b48-b039-04059c7bdce0
 # ╠═7f41768d-db55-474b-9d3d-d972f87bb396
 # ╠═0d3a3a1a-0bcf-4bdd-80db-8769728f2d58
 # ╠═f9f438d7-6a4f-43a8-b3ac-50d080bbab45
@@ -1082,11 +1066,11 @@ set_aog_theme!()
 # ╠═92f5e1ab-06a9-493f-b630-53e8327cf07a
 # ╟─91a9b444-7c71-11eb-3858-17f5c2b4c884
 # ╠═41aa65d3-5367-4e2c-9a3b-041909ec49ad
+# ╠═e4566b0c-27f3-493b-9949-0f760a258e4f
 # ╠═0fb66180-d1b3-4c63-bdb4-3e86f69fb4d2
 # ╠═36d34538-defd-444a-a3e5-587248481e05
 # ╠═587d774d-6a95-4a5f-8927-d3443fc9bf5c
 # ╠═0bf0e0d2-7d2c-49e0-b647-c28bae21785d
-# ╠═58e06554-c1ee-4223-8231-a237c7554e20
 # ╠═d2165116-022b-4826-8b0e-ee495a57799c
 # ╠═8eaf4eae-948e-45d7-968b-14984b44089d
 # ╠═1b3b5331-f983-410e-9f11-8e486d184d70
@@ -1097,6 +1081,10 @@ set_aog_theme!()
 # ╠═f3e0b4bd-2a52-4b26-b130-47f370ad693f
 # ╠═b42c3a72-f166-488f-a79f-beded6ca35a6
 # ╠═0b4e15a2-4b77-4596-b6ef-30a7fdfb7219
+# ╠═f97daf2c-c807-4047-b453-0642de1f0500
+# ╠═4190956c-da5d-422f-98cd-902501a2905c
+# ╠═20cf92ce-8a8b-47ea-b0cc-604cd067320c
+# ╠═f93f4905-b50b-4b9d-8e74-deb0e439527a
 # ╠═078601d7-bb0e-4178-b99c-499e0ff4162c
 # ╠═aba96283-01c7-4450-bd5d-3e04043d2075
 # ╠═eba36176-d1cf-4e7a-b2bd-0134467365e4
