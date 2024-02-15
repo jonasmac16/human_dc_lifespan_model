@@ -38,7 +38,7 @@ begin
 	@rimport loo as rloo
 	notebook_folder_title = basename(@__DIR__)
 	notebook_folder = joinpath(basename(@__DIR__), "results")
-	mkpath(projectdir("notebooks", "03_analysis", notebook_folder))
+	mkpath(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder))
 end
 
 # ╔═╡ 90245560-1bcd-11ec-0ba9-35d3debbbc71
@@ -49,12 +49,12 @@ md"## Load HPC results"
 
 # ╔═╡ 405c42dc-da20-4b8f-9fca-0f59833aa78d
 begin
-	results_folders = @pipe [try j.captures[1] catch end for j in filter!(p -> p != nothing, match.(r"(JM_004[0-1]_.+)", readdir(projectdir("notebooks", "02_fitting"))))] |> _[[isfile(projectdir("notebooks", "02_fitting",j, "results", "logp_3d_mat.jlso")) for j in _]]
+	results_folders = @pipe [try j.captures[1] catch end for j in filter!(p -> p != nothing, match.(r"(JM_004[0-1]_.+)", readdir(projectdir("notebooks", "02_fitting","02_uniform_prior"))))] |> _[[isfile(projectdir("notebooks", "02_fitting","02_uniform_prior",j, "results", "logp_3d_mat.jlso")) for j in _]]
 end
 
 # ╔═╡ 201dea27-c988-43cb-b6f2-728f5574145e
 begin
-	loglikehoods = [JLSO.load(projectdir("notebooks", "02_fitting", j, "results", "logp_3d_mat.jlso"))[:loglike_3d] for j in results_folders]
+	loglikehoods = [JLSO.load(projectdir("notebooks", "02_fitting","02_uniform_prior", j, "results", "logp_3d_mat.jlso"))[:loglike_3d] for j in results_folders]
 	loglikehoods_r = [permutedims(j, [2,3,1]) for j in loglikehoods]
 	relative_eff_r = [rloo.relative_eff(j) for j in loglikehoods_r]
 end
@@ -64,6 +64,36 @@ begin
 	model_names= [j.captures[1]*"_"*j.captures[2] for j = match.(r"(Model_[1-5])_.*_(nonpooled|pooled)", results_folders)]
 	model_id = [match(r"Model_([1-5])", j).captures[1] for j in model_names]
 	model_type = [match(r"Model_[1-5].*_(nonpooled|pooled)", j).captures[1] for j in model_names]
+end
+
+# ╔═╡ 99db6e93-5ec4-4a60-bb26-cbabef78793e
+begin
+	include(srcdir("dataprep.jl"))
+	donor_ids = ["D01", "D02", "D04"]
+	cell_cycle_approach = 3
+	ratio_approach = "2"
+	ratio_summary = "median"
+	tau_stop = 3.5/24.0
+	bc = 0.73
+	label_ps = DataFrame(load(datadir("exp_pro","labeling_parameters_revision.csv")))
+	cell_ratios = @linq DataFrame(load(datadir("exp_pro", "cell_ratios_revision.csv"))) |> DataFrames.transform(:approach => (x -> string.(x)) => :approach)
+	labelling_data = DataFrame(load(datadir("exp_pro","labelling_data_revision.csv")))
+	data_in = prepare_data_turing(labelling_data, cell_ratios, label_ps, tau_stop; population = ["DC3"], individual = donor_ids, ratios = ["R_DC3"], label_p_names = [:fr,:delta, :frac], ratio_approach=ratio_approach, ratio_summary = ratio_summary, mean_data = true)
+		
+	arr_ifd_arviz_loo = Dict{String, Any}() 
+
+	for k in 1: length(loglikehoods)
+		arr_ifd_arviz_loo[model_names[k]] = @pipe df_par |> 
+		subset(_,:model_id => (x -> x .== model_id[k]), :model_type => (x -> x .== model_type[k])) |> 
+		select(_,Not([:model_id, :model_type,:donor, :prior])) |> 
+		select(_, .!map(x -> any(ismissing.(x)), eachcol(_) )) |> 
+		(; zip((Symbol(j) for j in DataFrames.names(_)),(_[!,Symbol(j)] for j in DataFrames.names(_)))...) |> 
+		from_namedtuple(_; log_likelihood = permutedims(loglikehoods[k], [3,2,1]))
+	end
+
+	arr_ifd_arviz_loo_pooled = Dict([Pair(replace(j, "_pooled"=> ""),arr_ifd_arviz_loo[j]) for j in keys(arr_ifd_arviz_loo)])
+
+	df_arviz_loo = ArviZ.compare(arr_ifd_arviz_loo_pooled, "loo")
 end
 
 # ╔═╡ 53c53c8f-304c-4be7-af29-70496db46d6c
@@ -106,7 +136,7 @@ md"## Parameter estimation"
 # ╔═╡ 9abb0a6b-5238-4a76-a86a-e904b48757b6
 begin
 	### informative prior results
-	dfs_par_pooled = [JLSO.load(projectdir("notebooks", "02_fitting", j,"results", "df_mcmc_comp.jlso"))[:df_par_all] for j in results_folders[contains.(model_names,"_pooled")]]
+	dfs_par_pooled = [JLSO.load(projectdir("notebooks", "02_fitting","02_uniform_prior", j,"results", "df_mcmc_comp.jlso"))[:df_par_all] for j in results_folders[contains.(model_names,"_pooled")]]
 	## add model and donor
 	[dfs_par_pooled[j][!,:model_id] .= model_id[contains.(model_names,"_pooled")][j] for j in 1:length(dfs_par_pooled)]
 	[dfs_par_pooled[j][!,:model_type] .= model_type[contains.(model_names,"_pooled")][j] for j in 1:length(dfs_par_pooled)]
@@ -164,36 +194,6 @@ begin
 	insertcols!(_, :prior=>"lognormal")
 end
 
-# ╔═╡ 99db6e93-5ec4-4a60-bb26-cbabef78793e
-begin
-	include(srcdir("dataprep.jl"))
-	donor_ids = ["D01", "D02", "D04"]
-	cell_cycle_approach = 3
-	ratio_approach = "2"
-	ratio_summary = "median"
-	tau_stop = 3.5/24.0
-	bc = 0.73
-	label_ps = DataFrame(load(datadir("exp_pro","labeling_parameters.csv")))
-	cell_ratios = @linq DataFrame(load(datadir("exp_pro", "cell_ratios.csv"))) |> DataFrames.transform(:approach => (x -> string.(x)) => :approach)
-	labelling_data = DataFrame(load(datadir("exp_pro","labelling_data_revision.csv")))
-	data_in = prepare_data_turing(labelling_data, cell_ratios, label_ps, tau_stop; population = ["DC3"], individual = donor_ids, ratios = ["R_DC3"], label_p_names = [:fr,:delta, :frac], ratio_approach=ratio_approach, ratio_summary = ratio_summary, mean_data = true)
-		
-	arr_ifd_arviz_loo = Dict{String, Any}() 
-
-	for k in 1: length(loglikehoods)
-		arr_ifd_arviz_loo[model_names[k]] = @pipe df_par |> 
-		subset(_,:model_id => (x -> x .== model_id[k]), :model_type => (x -> x .== model_type[k])) |> 
-		select(_,Not([:model_id, :model_type,:donor, :prior])) |> 
-		select(_, .!map(x -> any(ismissing.(x)), eachcol(_) )) |> 
-		(; zip((Symbol(j) for j in DataFrames.names(_)),(_[!,Symbol(j)] for j in DataFrames.names(_)))...) |> 
-		from_namedtuple(_; log_likelihood = permutedims(loglikehoods[k], [3,2,1]))
-	end
-
-	arr_ifd_arviz_loo_pooled = Dict([Pair(replace(j, "_pooled"=> ""),arr_ifd_arviz_loo[j]) for j in keys(arr_ifd_arviz_loo)])
-
-	df_arviz_loo = ArviZ.compare(arr_ifd_arviz_loo_pooled, "loo")
-end
-
 # ╔═╡ c2a3b797-a097-4aa7-887f-0a16e437a440
 begin
 	## save parameter estimates
@@ -204,12 +204,12 @@ begin
 		dropmissing(_) |>
 		groupby(_, :variable) |>
 		combine(_, :value => (x -> (;mean=mean(x),(;zip((:hpd_l, :hpd_u), MCMCChains._hpd(x))...)...)) => AsTable) |>
-		save(projectdir("notebooks", "03_analysis", notebook_folder, "Parameter_posterior_summary_stats_pDC_model_"*string(l)*".csv"), _)
+		save(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "Parameter_posterior_summary_stats_DC3_model_"*string(l)*".csv"), _)
 
 		@pipe df_par |>
 		subset(_, :model_id => (x -> x .== string(l))) |>
 		select(_, .![any(ismissing.(j)) for j in eachcol(_)]) |>
-		save(projectdir("notebooks", "03_analysis", notebook_folder, "Parameter_full_posterior_pDC_model_"*string(l)*".csv"), _)
+		save(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "Parameter_full_posterior_DC3_model_"*string(l)*".csv"), _)
 	end
 end
 
@@ -222,22 +222,15 @@ begin
 	p_compare_loo = ArviZ.plot_compare(df_arviz_loo, insample_dev=false)
 	p_compare_loo.set_title("Leave-one-out PSIS-LOO-CV (Extended data)")
 	gcf()
-	PyPlot.savefig(projectdir("notebooks", "03_analysis", notebook_folder, "PSIS_LOO_CV_Model_comparison_pDC_leave_out_sample.pdf"))
-	PyPlot.savefig(projectdir("notebooks", "03_analysis", notebook_folder, "PSIS_LOO_CV_Model_comparison_pDC_leave_out_sample.svg"))
+	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "PSIS_LOO_CV_Model_comparison_DC3_leave_out_sample.pdf"))
+	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "PSIS_LOO_CV_Model_comparison_DC3_leave_out_sample.svg"))
 end
 
 # ╔═╡ fae12768-3fa0-46f3-8839-b91acbbceb99
 begin
 	## save model comparison df
-	save(projectdir("notebooks", "03_analysis", notebook_folder, "PSIS_LOO_CV_Model_comparison_pDC_leave_out_sample.csv"), df_arviz_loo)
+	save(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "PSIS_LOO_CV_Model_comparison_DC3_leave_out_sample.csv"), df_arviz_loo)
 end
-
-# ╔═╡ 3c634684-9c53-4726-8f4e-6aa076c52d41
-
-
-# ╔═╡ 3e5258f3-8c55-4122-bb8f-e0590c47708b
-
-
 
 # ╔═╡ 840a038a-55af-45f0-b35c-65c9ec587696
 begin
@@ -445,8 +438,6 @@ end
 # ╟─99db6e93-5ec4-4a60-bb26-cbabef78793e
 # ╠═431f30e6-2cf0-413f-96c3-2c5d6b39534d
 # ╟─fae12768-3fa0-46f3-8839-b91acbbceb99
-# ╠═3c634684-9c53-4726-8f4e-6aa076c52d41
-# ╠═3e5258f3-8c55-4122-bb8f-e0590c47708b
 # ╠═840a038a-55af-45f0-b35c-65c9ec587696
 # ╠═c8cca440-0b47-4d97-9bfd-23768de0046a
 # ╠═8d8c01bd-fbc0-4ee1-b9b7-aa9ec0b7581b

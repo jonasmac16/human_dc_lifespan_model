@@ -46,7 +46,7 @@ include(srcdir("df2latex.jl"))
 begin
 	notebook_folder_title = basename(@__DIR__)
 	notebook_folder = joinpath(basename(@__DIR__), "results")
-	res_folder = projectdir("notebooks","03_analysis",notebook_folder)
+	res_folder = projectdir("notebooks","03_analysis","02_uniform_prior",notebook_folder)
 	mkpath(res_folder)
 end
 
@@ -56,68 +56,26 @@ md"# $(notebook_folder_title)"
 # ╔═╡ 8dca14b1-b8db-4eeb-8bf4-af41936e2505
 R"library('loo')"
 
-# ╔═╡ e8a0497c-1d9b-465d-a609-ad6fa4f52bec
-md"## Normal vs Student's t distribution"
-
-# ╔═╡ 0b015757-d6cb-44c6-94f5-419b46c0dc75
-# begin
-# 	N = Normal(0.0, 1.0) 
-# 	t = [Distributions.LocationScale(0.0, 1.0, TDist(j)) for j in [collect(4:2:16)..., collect(20:20:100)...]]
-# end
-
-# ╔═╡ a08682c5-a805-4a82-94f2-a210d48a87bb
-begin
-# 	p = Plots.plot()
-	
-# 	for j in t
-# 		Plots.plot!(p, j, lab = "t(μ=0.0, σ=1.0, ν="*string(params(j)[3].ν)*")", w=2, alpha=0.75)
-# 	end
-# 	Plots.plot!(p, N, c=:black, lab="Normal(μ=0.0,σ=1.0)", w=2, alpha=0.75, guidefontsize=12, tickfontsize=12, ylabel="density", grid=false)
-# 	savefig(p, joinpath(res_folder, "Normal_v_Student_t.pdf"))
-	# p
-end
-
-# ╔═╡ ab676ff6-4906-4204-a9f1-f4c7e3c385cc
-# begin
-# 	fig_dist = CairoMakie.Figure(;resolution=(700,500))
-# 	ax_dist = Axis(fig_dist[1,1], ylabel="density")
-# 	dist_plot = t
-# 	colors_dist = cgrad(:roma, length(dist_plot), categorical=true)
-# 	names = "t(μ=0, σ=1, ν=" .*[string(params(j)[3].ν) for j in t] .*")"
-	
-# 	for (idx, j) in enumerate(dist_plot)
-# 		CairoMakie.plot!(ax_dist, j, color = (colors_dist[idx], 0.7),label=names[idx])
-# 	end
-# 	CairoMakie.plot!(ax_dist, N, color = (:black,1.0),label="N(μ=0.0, σ=1.0)")
-	
-# 	# ax_dist_label = Axis(fig_dist[1,2])
-# 	Legend(fig_dist[1,2], ax_dist, "Distribution")
-# 	fig_dist
-# end
-
-# ╔═╡ 5b55c1d5-5fdf-462e-bdba-192a589cfc03
-# save(joinpath(res_folder,"normal_v_student_makie_thesis.pdf"), fig_dist)
-
 # ╔═╡ 969d39ad-8696-464f-9087-2eb1e886e94e
 md"## Load PPC data"
 
 # ╔═╡ 65129028-c29e-4ab4-a154-62a3a7dcdd5d
-pooled_results_notebooks = filter(x -> !isnothing(match(r"JM_00(([2][4-9])|([3][0-3]))",x)),readdir(projectdir("notebooks", "02_fitting"), join=true))
+pooled_results_notebooks = filter(x -> !isnothing(match(r"JM_00(([2][4-9])|([3][0-3]))",x)),readdir(projectdir("notebooks", "02_fitting","02_uniform_prior"), join=true))
 
 # ╔═╡ 4f04a6a7-73fa-42f2-8bbe-ddfaadbbefbd
-pooled_results_normal_notebooks = filter(x -> !isnothing(match(r"JM_00(([0][9])|([1][0-8]))",x)),readdir(projectdir("notebooks", "02_fitting"), join=true))
+pooled_results_normal_notebooks = filter(x -> !isnothing(match(r"JM_00(([0][9])|([1][0-8]))",x)),readdir(projectdir("notebooks", "02_fitting","02_uniform_prior"), join=true))
 
 # ╔═╡ bb1f6478-82d5-49cd-8225-51281d911e2d
-nonpooled_results_notebooks = filter(x -> !isnothing(match(r"JM_00(([1][9])|([2][0-3]))",x)),readdir(projectdir("notebooks", "02_fitting"), join=true))
+nonpooled_results_notebooks = filter(x -> !isnothing(match(r"JM_00(([1][9])|([2][0-3]))",x)),readdir(projectdir("notebooks", "02_fitting","02_uniform_prior"), join=true))
 
 # ╔═╡ 268825ca-d8e7-4f1c-ae91-64747a875984
-nonpooled_results_normal_notebooks = filter(x -> !isnothing(match(r"JM_000[4-8]",x)),readdir(projectdir("notebooks", "02_fitting"), join=true))
+nonpooled_results_normal_notebooks = filter(x -> !isnothing(match(r"JM_000[4-8]",x)),readdir(projectdir("notebooks", "02_fitting","02_uniform_prior"), join=true))
 
 # ╔═╡ e82c870e-8b63-4ddd-9289-2eb7c9e3cd72
-pooled_dc3_results_notebooks = filter(x -> !isnothing(match(r"JM_00((3[6,7])|(4[0,1]))",x)),readdir(projectdir("notebooks", "02_fitting"), join=true))
+pooled_dc3_results_notebooks = filter(x -> !isnothing(match(r"JM_00((3[6,7])|(4[0,1]))",x)),readdir(projectdir("notebooks", "02_fitting","02_uniform_prior"), join=true))
 
 # ╔═╡ 8691540d-c347-4fff-914b-00cea31dc22c
-nonpooled_dc3_results_notebooks = filter(x -> !isnothing(match(r"JM_003[4,5,8,9]",x)),readdir(projectdir("notebooks", "02_fitting"), join=true))
+nonpooled_dc3_results_notebooks = filter(x -> !isnothing(match(r"JM_003[4,5,8,9]",x)),readdir(projectdir("notebooks", "02_fitting","02_uniform_prior"), join=true))
 
 # ╔═╡ 8f25ba44-552a-41a3-b7ec-32fe28702964
 begin
@@ -425,37 +383,34 @@ save(joinpath(res_folder, "ppc_preDC_extended_pooled_bone_marrow.pdf"), f[1])
 md"## Model comparison"
 
 # ╔═╡ 715b9bf0-17c5-415c-a1d1-c22d864fd6af
-df_loo_DC3 = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0043_Julia_Analysis_DC3","results","PSIS_LOO_CV_Model_comparison_DC3_leave_out_sample.csv"), DataFrame) |>
+df_loo_DC3 = @pipe CSV.read(projectdir("notebooks", "03_analysis","02_uniform_prior",  "JM_0043_Julia_Analysis_DC3","results","PSIS_LOO_CV_Model_comparison_DC3_leave_out_sample.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
 
 # ╔═╡ 15716182-57e9-4f7a-b685-af321fdb8d8a
-df_loo_subset_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.csv"), DataFrame) |>
+df_loo_subset_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis","02_uniform_prior",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
 
 # ╔═╡ 25c18a6a-3e7b-4eab-b38c-b6f6156d65e1
-df_loo_sample_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.csv"), DataFrame) |>
+df_loo_sample_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis","02_uniform_prior",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
 
 # ╔═╡ 56d68aaa-bf87-460d-beb5-420fd7f60fc3
-df_loo_subset = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_subset.csv"), DataFrame) |>
+df_loo_subset = @pipe CSV.read(projectdir("notebooks", "03_analysis","02_uniform_prior",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_subset.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
 
 # ╔═╡ ab3577de-6f11-4e9f-b171-f38948b0de09
-df_loo_sample = @pipe CSV.read(projectdir("notebooks", "03_analysis",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_sample.csv"), DataFrame) |>
+df_loo_sample = @pipe CSV.read(projectdir("notebooks", "03_analysis","02_uniform_prior",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_sample.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
-
-# ╔═╡ dddde160-19ee-4a91-b22e-e267cbda3ce7
-
 
 # ╔═╡ eb5f85bd-5324-4e73-91fe-efc42d630176
 begin
@@ -466,15 +421,15 @@ begin
 		
 		# color_scheme= get(colorschemes[color], LinRange(0,1,nrow(df)))
 		color_scheme = cgrad(colors,max_models, categorical=true)[order_model]
-		CairoMakie.errorbars!(ax,df.loo,  collect(1:nrow(df)), df.se, direction=:x, color=:black,linewidth=2, whiskerwidth=8)
+		CairoMakie.errorbars!(ax,df.elpd_loo,  collect(1:nrow(df)), df.se, direction=:x, color=:black,linewidth=2, whiskerwidth=8)
 
-		@pipe data(df) * mapping(:loo, :name, color=:name, group=:name) * visual(Scatter, markersize=10) |> draw!(ax, _; palettes=(color=color_scheme,))
+		@pipe data(df) * mapping(:elpd_loo, :name, color=:name, group=:name) * visual(Scatter, markersize=10) |> draw!(ax, _; palettes=(color=color_scheme,))
 
-		CairoMakie.errorbars!(ax,df.loo[2:end],  collect(2:nrow(df)).+ 0.1, df.dse[2:end], direction=:x, whiskerwidth=8, linewidth=2, color=:grey)
+		CairoMakie.errorbars!(ax,df.elpd_loo[2:end],  collect(2:nrow(df)).+ 0.1, df.dse[2:end], direction=:x, whiskerwidth=8, linewidth=2, color=:grey)
 
-		CairoMakie.scatter!(ax, df.loo[2:end], collect(2:nrow(df)) .+ 0.1, color=:grey, markersize=8)
+		CairoMakie.scatter!(ax, df.elpd_loo[2:end], collect(2:nrow(df)) .+ 0.1, color=:grey, markersize=8)
 
-		CairoMakie.vlines!(ax, maximum(df.loo), color=:grey, linestyle = :dash, linewidth=1)
+		CairoMakie.vlines!(ax, maximum(df.elpd_loo), color=:grey, linestyle = :dash, linewidth=1)
 		ax.ylabel =""
 		ax.xlabel ="elpd (greater is better)"
 
@@ -512,25 +467,25 @@ noto_sans_bold = assetpath("fonts", "NotoSans-Bold.ttf")
 # ╔═╡ 9fc567d3-5519-4ec1-b749-ec36ceea856b
 begin
 	fig_dc3_ppc_combined = CairoMakie.Figure(; resolution = (800,1000))
-	ax1 = hcat([[Axis(fig_dc3_ppc_combined[k,j]) for k in 1:4] for j in 1:1]...)
-	ax2 = hcat([[Axis(fig_dc3_ppc_combined[k,j]) for k in 1:4] for j in 2:2]...)
+	ax1 = hcat([[Axis(fig_dc3_ppc_combined[k,j]) for k in 1:3] for j in 1:1]...)
+	ax2 = hcat([[Axis(fig_dc3_ppc_combined[k,j]) for k in 1:3] for j in 2:2]...)
 	plot_predictions(df_dc3_pooled;donors_plotted = ["D01", "D02", "D04"], populations=["DC3"], dataset="original", models=[1,2], location ="b", data_color = [colorant"#c8ab37ff"], max_models=2, ax = ax1)[2]
 plot_predictions(df_dc3_nonpooled;donors_plotted = ["D01", "D02", "D04"], populations=["DC3"], dataset="original", models=[1,2], location ="b", data_color = [colorant"#c8ab37ff"], max_models=2, ax=ax2)[2]
 
-	donor_ax = [Axis(fig_dc3_ppc_combined[j, 2], yaxisposition = :right, yticksvisible=false, aspect=1.5) for j in 1:4]
+	donor_ax = [Axis(fig_dc3_ppc_combined[j, 2], yaxisposition = :right, yticksvisible=false, aspect=1.5) for j in 1:3]
 	[hidexdecorations!(j) for j in donor_ax]
 	[hideydecorations!(j, label = false) for j in donor_ax]
 	[hidespines!(j) for j in donor_ax]
 	
-	[donor_ax[j].ylabel=["D01", "D02", "D04"][j] for j in 1:4]
+	[donor_ax[j].ylabel=["D01", "D02", "D04"][j] for j in 1:3]
 	[hideydecorations!(j, ticklabels=false, ticks=false) for j in ax2]
-	[linkyaxes!(ax1[j], ax2[j]) for j in 1:4]
+	[linkyaxes!(ax1[j], ax2[j]) for j in 1:3]
 	
 	data_marker = [MarkerElement(marker = :circle, color = marker_c, strokecolor = :transparent, markersize=10) for marker_c in [colorant"#c8ab37ff"]]
 
 	model_color = [PolyElement(color = color, strokecolor = :transparent) for color in cgrad(:roma, 2, categorical =true, alpha=0.5)]
 		
-	cb = fig_dc3_ppc_combined[4+1,:]
+	cb = fig_dc3_ppc_combined[3+1,:]
 	# Legend(cb, ax[1], "prediction")
 	Legend(cb, [model_color, data_marker],["model " .* string.([1,2]),["DC3"]], ["prediction","data"], orientation=:horizontal, titlealign=:left)
 	
@@ -621,7 +576,7 @@ md"Load posterior dataframes"
 begin
 	df_full_posterior_extended = DataFrame()
 	for j in [1,2,3,4]
-		global df_full_posterior_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis", "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","Parameter_full_posterior_model_$(j).csv"), DataFrame) |> vcat(df_full_posterior_extended,_, cols=:union)
+		global df_full_posterior_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis","02_uniform_prior", "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","Parameter_full_posterior_model_$(j).csv"), DataFrame) |> vcat(df_full_posterior_extended,_, cols=:union)
 	end
 	df_full_posterior_extended = @pipe df_full_posterior_extended |> rename(_, :model_id => :model)
 end
@@ -669,10 +624,10 @@ function plot_posterior_distribution(df, parameters, models; xlabel=L"d^{-1}",  
 					current_xlim_l = tmp_ax[idx].limits[][1][1]
 					current_xlim_u = tmp_ax[idx].limits[][1][2]
 
-					update_xlim_l = maximum([minimum([min_post,current_xlim_l]), -0.1, ])
+					update_xlim_l = maximum([minimum([min_post,current_xlim_l]), -0.0, ])
 					update_xlim_u = maximum([max_post, current_xlim_u])
 				else
-					update_xlim_l = maximum([min_post, -0.1])
+					update_xlim_l = maximum([min_post, -0.0])
 					update_xlim_u = max_post
 				end
 
@@ -766,9 +721,9 @@ begin
 	sf_diff4 = fig_diff[2,2]
 	
 	ax_diff1 = plot_posterior_distribution(df_full_posterior_extended, Symbol.(filter(x -> endswith(x, "Δ_cDC1bm"), DataFrames.names(df_full_posterior_extended))), [1,2]; sf=sf_diff1, alpha=0.5, offset_factor=1.5, xlabel="")[3]
-	ax_diff2 = plot_posterior_distribution(df_full_posterior_extended, Symbol.(filter(x -> endswith(x, "Δ_cDC2bm"), DataFrames.names(df_full_posterior_extended))), [1,2,4]; sf=sf_diff2, alpha=0.5, offset_factor=1.5,xlabel="")[3]
+	ax_diff2 = plot_posterior_distribution(df_full_posterior_extended, Symbol.(filter(x -> endswith(x, "Δ_DC2bm"), DataFrames.names(df_full_posterior_extended))), [1,2,4]; sf=sf_diff2, alpha=0.5, offset_factor=1.5,xlabel="")[3]
 	ax_diff3 = plot_posterior_distribution(df_full_posterior_extended, Symbol.(filter(x -> endswith(x, "Δ_cDC1b"), DataFrames.names(df_full_posterior_extended))), [1]; sf=sf_diff3, alpha=0.5, offset_factor=1.5, xlabel="day⁻¹")[3]
-	ax_diff4 = plot_posterior_distribution(df_full_posterior_extended, Symbol.(filter(x -> endswith(x, "Δ_cDC2b"), DataFrames.names(df_full_posterior_extended))), [1,4]; sf=sf_diff4, alpha=0.5, offset_factor=1.5, xlabel="day⁻¹")[3]
+	ax_diff4 = plot_posterior_distribution(df_full_posterior_extended, Symbol.(filter(x -> endswith(x, "Δ_DC2b"), DataFrames.names(df_full_posterior_extended))), [1,4]; sf=sf_diff4, alpha=0.5, offset_factor=1.5, xlabel="day⁻¹")[3]
 	
 	linkyaxes!(ax_diff1[1], ax_diff2[1])
 	linkyaxes!(ax_diff3[1], ax_diff4[1])
@@ -791,7 +746,7 @@ md"## DC3 estimates"
 begin
 	df_full_DC3_posterior_extended = DataFrame()
 	for j in [1,2]
-		global df_full_DC3_posterior_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis", "JM_0043_Julia_Analysis_DC3","results","Parameter_full_posterior_DC3_model_$(j).csv"), DataFrame) |> vcat(df_full_DC3_posterior_extended,_, cols=:union)
+		global df_full_DC3_posterior_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis","02_uniform_prior", "JM_0043_Julia_Analysis_DC3","results","Parameter_full_posterior_DC3_model_$(j).csv"), DataFrame) |> vcat(df_full_DC3_posterior_extended,_, cols=:union)
 	end
 	df_full_DC3_posterior_extended = @pipe df_full_DC3_posterior_extended |> rename(_, :model_id => :model)
 end
@@ -1087,11 +1042,6 @@ save(joinpath(res_folder, "Fig_shape_parameter_k_normal_model_1_pooled_v_nonpool
 # ╠═69516fb5-c504-4fb7-a633-f3e8c42190a9
 # ╠═8dca14b1-b8db-4eeb-8bf4-af41936e2505
 # ╠═f80272ab-7379-4be0-99c8-bd803b0f48ed
-# ╠═e8a0497c-1d9b-465d-a609-ad6fa4f52bec
-# ╠═0b015757-d6cb-44c6-94f5-419b46c0dc75
-# ╠═a08682c5-a805-4a82-94f2-a210d48a87bb
-# ╠═ab676ff6-4906-4204-a9f1-f4c7e3c385cc
-# ╠═5b55c1d5-5fdf-462e-bdba-192a589cfc03
 # ╠═969d39ad-8696-464f-9087-2eb1e886e94e
 # ╠═65129028-c29e-4ab4-a154-62a3a7dcdd5d
 # ╠═4f04a6a7-73fa-42f2-8bbe-ddfaadbbefbd
@@ -1147,7 +1097,6 @@ save(joinpath(res_folder, "Fig_shape_parameter_k_normal_model_1_pooled_v_nonpool
 # ╠═25c18a6a-3e7b-4eab-b38c-b6f6156d65e1
 # ╠═56d68aaa-bf87-460d-beb5-420fd7f60fc3
 # ╠═ab3577de-6f11-4e9f-b171-f38948b0de09
-# ╠═dddde160-19ee-4a91-b22e-e267cbda3ce7
 # ╠═eb5f85bd-5324-4e73-91fe-efc42d630176
 # ╠═ae35a1df-d594-4de8-946c-de827309cece
 # ╠═d811ceb6-b60f-420a-962c-8d6a121588d1
