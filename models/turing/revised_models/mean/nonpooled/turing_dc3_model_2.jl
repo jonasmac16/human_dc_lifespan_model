@@ -160,7 +160,7 @@ par_range = (;p_DC3bm = (0.0,1.0),
 R_PRO = (1.0, 20.0),
 λ_DC3 = (0.0,2.0),
 δ_PRO = (0.0,2.0),
-σ1 = (0.0,2.0))
+σ = (0.0,2.0))
 
 
 par_range_names = keys(par_range)

@@ -105,23 +105,17 @@ end
 
     
     ### priors
-    prior_dist = MyDistribution(priors.p_DC3bm, Uniform(0.0,2.0))
-
-    par = Vector{Array{T,1}}(undef, metadata.n_indv)
-    for j in 1:metadata.n_indv
-        par[j] ~ prior_dist
-    end
-
-    p_DC3bm, λ_DC3 = assign_par(par, length(prior_dist), metadata.n_indv)           
+    p_DC3bm ~ priors.p_DC3bm
+    λ_DC3 ~ Uniform(0.0,2.0)
+    δ_DC3bm ~ Uniform(0.0,2.0)
     
-    σ ~ filldist(TruncatedNormal(0.0, 1.0, 0.0,Inf),metadata.n_indv)
-    ν ~ filldist(LogNormal(2.0, 1.0), metadata.n_indv)
+    σ ~ TruncatedNormal(0.0, 1.0, 0.0,Inf)
+    ν ~ LogNormal(2.0, 1.0)
 
     ### compound parameter
-    δ_DC3bm = p_DC3bm .- λ_DC3
-    δ_DC3b = λ_DC3 .* R_DC3
+    δ_DC3b = λ_DC3 * R_DC3
     
-    theta = [[p_DC3bm[j], δ_DC3bm[j], δ_DC3b[j], λ_DC3[j]] for j in 1:metadata.n_indv]
+    theta = [p_DC3bm, δ_DC3bm, δ_DC3b, λ_DC3]
 
     sol = solve_dc_ode(ode_prob, theta, metadata.label_p, metadata.timepoints, ode_parallel_mode, solver=solver; dense=false, ode_args...)
 
@@ -130,17 +124,18 @@ end
         return
     end
 
-    data ~ arraydist(LocationScale.(map(j -> sol[metadata.order.donor[j]][metadata.order.population[j], metadata.order.timepoint_idx[j]], 1:length(metadata.order.donor)), σ[metadata.order.donor], TDist.(ν[metadata.order.donor])))
+    data ~ arraydist(LocationScale.(map(j -> sol[metadata.order.donor[j]][metadata.order.population[j], metadata.order.timepoint_idx[j]], 1:length(metadata.order.donor)), fill(σ,metadata.n_meassurements), TDist.(fill(ν,metadata.n_meassurements))))
 
     ## generated_quantities
     return (;sol =sol,
-    log_likelihood = logpdf.(LocationScale.(map(j -> sol[metadata.order.donor[j]][metadata.order.population[j], metadata.order.timepoint_idx[j]], 1:length(metadata.order.donor)), σ[metadata.order.donor], TDist.(ν[metadata.order.donor])), data),
+    log_likelihood = logpdf.(LocationScale.(map(j -> sol[metadata.order.donor[j]][metadata.order.population[j], metadata.order.timepoint_idx[j]], 1:length(metadata.order.donor)), fill(σ,metadata.n_meassurements), TDist.(fill(ν,metadata.n_meassurements))), data),
     parameters =(;p_DC3bm=p_DC3bm, δ_DC3bm=δ_DC3bm, δ_DC3b=δ_DC3b, λ_DC3=λ_DC3))
 end
 
 
 par_range = (;p_DC3bm = (0.0,1.0),
 λ_DC3 = (0.0,2.0),
+δ_DC3bm = (0.0,2.0),
 σ = (0.0,2.0),
 ν = (0.0,2.0))
 

@@ -105,20 +105,14 @@ end
 
     
     ### priors
-    prior_dist = MyDistribution(priors.p_DC3bm, Uniform(0.0,2.0))
-
-    par = Vector{Array{T,1}}(undef, metadata.n_indv)
-    for j in 1:metadata.n_indv
-        par[j] ~ prior_dist
-    end
-
-    p_DC3bm, λ_DC3 = assign_par(par, length(prior_dist), metadata.n_indv)           
+    p_DC3bm ~ filldist(priors.p_DC3bm,metadata.n_indv)
+    λ_DC3 ~ filldist(Uniform(0.0,2.0),metadata.n_indv)
+    δ_DC3bm ~ filldist(Uniform(0.0,2.0),metadata.n_indv)
     
     σ ~ filldist(TruncatedNormal(0.0, 1.0, 0.0,Inf),metadata.n_indv)
     ν ~ filldist(LogNormal(2.0, 1.0), metadata.n_indv)
 
     ### compound parameter
-    δ_DC3bm = p_DC3bm .- λ_DC3
     δ_DC3b = λ_DC3 .* R_DC3
     
     theta = [[p_DC3bm[j], δ_DC3bm[j], δ_DC3b[j], λ_DC3[j]] for j in 1:metadata.n_indv]
@@ -141,6 +135,7 @@ end
 
 par_range = (;p_DC3bm = (0.0,1.0),
 λ_DC3 = (0.0,2.0),
+δ_DC3bm = (0.0,2.0),
 σ = (0.0,2.0),
 ν = (0.0,2.0))
 

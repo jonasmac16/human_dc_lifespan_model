@@ -132,7 +132,7 @@ end
 
 par_range = (;p_DC3bm = (0.0,1.0),
 λ_DC3 = (0.0,2.0),
-σ1 = (0.0,2.0))
+σ = (0.0,2.0))
 
 
 par_range_names = keys(par_range)
