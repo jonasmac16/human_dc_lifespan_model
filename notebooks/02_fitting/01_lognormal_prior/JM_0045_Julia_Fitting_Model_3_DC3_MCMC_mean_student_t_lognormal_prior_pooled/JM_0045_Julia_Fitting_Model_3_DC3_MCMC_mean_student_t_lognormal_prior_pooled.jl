@@ -54,7 +54,7 @@ ratio_approach = "2"
 ratio_summary = "median"
 
 # ╔═╡ 99e32cfa-7c1a-11eb-1392-0143e6127ac4
-model_id = "1"
+model_id = "3"
 
 # ╔═╡ caa78152-716f-11eb-2937-2f55801a9180
 md"""
@@ -149,7 +149,7 @@ U_func(t, fr, delta, frac, tau) = U_smooth_2stp(t, fr, delta, 0.5/24.0, tau, fra
 u0 = zeros(2)
 
 # ╔═╡ 79d513e6-7176-11eb-0080-f7d16330d1c4
-p_init = ones([8,9][tryparse(Int, model_id)])
+p_init = ones([8,12,8][tryparse(Int, model_id)])
 
 # ╔═╡ 9c6a5860-717a-11eb-11b4-11109f68f8c9
 solver_in = AutoTsit5(KenCarp4())

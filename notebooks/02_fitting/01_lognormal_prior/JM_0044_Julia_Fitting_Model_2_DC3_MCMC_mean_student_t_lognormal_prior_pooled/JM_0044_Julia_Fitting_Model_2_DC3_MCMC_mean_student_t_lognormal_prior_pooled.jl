@@ -146,10 +146,10 @@ end
 U_func(t, fr, delta, frac, tau) = U_smooth_2stp(t, fr, delta, 0.5/24.0, tau, frac; c = bc)
 
 # ╔═╡ a1e72c1e-7175-11eb-3eee-25fae4864542
-u0 = zeros(2)
+u0 = zeros(3)
 
 # ╔═╡ 79d513e6-7176-11eb-0080-f7d16330d1c4
-p_init = ones([8,9][tryparse(Int, model_id)])
+p_init = ones([8,12,8][tryparse(Int, model_id)])
 
 # ╔═╡ 9c6a5860-717a-11eb-11b4-11109f68f8c9
 solver_in = AutoTsit5(KenCarp4())
@@ -160,14 +160,14 @@ begin
 
     data_in = prepare_data_turing(labelling_data, cell_ratios, label_ps, tau_stop; population = ["DC3"], individual = donor_ids, ratios = ["R_DC3"], label_p_names = [:fr,:delta, :frac], ratio_approach=ratio_approach, ratio_summary = ratio_summary, mean_data = true)
 	
-	model(du,u,h,p,t) = eval(Symbol("_model_dc3_"*model_id))(du,u,h,p,t, U_func, data_in.metadata.R)
+	model(du,u,p,t) = eval(Symbol("_model_dc3_"*model_id))(du,u,p,t, U_func, data_in.metadata.R)
 
-	problem = DDEProblem(model, u0, h, (0.0, maximum(vcat(data_in.metadata.timepoints...))),p_init)
+	problem = ODEProblem(model, u0, (0.0, maximum(vcat(data_in.metadata.timepoints...))),p_init)
 
 	## MTK
-	# mtk_model = modelingtoolkitize(problem)
-	# f_opt = ODEFunction(mtk_model, jac=true)
-	# mtk_problem = ODEProblem(f_opt, u0,(0.0, maximum(vcat(data_in.metadata.timepoints...))),p_init);
+	mtk_model = modelingtoolkitize(problem)
+	f_opt = ODEFunction(mtk_model, jac=true)
+	mtk_problem = ODEProblem(f_opt, u0,(0.0, maximum(vcat(data_in.metadata.timepoints...))),p_init);
 
 	turing_model = _turing_model(data_in.data, data_in.metadata, problem, solver_in, priors, ode_parallel_mode=solver_parallel_methods; ode_args=(abstol=1e-10, reltol=1e-10, maxiters=1e8))
 	
@@ -209,7 +209,7 @@ end
 begin
 	p_diag_1 = plot(chains, title=permutedims(vcat([[j, j] for j in par_range_names]...)), label=permutedims([("Chain " .* string.(collect(1:n_chains)))...]))
 	for k in 1:(length(p_init)-10)
-		density!(p_diag_1, [rand(MyDistribution(priors.p_DC3bm, Uniform(0.0,2.0)))[k] for j in 1:1000], subplot=(k-1)*2+2, c=:black, legend=true, label="prior")
+		density!(p_diag_1, [rand(MyDistribution(priors.p_DC3bm, Uniform(0.0,2.0), Uniform(0.0,2.0),Uniform(0.0,2.0)))[k] for j in 1:1000], subplot=(k-1)*2+2, c=:black, legend=true, label="prior")
 	end
 	savefig(p_diag_1, projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"diagnostic_all.pdf"))
 	p_diag_1
@@ -401,7 +401,7 @@ end
 # ╔═╡ 69182965-21a3-442a-971e-2e27840a658e
 begin
 	if !(isfile(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"df_mcmc_comp.jlso")))
-		df_par_all = DataFrame(p_DC3bm=Float64[], δ_DC3bm=Float64[], δ_DC3b=Float64[], λ_DC3=Float64[], tau=Float64[], σ=Float64[])
+		df_par_all = DataFrame(p_PRO = Float64[], p_DC3bm=Float64[], δ_PRO = Float64[], δ_DC3bm=Float64[], δ_DC3b=Float64[], ϵ=Float64[],  λ_DC3=Float64[], R_PRO=Float64[], σ=Float64[])
 
 		@pipe parameter_est |>
 		for j in _

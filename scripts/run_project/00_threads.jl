@@ -1,1 +1,1 @@
-n_threads = 3
+n_threads = 6
