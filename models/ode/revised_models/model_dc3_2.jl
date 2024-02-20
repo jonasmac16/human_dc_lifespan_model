@@ -1,4 +1,4 @@
-function _model_dc3_4(du,u,p,t, U_func, R)
+function _model_dc3_2(du,u,p,t, U_func, R)
     LPRO, LDC3m, LDC3b = u
     @unpack R_DC3 = R
     p_PRO, p_DC3bm, δ_PRO, δ_DC3bm, δ_DC3b, ϵ, λ_DC3, R_PRO = p[1:(end-4)]
