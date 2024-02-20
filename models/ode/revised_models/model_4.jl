@@ -6,7 +6,7 @@ function _model_4(du,u,p,t, U_func, R)
 
     U = U_func(t, fr, delta, frac, tau)
 
-    du[1] = p_ASDCbm * U - (δ_ASDCbm + Δ_cDC1bm + Δ_DC2bm) * LASDCm ##ASDCm
+    du[1] = p_ASDCbm * U - (δ_ASDCbm + Δ_cDC1bm + Δ_DC2bm + λ_ASDC) * LASDCm ##ASDCm
 
     du[2] = p_cDC1bm * U - δ_cDC1bm * LcDC1m + Δ_cDC1bm * R_ASDCcDC1bm * LASDCm ##cDC1m
 
