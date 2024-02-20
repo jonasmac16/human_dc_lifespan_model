@@ -39,7 +39,7 @@ begin
 	@rimport loo as rloo
 	notebook_folder_title = basename(@__DIR__)
 	notebook_folder = joinpath(basename(@__DIR__), "results")
-	mkpath(projectdir("notebooks", "03_analysis", notebook_folder))
+	mkpath(projectdir("notebooks", "03_analysis","01_lognormal_prior", notebook_folder))
 	data_folder = "data_derek_20210823"
 end
 
@@ -152,7 +152,7 @@ begin
 	df_par = @pipe vcat(vcat(dfs_par_pooled...),
 	vcat(dfs_par_nonpooled...), 
 	vcat(dfs_par_pooled_extended...)) |>
-	transform(_,[:δ_ASDCbm, :λ_ASDC, :Δ_cDC1bm, :Δ_DC2bm] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_preDC_bm,
+	transform(_,[:δ_ASDCbm, :λ_ASDC, :Δ_cDC1bm, :Δ_DC2bm] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_ASDC_bm,
 	[:δ_cDC1bm, :λ_cDC1] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_cDC1_bm,
 	[:δ_DC2bm, :λ_DC2] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_DC2_bm,
 	[:δ_ASDCb, :Δ_cDC1b, :Δ_DC2b] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_ASDC_b,
