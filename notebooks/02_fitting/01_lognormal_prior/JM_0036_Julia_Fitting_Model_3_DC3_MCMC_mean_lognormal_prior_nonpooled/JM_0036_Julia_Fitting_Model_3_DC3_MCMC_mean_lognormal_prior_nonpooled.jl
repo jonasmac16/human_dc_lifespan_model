@@ -37,7 +37,7 @@ begin
 	include(projectdir("scripts", "run_project", "00_mcmc_settings.jl"))
 	warm_up = Int(mcmc_iters/2)
 	sample_iters = mcmc_iters
-	accept_rate = 0.94
+	accept_rate = 0.98
 end
 
 # ╔═╡ e4e12340-7172-11eb-22b0-f7a72dfbb863
