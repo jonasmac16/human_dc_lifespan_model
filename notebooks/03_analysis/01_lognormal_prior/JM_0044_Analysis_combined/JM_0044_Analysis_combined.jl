@@ -585,7 +585,7 @@ end
 md" corner plot of all parameters"
 
 # ╔═╡ 4dc94cfe-f6d1-4310-a444-9f6edfeb0c91
-function plot_posterior_distribution(df, parameters, models; xlabel=L"d^{-1}",  resolution=(600,400), f = CairoMakie.Figure(; resolution), sf = f[1,1], colors=:roma, alpha=0.5, offset_factor = 2, lims_factor=4, max_models=4)
+function plot_posterior_distribution(df, parameters, models; xlabel=L"d^{-1}",  resolution=(600,400), f = CairoMakie.Figure(; resolution), sf = f[1,1], colors=:roma, alpha=0.5, offset_factor = 2, lims_factor=4, max_models=4, logscale=nothing)
 	
 	color_scheme = cgrad(colors, max_models, categorical = true, alpha=alpha)[models]
 	
@@ -598,7 +598,12 @@ function plot_posterior_distribution(df, parameters, models; xlabel=L"d^{-1}",  
 	rename(_,:variable => :parameter) |>
 	groupby(_, :parameter) |>
 	begin
-		tmp_ax = [Axis(sf[1,j], title=first(keys(_)[j]), yticks=((1:length(models)) ./ offset_factor, "model " .* string.(models)), xlabel=xlabel, aspect=1) for j in 1:length(keys(_))]
+		if isnothing(logscale) 
+			tmp_ax = [Axis(sf[1,j], title=first(keys(_)[j]), yticks=((1:length(models)) ./ offset_factor, "model " .* string.(models)), xlabel=xlabel, aspect=1) for j in 1:length(keys(_))]
+		else
+			tmp_ax = [Axis(sf[1,j], title=first(keys(_)[j]), yticks=((1:length(models)) ./ offset_factor, "model " .* string.(models)), xlabel=xlabel, aspect=1, xscale=logscale) for j in 1:length(keys(_))]
+		end
+			
 		for (idx, j) in enumerate(keys(_))
 			tmp_df1 = _[NamedTuple(j)]
 			tmp_gdf1 = groupby(DataFrame(tmp_df1), :model)
@@ -606,28 +611,30 @@ function plot_posterior_distribution(df, parameters, models; xlabel=L"d^{-1}",  
 				tmp_df2 = tmp_gdf1[(; model=k)]
 				model_tmp = map(x->tryparse.(Int, string(x)), tmp_df2.model)
 				value_tmp = Array{Float64, 1}(tmp_df2.value)
-				ci = MCMCChains._hpd(value_tmp)
-				m = mean(value_tmp)
+				value_tmp_dens = value_tmp #[value_tmp .< quantile(value_tmp, 0.995)[1]] ##remove values greater than 99.9 percentile for easier visualisation of posterior
 
-				d = CairoMakie.density!(tmp_ax[idx], Array{Float64, 1}(tmp_df2.value), color =color_scheme[idx2], offset = idx2/offset_factor,strokewidth = 1, strokecolor = :black)
+				ci = MCMCChains._hpd(value_tmp)
+				m = median(value_tmp)
+
+				d = CairoMakie.density!(tmp_ax[idx], value_tmp_dens, color =color_scheme[idx2], boundaries= (0.0, maximum(value_tmp_dens)),offset = idx2/offset_factor,strokewidth = 1, strokecolor = :black)
 				s = CairoMakie.scatter!(tmp_ax[idx], [m], [idx2/offset_factor], color=:black)
-				e  = CairoMakie.rangebars!(tmp_ax[idx], [idx2/offset_factor], [ci[1]], [ci[2]], color=:black, direction =:x)
+				e  = CairoMakie.rangebars!(tmp_ax[idx], [idx2/offset_factor], [ci[1]], [ci[2]], color=:black, direction =:x, w= 2)
 				
 				
 				
 				current_lims = tmp_ax[idx].limits[][1]
 				
-				min_post = m - lims_factor* std(value_tmp)
-				max_post = m + lims_factor* std(value_tmp)
+				min_post = minimum(value_tmp) * 0.8#m - lims_factor* std(value_tmp)
+				max_post = m + lims_factor* std(value_tmp_dens) #ci[2] * 1.2#maximum(value_tmp_dens)
 				
 				if !isnothing(current_lims)
 					current_xlim_l = tmp_ax[idx].limits[][1][1]
 					current_xlim_u = tmp_ax[idx].limits[][1][2]
 
-					update_xlim_l = maximum([minimum([min_post,current_xlim_l]), -0.0, ])
+					update_xlim_l = maximum([minimum([min_post,current_xlim_l]), -0.1, ])
 					update_xlim_u = maximum([max_post, current_xlim_u])
 				else
-					update_xlim_l = maximum([min_post, -0.0])
+					update_xlim_l = maximum([min_post, -0.1])
 					update_xlim_u = max_post
 				end
 
@@ -660,10 +667,46 @@ begin
 
 
 plot_posterior_distribution(df_full_posterior_extended, Symbol.(filter(x -> startswith(x, "dwell_"), DataFrames.names(df_full_posterior_extended)))[collect(1:3)], [1,2,4]; sf=sf_dwell1, alpha=0.5, offset_factor=0.5, xlabel="")
-	plot_posterior_distribution(df_full_posterior_extended, Symbol.(filter(x -> startswith(x, "dwell_"), DataFrames.names(df_full_posterior_extended)))[collect(4:6)], [1,2,4]; sf=sf_dwell2, alpha=0.5, offset_factor=0.5, xlabel="days")
+	plot_posterior_distribution(df_full_posterior_extended, Symbol.(filter(x -> startswith(x, "dwell_"), DataFrames.names(df_full_posterior_extended)))[collect(4:6)], [1,2,4]; sf=sf_dwell2, alpha=0.5, offset_factor=0.5, xlabel="days", logscale=nothing)
 	
 	fig_dwell
 end
+
+# ╔═╡ f6595e93-2e7c-4564-9a7a-f35482100dbd
+begin
+	fig_dwell_test = CairoMakie.Figure(resolution=(800,600))
+	sf_dwell1_test = fig_dwell_test[1,1]
+	plot_posterior_distribution(df_full_posterior_extended, Symbol.(filter(x -> startswith(x, "dwell_ASDC"), DataFrames.names(df_full_posterior_extended))), [2]; sf=sf_dwell1_test, alpha=0.5, offset_factor=0.5, xlabel="days", logscale=nothing)
+	
+	fig_dwell_test
+end
+
+# ╔═╡ 9f4d0f35-31c0-4f0f-9343-1d4a3327e4c9
+@pipe df_full_posterior_extended |>
+subset(_, :model => (x -> x .== 2)) |>
+select(_, [:δ_ASDCb, :Δ_DC2b, :Δ_cDC1b]) |>
+transform(_, AsTable(:) => ByRow(x -> 1/sum(skipmissing(collect(x)))) => :dwell) |>
+select(_, :dwell) |>
+Array(_[:,1]) |>
+quantile(_, [0.99])# Array(_[:,1]) |>
+# mode(_)
+# MCMCChains._hpd(_)
+
+# ╔═╡ 2f6a5ef5-28f3-4225-9659-a5a0311b10a2
+@pipe df_full_posterior_extended |>
+subset(_, :model => (x -> x .== 4)) |>
+select(_, [:dwell_ASDC_b]) |>
+# subset(_, :dwell_ASDC_b => (x -> x .< quantile(x, 0.99))) |>
+begin
+	fig_dens = CairoMakie.Figure()
+	ax_dens = Axis(fig_dens[1,1], yscale = log)
+	
+	CairoMakie.violin!(ax_dens, repeat([1], length(Array(_[:,1]))), Array(_[:,1]))
+	# CairoMakie.xlims!(ax_dens, 0.0, 50.0)
+	fig_dens
+end	
+# data(_) * mapping(:dwell_ASDC_b) * visual(Density) |>
+# AlgebraOfGraphics.draw(_)
 
 # ╔═╡ 27dc81d6-e986-4a5b-9b56-81e47def9080
 save(joinpath(res_folder, "marginal_posteriors_dwell_preDC_extended_pooled.pdf"), fig_dwell)
@@ -1116,6 +1159,9 @@ save(joinpath(res_folder, "Fig_shape_parameter_k_normal_model_1_pooled_v_nonpool
 # ╠═1f080edd-b6ec-4350-978c-2cd19d5b5860
 # ╠═4dc94cfe-f6d1-4310-a444-9f6edfeb0c91
 # ╠═55880998-8061-4f3a-b751-116e4901b10b
+# ╠═f6595e93-2e7c-4564-9a7a-f35482100dbd
+# ╠═9f4d0f35-31c0-4f0f-9343-1d4a3327e4c9
+# ╠═2f6a5ef5-28f3-4225-9659-a5a0311b10a2
 # ╠═27dc81d6-e986-4a5b-9b56-81e47def9080
 # ╠═122a5792-8c9a-4200-b79b-8d32e2f3c3c7
 # ╠═36b84ebc-1b5a-496b-8cd2-2e94d7201efd
