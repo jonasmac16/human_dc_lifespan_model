@@ -1,5 +1,5 @@
 #PBS -l walltime=24:00:00
-#PBS -l select=1:ncpus=8:mem=12gb
+#PBS -l select=1:ncpus=8:mem=18gb
 #PBS -N JM_DC_Paper_Revision_DC3_lognormal_prior
 #PBS -J 31-42
 #PBS -j oe
