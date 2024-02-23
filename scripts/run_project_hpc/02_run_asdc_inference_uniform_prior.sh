@@ -56,5 +56,5 @@ ${run_inference}
 
 
 # copy results folder back
-mkdir ${PROJECTFOLDER}/${SUBFOLDER}/${JOBFOLDER}/results
+mkdir -p ${PROJECTFOLDER}/${SUBFOLDER}/${JOBFOLDER}/results
 rsync -a ${TMPDIR}/PROJECT/${SUBFOLDER}/${JOBFOLDER}/results/ ${PROJECTFOLDER}/${SUBFOLDER}/${JOBFOLDER}/results
