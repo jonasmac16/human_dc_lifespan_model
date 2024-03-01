@@ -339,7 +339,7 @@ end
 begin
 	data_ppc = deepcopy(data_in)
 	for j in 1:length(data_ppc.metadata.timepoints)
-		data_ppc.metadata.timepoints[j] = collect(0.0:0.1:24.0)
+		data_ppc.metadata.timepoints[j] = collect(0.0:0.1:maximum(vcat(data_in.metadata.timepoints...)))
 	end
 	
 	turing_model_ppc = _turing_model(data_ppc.data, data_ppc.metadata, mtk_problem, solver_in, priors, ode_parallel_mode=solver_parallel_methods; ode_args=(abstol=1e-10, reltol=1e-10, maxiters=1e8, save_idxs=[1,2,3,4,5,6]))
