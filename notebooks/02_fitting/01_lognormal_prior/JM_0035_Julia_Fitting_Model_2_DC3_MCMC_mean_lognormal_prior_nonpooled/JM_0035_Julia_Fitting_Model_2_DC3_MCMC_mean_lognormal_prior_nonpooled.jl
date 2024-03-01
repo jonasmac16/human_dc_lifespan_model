@@ -217,7 +217,7 @@ end
 # ╔═╡ a4c3be9f-1561-4d5e-88fb-e36979f27f93
 begin
 	function create_model_prediction_df(vec_sol)
-	df_wide = vcat([(@pipe vec_sol[k].u |> _[j] |> DataFrame(_) |> rename(_, "value1" => "DC3_bm", "value2" => "DC3_b") |> insertcols!(_, :donor => donor_ids[j], :sample_idx=>k)) for k in 1:length(vec_sol) for j in 1:length(vec_sol[k])]...)
+	df_wide = vcat([(@pipe vec_sol[k].u |> _[j] |> DataFrame(_) |> rename(_, "value1" => "PREDC3_bm", "value2" => "DC3_bm", "value3" => "DC3_b") |> insertcols!(_, :donor => donor_ids[j], :sample_idx=>k)) for k in 1:length(vec_sol) for j in 1:length(vec_sol[k])]...)
 
 	df_combined = @pipe df_wide |> DataFrames.stack(_, Not([:timestamp, :donor, :sample_idx])) |> transform(_, :variable => ByRow(x -> (;zip((:population, :location),Tuple(split(x, "_")))...))=> AsTable) |> select(_, Not(:variable))
 	
@@ -341,7 +341,7 @@ begin
 		data_ppc.metadata.timepoints[j] = collect(0.0:0.1:24.0)
 	end
 	
-	turing_model_ppc = _turing_model(data_ppc.data, data_ppc.metadata, problem, solver_in, priors, ode_parallel_mode=solver_parallel_methods; ode_args=(abstol=1e-10, reltol=1e-10, maxiters=1e8, save_idxs=[1,2]))
+	turing_model_ppc = _turing_model(data_ppc.data, data_ppc.metadata, problem, solver_in, priors, ode_parallel_mode=solver_parallel_methods; ode_args=(abstol=1e-10, reltol=1e-10, maxiters=1e8, save_idxs=[1,2,3]))
 
 end	
 
@@ -360,7 +360,7 @@ begin
 
 		# ppc_bm = @pipe get_posterior_predictive(turing_model_ppc_bm, sample_mcmc(chains, 50)) |>[_[j] for j in 1:length(_)]
 
-	p_ppc_bm = plot_ppc(ppc, [1], subplotkwargs=(; alpha=0.1),pop=["DC3"];title= permutedims([((permutedims(donor_ids) .* " ") .* ["DC3 (bm)"])...]), size=(1000,1000), legend=false)
+	p_ppc_bm = plot_ppc(ppc, [2], subplotkwargs=(; alpha=0.1),pop=["DC3"];title= permutedims([((permutedims(donor_ids) .* " ") .* ["DC3 (bm)"])...]), size=(1000,1000), legend=false)
 	else
 		load(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"ppc_fit_bm.pdf"))
 	end
@@ -368,7 +368,7 @@ begin
 	if !(isfile(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"ppc_fit.pdf")))
 
 		# ppc_b = @pipe get_posterior_predictive(turing_model, sample_mcmc(chains, 50)) |>[_[j] for j in 1:length(_)]
-		p_ppc = plot_ppc(ppc, data_in, [2], subplotkwargs=(; alpha=0.1),pop=["DC3"];title= permutedims([((permutedims(donor_ids) .* " ") .* ["DC3"])...]), size=(1000,1000), legend=false)
+		p_ppc = plot_ppc(ppc, data_in, [3], subplotkwargs=(; alpha=0.1),pop=["DC3"];title= permutedims([((permutedims(donor_ids) .* " ") .* ["DC3"])...]), size=(1000,1000), legend=false)
 	else
 		load(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"ppc_fit.pdf"))
 	end
