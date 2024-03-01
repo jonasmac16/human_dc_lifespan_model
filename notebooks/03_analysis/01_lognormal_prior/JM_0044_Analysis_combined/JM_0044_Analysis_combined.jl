@@ -846,16 +846,16 @@ AlgebraOfGraphics.draw(_)
 # ╔═╡ e2a1684e-0771-4d17-ba08-c14389f14781
 begin
 	
-	fig_trans_pdc = CairoMakie.Figure(resolution=(600,400))
-	sf_trans_pdc1 = fig_trans_pdc[1,1]
-	sf_trans_pdc2 = fig_trans_pdc[1,2]
+	fig_trans_dc3 = CairoMakie.Figure(resolution=(600,400))
+	sf_trans_dc31 = fig_trans_dc3[1,1]
+	sf_trans_dc32 = fig_trans_dc3[1,2]
 
 	
-plot_posterior_distribution(df_full_DC3_posterior_extended, [:λ_DC3], [1,2,3]; sf=sf_trans_pdc1, alpha=0.5, offset_factor=0.3, xlabel="day⁻¹")
+plot_posterior_distribution(df_full_DC3_posterior_extended, [:λ_DC3], [1,2,3]; sf=sf_trans_dc31, alpha=0.5, offset_factor=0.3, xlabel="day⁻¹")
 	
-	plot_posterior_distribution(df_full_DC3_posterior_extended, [:ϵ], [2]; sf=sf_trans_pdc2, alpha=0.5, offset_factor=0.3, xlabel="days")
+	plot_posterior_distribution(df_full_DC3_posterior_extended, [:ϵ], [2]; sf=sf_trans_dc32, alpha=0.5, offset_factor=0.3, xlabel="days")
 	
-	fig_trans_pdc
+	fig_trans_dc3
 end
 
 # ╔═╡ eebfe511-bed7-4da8-9a16-16fe45729835
@@ -866,7 +866,7 @@ Array(_[:,1]) |>
 mean(_)
 
 # ╔═╡ d124ac4f-bb0e-4a22-aa15-985d91ebc7c4
-save(joinpath(res_folder, "marginal_posteriors_transition_DC3_extended_pooled.pdf"), fig_trans_pdc)
+save(joinpath(res_folder, "marginal_posteriors_transition_DC3_extended_pooled.pdf"), fig_trans_dc3)
 
 # ╔═╡ 071a38aa-87c8-4ac5-bf42-de61d8de3806
 begin
@@ -906,16 +906,16 @@ save(joinpath(res_folder, "marginal_posteriors_death_DC3_extended_pooled.pdf"), 
 # ╔═╡ 715e8518-bb57-42a7-936d-f4437953c887
 begin
 	
-	fig_dwell_pdc = CairoMakie.Figure(resolution=(600,400))
-	sf_dwell_pdc = fig_dwell_pdc[1,1]
+	fig_dwell_dc3 = CairoMakie.Figure(resolution=(600,400))
+	sf_dwell_dc3 = fig_dwell_dc3[1,1]
 
-plot_posterior_distribution(df_full_DC3_posterior_extended, Symbol.(filter(x -> startswith(x, "dwell_"), DataFrames.names(df_full_DC3_posterior_extended))), [1,2,3]; sf=sf_dwell_pdc, alpha=0.5, offset_factor=4, lims_factor=5, xlabel="days")
+plot_posterior_distribution(df_full_DC3_posterior_extended, Symbol.(filter(x -> startswith(x, "dwell_"), DataFrames.names(df_full_DC3_posterior_extended))), [1,2,3]; sf=sf_dwell_dc3, alpha=0.5, offset_factor=4, lims_factor=5, xlabel="days")
 	
-	fig_dwell_pdc
+	fig_dwell_dc3
 end
 
 # ╔═╡ 41e3d9f5-32a4-4942-be5a-ae66c2180612
-save(joinpath(res_folder, "marginal_posteriors_dwell_DC3_extended_pooled.pdf"), fig_dwell_pdc)
+save(joinpath(res_folder, "marginal_posteriors_dwell_DC3_extended_pooled.pdf"), fig_dwell_dc3)
 
 # ╔═╡ 31a3f6cf-fa16-4b06-96f8-0e0b0de03730
 begin
@@ -993,24 +993,24 @@ end
 
 # ╔═╡ ffbd64f9-1d69-4156-b609-3045db464ecc
 begin
-	df_divergence_pooled_pdc = DataFrame()
+	df_divergence_pooled_dc3 = DataFrame()
 	for (idx, j) in enumerate(pooled_dc3_results_notebooks)
 		df_tmp = DataFrame(:n_divergence => sum(get(JLSO.load(joinpath(j,"results", "mcmc_res.jlso"))[:chain], :numerical_error)[1]), :data => data_input_dc3_pooled[idx], :strata => strata_dc3_pooled[idx], :model => model_id_dc3_pooled[idx], :prior=>priors_dc3_pooled[idx], :likelihood_f => likelihood_dc3_pooled[idx])
 		
-		df_divergence_pooled_pdc = vcat(df_divergence_pooled_pdc, df_tmp, cols=:union)
+		df_divergence_pooled_dc3 = vcat(df_divergence_pooled_dc3, df_tmp, cols=:union)
 	end
-	df_divergence_pooled_pdc
+	df_divergence_pooled_dc3
 end
 
 # ╔═╡ 76ec3dc3-7f7b-4af7-8569-02458f6df245
 begin
-	df_divergence_nonpooled_pdc = DataFrame()
+	df_divergence_nonpooled_dc3 = DataFrame()
 	for (idx, j) in enumerate(nonpooled_dc3_results_notebooks)
 		df_tmp = DataFrame(:n_divergence => sum(get(JLSO.load(joinpath(j,"results", "mcmc_res.jlso"))[:chain], :numerical_error)[1]), :data => data_input_dc3_nonpooled[idx], :strata => strata_dc3_nonpooled[idx], :model => model_id_dc3_nonpooled[idx], :prior=>priors_dc3_nonpooled[idx], :likelihood_f => likelihood_dc3_nonpooled[idx])
 		
-		df_divergence_nonpooled_pdc = vcat(df_divergence_nonpooled_pdc, df_tmp, cols=:union)
+		df_divergence_nonpooled_dc3 = vcat(df_divergence_nonpooled_dc3, df_tmp, cols=:union)
 	end
-	df_divergence_nonpooled_pdc
+	df_divergence_nonpooled_dc3
 end
 
 # ╔═╡ b989b094-8d01-412c-abd1-a20f038c4496
@@ -1031,8 +1031,8 @@ end
 begin
 	df_divergence_dc3_combined = 
 	vcat(
-		df_divergence_pooled_pdc,
-		df_divergence_nonpooled_pdc
+		df_divergence_pooled_dc3,
+		df_divergence_nonpooled_dc3
 	)
 end
 
