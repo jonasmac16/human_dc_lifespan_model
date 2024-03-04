@@ -38,7 +38,7 @@ include(srcdir("df2latex.jl"))
 begin
 	notebook_folder_title = basename(@__DIR__)
 	notebook_folder = joinpath(basename(@__DIR__), "results")
-	res_folder = projectdir("notebooks","03_analysis","02_uniform_prior/",notebook_folder)
+	res_folder = projectdir("notebooks","03_analysis","02_uniform_prior",notebook_folder)
 	mkpath(res_folder)
 end
 
@@ -52,22 +52,22 @@ R"library('loo')"
 md"## Load PPC data"
 
 # ╔═╡ 65129028-c29e-4ab4-a154-62a3a7dcdd5d
-pooled_results_notebooks = filter(x -> !isnothing(match(r"JM_00(([2][4-9])|([3][0-3]))",x)),readdir(projectdir("notebooks", "02_fitting","02_uniform_prior/"), join=true))
+pooled_results_notebooks = filter(x -> !isnothing(match(r"JM_00(([2][4-9])|([3][0-3]))",x)),readdir(projectdir("notebooks", "02_fitting","02_uniform_prior"), join=true))
 
 # ╔═╡ 4f04a6a7-73fa-42f2-8bbe-ddfaadbbefbd
-pooled_results_normal_notebooks = filter(x -> !isnothing(match(r"JM_00(([0][9])|([1][0-8]))",x)),readdir(projectdir("notebooks", "02_fitting","02_uniform_prior/"), join=true))
+pooled_results_normal_notebooks = filter(x -> !isnothing(match(r"JM_00(([0][9])|([1][0-8]))",x)),readdir(projectdir("notebooks", "02_fitting","02_uniform_prior"), join=true))
 
 # ╔═╡ bb1f6478-82d5-49cd-8225-51281d911e2d
-nonpooled_results_notebooks = filter(x -> !isnothing(match(r"JM_00(([1][9])|([2][0-3]))",x)),readdir(projectdir("notebooks", "02_fitting","02_uniform_prior/"), join=true))
+nonpooled_results_notebooks = filter(x -> !isnothing(match(r"JM_00(([1][9])|([2][0-3]))",x)),readdir(projectdir("notebooks", "02_fitting","02_uniform_prior"), join=true))
 
 # ╔═╡ 268825ca-d8e7-4f1c-ae91-64747a875984
-nonpooled_results_normal_notebooks = filter(x -> !isnothing(match(r"JM_000[4-8]",x)),readdir(projectdir("notebooks", "02_fitting","02_uniform_prior/"), join=true))
+nonpooled_results_normal_notebooks = filter(x -> !isnothing(match(r"JM_000[4-8]",x)),readdir(projectdir("notebooks", "02_fitting","02_uniform_prior"), join=true))
 
 # ╔═╡ e82c870e-8b63-4ddd-9289-2eb7c9e3cd72
-pooled_dc3_results_notebooks = filter(x -> !isnothing(match(r"JM_00((3[7,8,9])|(4[3,4,5]))",x)),readdir(projectdir("notebooks", "02_fitting","02_uniform_prior/"), join=true))
+pooled_dc3_results_notebooks = filter(x -> !isnothing(match(r"JM_00((3[7,8,9])|(4[3,4,5]))",x)),readdir(projectdir("notebooks", "02_fitting","02_uniform_prior"), join=true))
 
 # ╔═╡ 8691540d-c347-4fff-914b-00cea31dc22c
-nonpooled_dc3_results_notebooks = filter(x -> !isnothing(match(r"JM_00((3[4,5,6])|(4[0,1,2]))",x)),readdir(projectdir("notebooks", "02_fitting","02_uniform_prior/"), join=true))
+nonpooled_dc3_results_notebooks = filter(x -> !isnothing(match(r"JM_00((3[4,5,6])|(4[0,1,2]))",x)),readdir(projectdir("notebooks", "02_fitting","02_uniform_prior"), join=true))
 
 # ╔═╡ 8f25ba44-552a-41a3-b7ec-32fe28702964
 begin
@@ -165,7 +165,7 @@ begin
 	for (idx, j) in enumerate(pooled_results_notebooks)
 		df_tmp = CSV.read(joinpath(j, "results", "df_ppc.csv"), DataFrame)
 		insertcols!(df_tmp, :data => data_input_pooled[idx], :strata => strata_pooled[idx], :model => model_id_pooled[idx], :prior=>priors_pooled[idx], :likelihood_f => likelihood_pooled[idx])
-		df = vcat(df, df_tmp, cols=:union)
+		global df = vcat(df, df_tmp, cols=:union)
 	end
 	rename!(df, :timestamp => :time)
 	transform!(df, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
@@ -176,18 +176,18 @@ end
 
 # ╔═╡ f4671e69-5fe2-4ce5-9d6b-38363bda3190
 begin
-	df_normal=DataFrame()
+	# df_normal=DataFrame()
 	
-	for (idx, j) in enumerate(pooled_results_normal_notebooks)
-		df_tmp = CSV.read(joinpath(j, "results", "df_ppc.csv"), DataFrame)
-		insertcols!(df_tmp, :data => data_input_normal_pooled[idx], :strata => strata_normal_pooled[idx], :model => model_id_normal_pooled[idx], :prior=>priors_normal_pooled[idx], :likelihood_f => likelihood_normal_pooled[idx])
-		df_normal = vcat(df_normal, df_tmp, cols=:union)
-	end
-	rename!(df_normal, :timestamp => :time)
-	transform!(df_normal, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
-	transform!(df_normal, :population=> x -> categorical(x, levels=["ASDC","cDC1", "DC2"], compress=true), renamecols=false)
-	subset!(df_normal, :model => x -> x .∈ Ref([1,2,4,5]))
-	transform!(df_normal, :model => (x -> replace(x, 4=> 3, 5 => 4)), renamecols=false)
+	# for (idx, j) in enumerate(pooled_results_normal_notebooks)
+	# 	df_tmp = CSV.read(joinpath(j, "results", "df_ppc.csv"), DataFrame)
+	# 	insertcols!(df_tmp, :data => data_input_normal_pooled[idx], :strata => strata_normal_pooled[idx], :model => model_id_normal_pooled[idx], :prior=>priors_normal_pooled[idx], :likelihood_f => likelihood_normal_pooled[idx])
+	# 	global df_normal = vcat(df_normal, df_tmp, cols=:union)
+	# end
+	# rename!(df_normal, :timestamp => :time)
+	# transform!(df_normal, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
+	# transform!(df_normal, :population=> x -> categorical(x, levels=["ASDC","cDC1", "DC2"], compress=true), renamecols=false)
+	# subset!(df_normal, :model => x -> x .∈ Ref([1,2,4,5]))
+	# transform!(df_normal, :model => (x -> replace(x, 4=> 3, 5 => 4)), renamecols=false)
 end
 
 # ╔═╡ dc3227e9-f40f-4b38-9f01-4e479ce75a48
@@ -197,7 +197,7 @@ begin
 	for (idx, j) in enumerate(nonpooled_results_notebooks)
 		df_tmp = CSV.read(joinpath(j, "results", "df_ppc.csv"), DataFrame)
 		insertcols!(df_tmp, :data => data_input_nonpooled[idx], :strata => strata_nonpooled[idx], :model => model_id_nonpooled[idx], :prior=>priors_nonpooled[idx], :likelihood_f => likelihood_nonpooled[idx])
-		df_nonpooled = vcat(df_nonpooled, df_tmp, cols=:union)
+		global df_nonpooled = vcat(df_nonpooled, df_tmp, cols=:union)
 	end
 	rename!(df_nonpooled, :timestamp => :time)
 	transform!(df_nonpooled, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
@@ -208,18 +208,18 @@ end
 
 # ╔═╡ de3b5fc9-1725-44c6-bd6d-9278dca565a8
 begin
-	df_normal_nonpooled=DataFrame()
+	# df_normal_nonpooled=DataFrame()
 	
-	for (idx, j) in enumerate(nonpooled_results_normal_notebooks)
-		df_tmp = CSV.read(joinpath(j, "results", "df_ppc.csv"), DataFrame)
-		insertcols!(df_tmp, :data => data_input_normal_nonpooled[idx], :strata => strata_normal_nonpooled[idx], :model => model_id_normal_nonpooled[idx], :prior=>priors_normal_nonpooled[idx], :likelihood_f => likelihood_normal_nonpooled[idx])
-		df_normal_nonpooled = vcat(df_normal_nonpooled, df_tmp, cols=:union)
-	end
-	rename!(df_normal_nonpooled, :timestamp => :time)
-	transform!(df_normal_nonpooled, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
-	transform!(df_normal_nonpooled, :population=> x -> categorical(x, levels=["ASDC","cDC1", "DC2"], compress=true), renamecols=false)
-	subset!(df_normal_nonpooled, :model => x -> x .∈ Ref([1,2,4,5]))
-	transform!(df_normal_nonpooled, :model => (x -> replace(x, 4=> 3, 5 => 4)), renamecols=false)
+	# for (idx, j) in enumerate(nonpooled_results_normal_notebooks)
+	# 	df_tmp = CSV.read(joinpath(j, "results", "df_ppc.csv"), DataFrame)
+	# 	insertcols!(df_tmp, :data => data_input_normal_nonpooled[idx], :strata => strata_normal_nonpooled[idx], :model => model_id_normal_nonpooled[idx], :prior=>priors_normal_nonpooled[idx], :likelihood_f => likelihood_normal_nonpooled[idx])
+	# 	global df_normal_nonpooled = vcat(df_normal_nonpooled, df_tmp, cols=:union)
+	# end
+	# rename!(df_normal_nonpooled, :timestamp => :time)
+	# transform!(df_normal_nonpooled, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
+	# transform!(df_normal_nonpooled, :population=> x -> categorical(x, levels=["ASDC","cDC1", "DC2"], compress=true), renamecols=false)
+	# subset!(df_normal_nonpooled, :model => x -> x .∈ Ref([1,2,4,5]))
+	# transform!(df_normal_nonpooled, :model => (x -> replace(x, 4=> 3, 5 => 4)), renamecols=false)
 end
 
 # ╔═╡ 80000554-c2aa-4c96-88d0-c2ac7a452b04
@@ -229,7 +229,7 @@ begin
 	for (idx, j) in enumerate(pooled_dc3_results_notebooks)
 		df_tmp = CSV.read(joinpath(j, "results", "df_ppc.csv"), DataFrame)
 		insertcols!(df_tmp, :data => data_input_dc3_nonpooled[idx], :strata => strata_dc3_nonpooled[idx], :model => model_id_dc3_nonpooled[idx], :prior=>priors_dc3_nonpooled[idx], :likelihood_f => likelihood_dc3_pooled[idx])
-		df_dc3_pooled = vcat(df_dc3_pooled, df_tmp, cols=:union)
+		global df_dc3_pooled = vcat(df_dc3_pooled, df_tmp, cols=:union)
 	end
 	rename!(df_dc3_pooled, :timestamp => :time)
 	transform!(df_dc3_pooled, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
@@ -242,7 +242,7 @@ begin
 	for (idx, j) in enumerate(nonpooled_dc3_results_notebooks)
 		df_tmp = CSV.read(joinpath(j, "results", "df_ppc.csv"), DataFrame)
 		insertcols!(df_tmp, :data => data_input_dc3_nonpooled[idx], :strata => strata_dc3_nonpooled[idx], :model => model_id_dc3_nonpooled[idx], :prior=>priors_dc3_nonpooled[idx], :likelihood_f => likelihood_dc3_nonpooled[idx])
-		df_dc3_nonpooled = vcat(df_dc3_nonpooled, df_tmp, cols=:union)
+		global df_dc3_nonpooled = vcat(df_dc3_nonpooled, df_tmp, cols=:union)
 	end
 	rename!(df_dc3_nonpooled, :timestamp => :time)
 	transform!(df_dc3_nonpooled, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
@@ -303,7 +303,7 @@ end
 
 # ╔═╡ 56ab98d5-fba1-4644-9b9b-2a1197756dbc
 begin
-	function plot_predictions(df; donors_plotted = ["D01", "D02", "D04", "C66", "C67", "C68", "C55"], populations=["ASDC", "cDC1", "DC2"], dataset="extended", location="b", prior="lognormal", colors=:roma, data_color = [colorant"#4000FF",colorant"#ff1926" ,colorant"#4dd9ff"], models=[1,2,4,5], max_models=4, alpha=0.5, f_kwargs = (;), f = CairoMakie.Figure(;f_kwargs...), ax = hcat([[Axis(f[k,j], aspect=1.5) for k in 1:length(donors_plotted)] for j in 1:length(populations)]...))
+	function plot_predictions(df; donors_plotted = ["D01", "D02", "D04", "C66", "C67", "C68", "C55"], populations=["ASDC", "cDC1", "DC2"], dataset="extended", location="b", prior="uniform", colors=:roma, data_color = [colorant"#4000FF",colorant"#ff1926" ,colorant"#4dd9ff"], models=[1,2,4,5], max_models=4, alpha=0.5, f_kwargs = (;), f = CairoMakie.Figure(;f_kwargs...), ax = hcat([[Axis(f[k,j], aspect=1.5) for k in 1:length(donors_plotted)] for j in 1:length(populations)]...))
 		
 		
 		color_scheme=cgrad(colors, max_models, categorical=true, alpha=alpha)[models]
@@ -357,6 +357,9 @@ begin
 		return f, ax
 	end
 end
+
+# ╔═╡ 37c1e438-1c3d-453b-b997-d7d73fc8706e
+df
 
 # ╔═╡ 76a3b35a-8c27-43d3-8148-d8af071bb338
 ppc_1 = plot_predictions(df;donors_plotted = ["D01", "D02", "D04"], populations=["ASDC", "cDC1", "DC2"], dataset="original", models=[1,2,3,4], location ="b", f_kwargs =(;resolution = (800, 600)))[1]
@@ -440,31 +443,31 @@ save(joinpath(res_folder, "ppc_preDC_extended_pooled_bone_marrow_dc2.pdf"), f_dc
 md"## Model comparison"
 
 # ╔═╡ 715b9bf0-17c5-415c-a1d1-c22d864fd6af
-df_loo_DC3 = @pipe CSV.read(projectdir("notebooks", "03_analysis","02_uniform_prior/",  "JM_0043_Julia_Analysis_DC3","results","PSIS_LOO_CV_Model_comparison_DC3_leave_out_sample.csv"), DataFrame) |>
+df_loo_DC3 = @pipe CSV.read(projectdir("notebooks", "03_analysis","02_uniform_prior",  "JM_0043_Julia_Analysis_DC3","results","PSIS_LOO_CV_Model_comparison_DC3_leave_out_sample.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
 
 # ╔═╡ 15716182-57e9-4f7a-b685-af321fdb8d8a
-df_loo_subset_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis","02_uniform_prior/",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.csv"), DataFrame) |>
+df_loo_subset_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis","02_uniform_prior",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
 
 # ╔═╡ 25c18a6a-3e7b-4eab-b38c-b6f6156d65e1
-df_loo_sample_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis","02_uniform_prior/",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.csv"), DataFrame) |>
+df_loo_sample_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis","02_uniform_prior",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
 
 # ╔═╡ 56d68aaa-bf87-460d-beb5-420fd7f60fc3
-df_loo_subset = @pipe CSV.read(projectdir("notebooks", "03_analysis","02_uniform_prior/",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_subset.csv"), DataFrame) |>
+df_loo_subset = @pipe CSV.read(projectdir("notebooks", "03_analysis","02_uniform_prior",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_subset.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
 
 # ╔═╡ ab3577de-6f11-4e9f-b171-f38948b0de09
-df_loo_sample = @pipe CSV.read(projectdir("notebooks", "03_analysis","02_uniform_prior/",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_sample.csv"), DataFrame) |>
+df_loo_sample = @pipe CSV.read(projectdir("notebooks", "03_analysis","02_uniform_prior",  "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","PSIS_LOO_CV_Model_comparison_leave_out_sample.csv"), DataFrame) |>
 transform(_, :name => (x -> replace.(x, "_" => " ")), renamecols=false) |>
 transform(_, :name => (x -> replace.(x, "Model" => "model")), renamecols=false) |>
 transform(_, :name => (x -> categorical(x, levels=x, compress=true)), renamecols=false)
@@ -636,7 +639,7 @@ md"Load posterior dataframes"
 begin
 	df_full_posterior_extended = DataFrame()
 	for j in [1,2,3,4]
-		global df_full_posterior_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis","02_uniform_prior/", "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","Parameter_full_posterior_model_$(j).csv"), DataFrame) |> vcat(df_full_posterior_extended,_, cols=:union)
+		global df_full_posterior_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis","02_uniform_prior", "JM_0042_Julia_Analysis_ASDC_cDC1_DC2","results","Parameter_full_posterior_model_$(j).csv"), DataFrame) |> vcat(df_full_posterior_extended,_, cols=:union)
 	end
 	df_full_posterior_extended = @pipe df_full_posterior_extended |> rename(_, :model_id => :model)
 end
@@ -829,7 +832,7 @@ md"## DC3 estimates"
 begin
 	df_full_DC3_posterior_extended = DataFrame()
 	for j in [1,2,3]
-		global df_full_DC3_posterior_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis","02_uniform_prior/", "JM_0043_Julia_Analysis_DC3","results","Parameter_full_posterior_DC3_model_$(j).csv"), DataFrame) |> vcat(df_full_DC3_posterior_extended,_, cols=:union)
+		global df_full_DC3_posterior_extended = @pipe CSV.read(projectdir("notebooks", "03_analysis","02_uniform_prior", "JM_0043_Julia_Analysis_DC3","results","Parameter_full_posterior_DC3_model_$(j).csv"), DataFrame) |> vcat(df_full_DC3_posterior_extended,_, cols=:union)
 	end
 	df_full_DC3_posterior_extended = @pipe df_full_DC3_posterior_extended |> rename(_, :model_id => :model)
 end
@@ -1300,6 +1303,7 @@ save(joinpath(res_folder, "Fig_shape_parameter_k_normal_models_nonpooled_normal.
 # ╠═39aaebec-177c-4171-9c9e-c0df3517b121
 # ╠═79526fb4-3a88-49fc-994a-1bc44c224ccc
 # ╠═56ab98d5-fba1-4644-9b9b-2a1197756dbc
+# ╠═37c1e438-1c3d-453b-b997-d7d73fc8706e
 # ╠═76a3b35a-8c27-43d3-8148-d8af071bb338
 # ╠═7810af6d-d557-42b3-b585-7e80f57747d6
 # ╠═5eef1a9e-10fe-4e89-82d5-8df105e7f911

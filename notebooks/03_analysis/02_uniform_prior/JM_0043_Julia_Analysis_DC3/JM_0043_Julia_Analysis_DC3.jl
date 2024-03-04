@@ -38,7 +38,7 @@ begin
 	@rimport loo as rloo
 	notebook_folder_title = basename(@__DIR__)
 	notebook_folder = joinpath(basename(@__DIR__), "results")
-	mkpath(projectdir("notebooks", "03_analysis","02_uniform_prior/", notebook_folder))
+	mkpath(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder))
 end
 
 # ╔═╡ 90245560-1bcd-11ec-0ba9-35d3debbbc71
@@ -49,12 +49,12 @@ md"## Load HPC results"
 
 # ╔═╡ 405c42dc-da20-4b8f-9fca-0f59833aa78d
 begin
-	results_folders = @pipe [try j.captures[1] catch end for j in filter!(p -> p != nothing, match.(r"(JM_004[3-5]_.+)", readdir(projectdir("notebooks", "02_fitting","02_uniform_prior/"))))] |> _[[isfile(projectdir("notebooks", "02_fitting","02_uniform_prior/",j, "results", "logp_3d_mat.jlso")) for j in _]]
+	results_folders = @pipe [try j.captures[1] catch end for j in filter!(p -> p != nothing, match.(r"(JM_004[3-5]_.+)", readdir(projectdir("notebooks", "02_fitting","02_uniform_prior"))))] |> _[[isfile(projectdir("notebooks", "02_fitting","02_uniform_prior",j, "results", "logp_3d_mat.jlso")) for j in _]]
 end
 
 # ╔═╡ 201dea27-c988-43cb-b6f2-728f5574145e
 begin
-	loglikehoods = [JLSO.load(projectdir("notebooks", "02_fitting","02_uniform_prior/", j, "results", "logp_3d_mat.jlso"))[:loglike_3d] for j in results_folders]
+	loglikehoods = [JLSO.load(projectdir("notebooks", "02_fitting","02_uniform_prior", j, "results", "logp_3d_mat.jlso"))[:loglike_3d] for j in results_folders]
 	loglikehoods_r = [permutedims(j, [2,3,1]) for j in loglikehoods]
 	relative_eff_r = [rloo.relative_eff(j) for j in loglikehoods_r]
 end
@@ -64,46 +64,6 @@ begin
 	model_names= [j.captures[1]*"_"*j.captures[2] for j = match.(r"(Model_[1-5])_.*_(nonpooled|pooled)", results_folders)]
 	model_id = [match(r"Model_([1-5])", j).captures[1] for j in model_names]
 	model_type = [match(r"Model_[1-5].*_(nonpooled|pooled)", j).captures[1] for j in model_names]
-end
-
-# ╔═╡ 53c53c8f-304c-4be7-af29-70496db46d6c
-md"## LOO-CV"
-
-# ╔═╡ d781e4c7-e8fd-45cd-b6c2-c7dc539c1efb
-begin
-	res_loo_cv = map(x-> ParetoSmooth.psis_loo(x), loglikehoods)
-	res_loo_r = [rloo.loo(loglikehoods_r[j],r_eff=relative_eff_r[j]) for j in 1:length(results_folders)]
-	res_waic_r = [rloo.waic(loglikehoods_r[j],r_eff=relative_eff_r[j]) for j in 1:length(results_folders)]
-end
-
-# ╔═╡ 8b55a586-4464-4a7d-a315-0229f53546f5
-md"## Parameter calculation and posterior summary statistics"
-
-# ╔═╡ b8fb37d8-b7c6-43e7-96b6-94fbb914c42a
-begin
-	### informative prior results
-	dfs_par_pooled = [JLSO.load(projectdir("notebooks", "02_fitting","02_uniform_prior/", j,"results", "df_mcmc_comp.jlso"))[:df_par_all] for j in results_folders[contains.(model_names,"_pooled")]]
-	## add model and donor
-	[dfs_par_pooled[j][!,:model_id] .= model_id[contains.(model_names,"_pooled")][j] for j in 1:length(dfs_par_pooled)]
-	[dfs_par_pooled[j][!,:model_type] .= model_type[contains.(model_names,"_pooled")][j] for j in 1:length(dfs_par_pooled)]
-	[dfs_par_pooled[j][!,:donor] .= "All" for j in 1:length(dfs_par_pooled)]
-end
-
-# ╔═╡ ce522121-5d49-4024-8e2a-d87f1e062597
-function dwell_time(x)
-	death = x[1]
-	transition = x[2]
-	delay = x[3] isa Missing ? 0.0 : x[3]
-
-	return (1/death*(death/(death+transition)) + ((1/transition)+delay)*(transition/(death+transition)))/2
-end
-
-# ╔═╡ edb72513-0dac-4293-87c6-5ebebd86ee89
-begin
-	df_par = @pipe vcat(vcat(dfs_par_pooled..., cols=:union)) |> #	vcat(dfs_par_nonpooled...)
-	transform(_,[:δ_DC3bm, :λ_DC3, :tau] => ByRow((x...) -> dwell_time(x)) => :dwell_DC3_bm,
-	[:δ_DC3b] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_DC3_b) |>
-	insertcols!(_, :prior=>"lognormal")
 end
 
 # ╔═╡ 99db6e93-5ec4-4a60-bb26-cbabef78793e
@@ -136,6 +96,46 @@ begin
 	df_arviz_loo = ArviZ.compare(arr_ifd_arviz_loo_pooled, "loo")
 end
 
+# ╔═╡ 53c53c8f-304c-4be7-af29-70496db46d6c
+md"## LOO-CV"
+
+# ╔═╡ d781e4c7-e8fd-45cd-b6c2-c7dc539c1efb
+begin
+	res_loo_cv = map(x-> ParetoSmooth.psis_loo(x), loglikehoods)
+	res_loo_r = [rloo.loo(loglikehoods_r[j],r_eff=relative_eff_r[j]) for j in 1:length(results_folders)]
+	res_waic_r = [rloo.waic(loglikehoods_r[j],r_eff=relative_eff_r[j]) for j in 1:length(results_folders)]
+end
+
+# ╔═╡ 8b55a586-4464-4a7d-a315-0229f53546f5
+md"## Parameter calculation and posterior summary statistics"
+
+# ╔═╡ b8fb37d8-b7c6-43e7-96b6-94fbb914c42a
+begin
+	### informative prior results
+	dfs_par_pooled = [JLSO.load(projectdir("notebooks", "02_fitting","02_uniform_prior", j,"results", "df_mcmc_comp.jlso"))[:df_par_all] for j in results_folders[contains.(model_names,"_pooled")]]
+	## add model and donor
+	[dfs_par_pooled[j][!,:model_id] .= model_id[contains.(model_names,"_pooled")][j] for j in 1:length(dfs_par_pooled)]
+	[dfs_par_pooled[j][!,:model_type] .= model_type[contains.(model_names,"_pooled")][j] for j in 1:length(dfs_par_pooled)]
+	[dfs_par_pooled[j][!,:donor] .= "All" for j in 1:length(dfs_par_pooled)]
+end
+
+# ╔═╡ ce522121-5d49-4024-8e2a-d87f1e062597
+function dwell_time(x)
+	death = x[1]
+	transition = x[2]
+	delay = x[3] isa Missing ? 0.0 : x[3]
+
+	return (1/death*(death/(death+transition)) + ((1/transition)+delay)*(transition/(death+transition)))/2
+end
+
+# ╔═╡ edb72513-0dac-4293-87c6-5ebebd86ee89
+begin
+	df_par = @pipe vcat(vcat(dfs_par_pooled..., cols=:union)) |> #	vcat(dfs_par_nonpooled...)
+	transform(_,[:δ_DC3bm, :λ_DC3, :tau] => ByRow((x...) -> dwell_time(x)) => :dwell_DC3_bm,
+	[:δ_DC3b] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_DC3_b) |>
+	insertcols!(_, :prior=>"lognormal")
+end
+
 # ╔═╡ c2a3b797-a097-4aa7-887f-0a16e437a440
 begin
 	## save parameter estimates
@@ -146,12 +146,12 @@ begin
 		dropmissing(_) |>
 		groupby(_, :variable) |>
 		combine(_, :value => (x -> (;median=median(x),(;zip((:hpd_l, :hpd_u), MCMCChains._hpd(x))...)...)) => AsTable) |>
-		save(projectdir("notebooks", "03_analysis","02_uniform_prior/", notebook_folder, "Parameter_posterior_summary_stats_DC3_model_"*string(l)*".csv"), _)
+		save(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "Parameter_posterior_summary_stats_DC3_model_"*string(l)*".csv"), _)
 
 		@pipe df_par |>
 		subset(_, :model_id => (x -> x .== string(l))) |>
 		select(_, .![any(ismissing.(j)) for j in eachcol(_)]) |>
-		save(projectdir("notebooks", "03_analysis","02_uniform_prior/", notebook_folder, "Parameter_full_posterior_DC3_model_"*string(l)*".csv"), _)
+		save(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "Parameter_full_posterior_DC3_model_"*string(l)*".csv"), _)
 	end
 end
 
@@ -185,14 +185,14 @@ begin
 	p_compare_loo = ArviZ.plot_compare(df_arviz_loo, insample_dev=false)
 	p_compare_loo.set_title("Leave-one-out PSIS-LOO-CV (Extended data)")
 	gcf()
-	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior/", notebook_folder, "PSIS_LOO_CV_Model_comparison_DC3_leave_out_sample.pdf"))
-	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior/", notebook_folder, "PSIS_LOO_CV_Model_comparison_DC3_leave_out_sample.svg"))
+	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "PSIS_LOO_CV_Model_comparison_DC3_leave_out_sample.pdf"))
+	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "PSIS_LOO_CV_Model_comparison_DC3_leave_out_sample.svg"))
 end
 
 # ╔═╡ fae12768-3fa0-46f3-8839-b91acbbceb99
 begin
 	## save model comparison df
-	save(projectdir("notebooks", "03_analysis","02_uniform_prior/", notebook_folder, "PSIS_LOO_CV_Model_comparison_DC3_leave_out_sample.csv"), df_arviz_loo)
+	save(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "PSIS_LOO_CV_Model_comparison_DC3_leave_out_sample.csv"), df_arviz_loo)
 	# save(projectdir("notebooks", "03_analysis", notebook_folder, "loo_model_comparison_original_dataset.csv"), df_loo_compare_jl)
 end
 

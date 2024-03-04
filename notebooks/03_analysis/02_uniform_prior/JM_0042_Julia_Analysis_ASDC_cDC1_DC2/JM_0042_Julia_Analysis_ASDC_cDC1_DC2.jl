@@ -39,7 +39,7 @@ begin
 	@rimport loo as rloo
 	notebook_folder_title = basename(@__DIR__)
 	notebook_folder = joinpath(basename(@__DIR__), "results")
-	mkpath(projectdir("notebooks", "03_analysis","02_uniform_prior/", notebook_folder))
+	mkpath(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder))
 end
 
 # ╔═╡ 90245560-1bcd-11ec-0ba9-35d3debbbc71
@@ -49,15 +49,15 @@ md"# $(notebook_folder_title)"
 md"## Load HPC results"
 
 # ╔═╡ 060dd87a-d8fd-43a5-adfb-d6c216361afa
-results_folders = @pipe [try j.captures[1] catch end for j in filter!(p -> p != nothing, match.(r"(JM_00((1[9])|(2[0-8]))_.+)", readdir(projectdir("notebooks","02_fitting","02_uniform_prior/"))))] |> _[[isfile(projectdir("notebooks", "02_fitting","02_uniform_prior/",j, "results", "logp_3d_mat.jlso")) for j in _]]
+results_folders = @pipe [try j.captures[1] catch end for j in filter!(p -> p != nothing, match.(r"(JM_00((1[9])|(2[0-8]))_.+)", readdir(projectdir("notebooks","02_fitting","02_uniform_prior"))))] |> _[[isfile(projectdir("notebooks", "02_fitting","02_uniform_prior",j, "results", "logp_3d_mat.jlso")) for j in _]]
 
 # ╔═╡ 405c42dc-da20-4b8f-9fca-0f59833aa78d
-results_folders_extended = @pipe [try j.captures[1] catch end for j in filter!(p -> p != nothing, match.(r"(JM_00((29)|(3[0-3]))_.+)", readdir(projectdir("notebooks", "02_fitting","02_uniform_prior/"))))] |> _[[isfile(projectdir("notebooks", "02_fitting","02_uniform_prior/",j, "results", "logp_3d_mat.jlso")) for j in _]]
+results_folders_extended = @pipe [try j.captures[1] catch end for j in filter!(p -> p != nothing, match.(r"(JM_00((29)|(3[0-3]))_.+)", readdir(projectdir("notebooks", "02_fitting","02_uniform_prior"))))] |> _[[isfile(projectdir("notebooks", "02_fitting","02_uniform_prior",j, "results", "logp_3d_mat.jlso")) for j in _]]
 
 
 # ╔═╡ b1d99f61-4103-4e5d-b72c-409815d4e0d0
 begin
-	loglikehoods = [JLSO.load(projectdir("notebooks", "02_fitting","02_uniform_prior/", j, "results", "logp_3d_mat.jlso"))[:loglike_3d] for j in results_folders]
+	loglikehoods = [JLSO.load(projectdir("notebooks", "02_fitting","02_uniform_prior", j, "results", "logp_3d_mat.jlso"))[:loglike_3d] for j in results_folders]
 	loglikehoods_total = [vcat(sum(j, dims=1)...) for j in loglikehoods]
 	loglikehoods_r = [permutedims(j, [2,3,1]) for j in loglikehoods]
 	relative_eff_r = [rloo.relative_eff(j) for j in loglikehoods_r]
@@ -65,7 +65,7 @@ end
 
 # ╔═╡ 201dea27-c988-43cb-b6f2-728f5574145e
 begin
-	loglikehoods_extended = [JLSO.load(projectdir("notebooks", "02_fitting","02_uniform_prior/", j, "results", "logp_3d_mat.jlso"))[:loglike_3d] for j in results_folders_extended]
+	loglikehoods_extended = [JLSO.load(projectdir("notebooks", "02_fitting","02_uniform_prior", j, "results", "logp_3d_mat.jlso"))[:loglike_3d] for j in results_folders_extended]
 	loglikehoods_extended_r = [permutedims(j, [2,3,1]) for j in loglikehoods_extended]
 	relative_eff_extended_r = [rloo.relative_eff(j) for j in loglikehoods_extended_r]
 end
@@ -104,7 +104,7 @@ end
 # ╔═╡ cc437496-18a4-480f-ad7e-c9933a5cc677
 begin
 	### informative prior results
-	dfs_par_pooled = [JLSO.load(projectdir("notebooks", "02_fitting","02_uniform_prior/", j,"results", "df_mcmc_comp.jlso"))[:df_par_all] for j in results_folders[contains.(model_names,"_pooled")]]
+	dfs_par_pooled = [JLSO.load(projectdir("notebooks", "02_fitting","02_uniform_prior", j,"results", "df_mcmc_comp.jlso"))[:df_par_all] for j in results_folders[contains.(model_names,"_pooled")]]
 	## add model and donor
 	[dfs_par_pooled[j][!,:model_id] .= model_id[contains.(model_names,"_pooled")][j] for j in 1:length(dfs_par_pooled)]
 	[dfs_par_pooled[j][!,:model_type] .= model_type[contains.(model_names,"_pooled")][j] for j in 1:length(dfs_par_pooled)]
@@ -113,7 +113,7 @@ end
 
 # ╔═╡ 14b46f70-d9bd-411c-9eed-3fe71527939d
 begin
-	dfs_par_nonpooled = [JLSO.load(projectdir("notebooks", "02_fitting","02_uniform_prior/", j,"results", "df_mcmc_comp.jlso"))[:df_par_all] for j in results_folders[contains.(model_names,"_nonpooled")]]
+	dfs_par_nonpooled = [JLSO.load(projectdir("notebooks", "02_fitting","02_uniform_prior", j,"results", "df_mcmc_comp.jlso"))[:df_par_all] for j in results_folders[contains.(model_names,"_nonpooled")]]
 	for j in 1:length(dfs_par_nonpooled)
 		dfs_par_nonpooled[j]= @pipe dfs_par_nonpooled[j] |> 
 		combine(_, names(_)[.!map(c -> isa(c, Vector{Union{Missing, Float64}}), eachcol(_))].=> (x -> vcat(x...)),
@@ -127,7 +127,7 @@ end
 
 # ╔═╡ 2fd13a67-6187-40fc-9685-6e28f09b140e
 begin
-	dfs_par_pooled_extended = [JLSO.load(projectdir("notebooks", "02_fitting","02_uniform_prior/", j,"results", "df_mcmc_comp.jlso"))[:df_par_all] for j in results_folders_extended]
+	dfs_par_pooled_extended = [JLSO.load(projectdir("notebooks", "02_fitting","02_uniform_prior", j,"results", "df_mcmc_comp.jlso"))[:df_par_all] for j in results_folders_extended]
 	## add model and donor
 	[dfs_par_pooled_extended[j][!,:model_id] .=model_id_extended[j] for j in 1:length(dfs_par_pooled_extended)]
 	[dfs_par_pooled_extended[j][!,:model_type] .=model_type_extended[j] for j in 1:length(dfs_par_pooled_extended)]
@@ -310,14 +310,14 @@ begin
 		transform(_, :model_type => (x -> string.(x)), renamecols=false)|>
 		rename(_, :variable => :parameter) |> 
 		transform(_, :parameter => (x -> string.(x)), renamecols=false) |>
-		save(projectdir("notebooks", "03_analysis","02_uniform_prior/", notebook_folder, "Parameter_posterior_summary_stats_model_"*string(l)*".csv"), _)
+		save(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "Parameter_posterior_summary_stats_model_"*string(l)*".csv"), _)
 
 		@pipe df_par_filtered |>
 		subset(_, :model_id => (x -> x .== string(l))) |>
 		subset(_, :model_type => ((x) -> x .∈ Ref(["pooled_extended"]))) |>
 		select(_, Not(:prior)) |>
 		select(_, .![any(ismissing.(j)) for j in eachcol(_)]) |>
-		save(projectdir("notebooks", "03_analysis","02_uniform_prior/", notebook_folder, "Parameter_full_posterior_model_"*string(l)*".csv"), _)
+		save(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "Parameter_full_posterior_model_"*string(l)*".csv"), _)
 	end
 end
 
@@ -327,10 +327,10 @@ md"### Plot model comparison"
 # ╔═╡ a09a4993-f6b8-492c-a101-fb95f660e6c5
 begin
 	#save elpd differences
-	save(projectdir("notebooks", "03_analysis","02_uniform_prior/", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_sample.csv"), df_arviz_loo)
-	save(projectdir("notebooks", "03_analysis","02_uniform_prior/", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_subset.csv"), df_arviz_lop)
-	save(projectdir("notebooks", "03_analysis","02_uniform_prior/", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.csv"), df_arviz_loo_extended)
-	save(projectdir("notebooks", "03_analysis","02_uniform_prior/", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.csv"), df_arviz_lop_extended)
+	save(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_sample.csv"), df_arviz_loo)
+	save(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_subset.csv"), df_arviz_lop)
+	save(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.csv"), df_arviz_loo_extended)
+	save(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.csv"), df_arviz_lop_extended)
 end
 
 # ╔═╡ 99db6e93-5ec4-4a60-bb26-cbabef78793e
@@ -339,26 +339,26 @@ begin
 	p_compare_lop = ArviZ.plot_compare(df_arviz_lop,insample_dev=false)
 	p_compare_lop.set_title("Leave-one-population-out PSIS-LOO-CV")
 	gcf()
-	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior/", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_subset.pdf"))
-	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior/", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_subset.svg"))
+	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_subset.pdf"))
+	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_subset.svg"))
 
 	p_compare_loo= ArviZ.plot_compare(df_arviz_loo,insample_dev=false)
 	p_compare_loo.set_title("Leave-one-out PSIS-LOO-CV")
 	gcf()
-	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior/", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_sample.pdf"))
-	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior/", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_sample.svg"))
+	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_sample.pdf"))
+	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_sample.svg"))
 
 	p_compare_lop_extended = ArviZ.plot_compare(df_arviz_lop_extended,insample_dev=false)
 	p_compare_lop_extended.set_title("Leave-one-population-out PSIS-LOO-CV (Extended data)")
 	gcf()
-	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior/", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.pdf"))
-	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior/", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.svg"))
+	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.pdf"))
+	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.svg"))
 
 	p_compare_loo_extended = ArviZ.plot_compare(df_arviz_loo_extended,insample_dev=false)
 	p_compare_loo_extended.set_title("Leave-one-out PSIS-LOO-CV (Extended data)")
 	gcf()
-	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior/", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.pdf"))
-	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior/", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.svg"))
+	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.pdf"))
+	PyPlot.savefig(projectdir("notebooks", "03_analysis","02_uniform_prior", notebook_folder, "PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.svg"))
 end
 
 # ╔═╡ ccce3cde-3f0e-463c-a7fd-bf913aa1c25c

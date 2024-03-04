@@ -21,7 +21,7 @@ begin
 end
 
 # ╔═╡ 219c96aa-a932-4141-9b27-3273af096d30
-mkpath(projectdir("notebooks", "03_analysis","02_uniform_prior/", basename(@__DIR__), "results"))
+mkpath(projectdir("notebooks", "03_analysis","02_uniform_prior", basename(@__DIR__), "results"))
 
 # ╔═╡ 912b3165-551e-4569-b8d7-8e52dfc098dd
 AlgebraOfGraphics.set_aog_theme!()
@@ -61,13 +61,13 @@ end
 
 
 # ╔═╡ e61cfcba-a6b6-4e5b-93b1-95d1fcdac5cf
-dc3_loo_df = CSV.read(projectdir("notebooks","03_analysis","02_uniform_prior/", "JM_0043_Julia_Analysis_DC3", "results", "PSIS_LOO_CV_Model_comparison_DC3_leave_out_sample.csv"), DataFrame)
+dc3_loo_df = CSV.read(projectdir("notebooks","03_analysis","02_uniform_prior", "JM_0043_Julia_Analysis_DC3", "results", "PSIS_LOO_CV_Model_comparison_DC3_leave_out_sample.csv"), DataFrame)
 
 # ╔═╡ f9ec175f-1853-4a34-9fd4-7ae09cb39527
-asdc_loo_df = CSV.read(projectdir("notebooks","03_analysis","02_uniform_prior/", "JM_0042_Julia_Analysis_ASDC_cDC1_DC2", "results", "PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.csv"), DataFrame)
+asdc_loo_df = CSV.read(projectdir("notebooks","03_analysis","02_uniform_prior", "JM_0042_Julia_Analysis_ASDC_cDC1_DC2", "results", "PSIS_LOO_CV_Model_comparison_leave_out_sample_extended.csv"), DataFrame)
 
 # ╔═╡ c33d9a2f-2574-49b0-9e5c-d2ad059d0e45
-asdc_loo_subsets_df = CSV.read(projectdir("notebooks","03_analysis","02_uniform_prior/", "JM_0042_Julia_Analysis_ASDC_cDC1_DC2", "results", "PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.csv"), DataFrame)
+asdc_loo_subsets_df = CSV.read(projectdir("notebooks","03_analysis","02_uniform_prior", "JM_0042_Julia_Analysis_ASDC_cDC1_DC2", "results", "PSIS_LOO_CV_Model_comparison_leave_out_subset_extended.csv"), DataFrame)
 
 # ╔═╡ 2e75728c-db4b-48c9-8249-72164a53e168
 dc3_loo_df_scaled = make_loo_df(dc3_loo_df)
@@ -95,12 +95,12 @@ df_plot(asdc_loo_subsets_df_scaled)
 
 # ╔═╡ 72341233-4339-4b42-b546-0836d1b201ee
 begin
-	CSV.write(projectdir("notebooks", "03_analysis","02_uniform_prior/", basename(@__DIR__), "results","dc3_loo_sample.csv"), dc3_loo_df_scaled)
-	CSV.write(projectdir("notebooks", "03_analysis","02_uniform_prior/", basename(@__DIR__), "results","asdc_loo_sample.csv"), asdc_loo_df_scaled)
-	CSV.write(projectdir("notebooks", "03_analysis","02_uniform_prior/", basename(@__DIR__), "results","asdc_loo_subsets.csv"), asdc_loo_subsets_df_scaled)
+	CSV.write(projectdir("notebooks", "03_analysis","02_uniform_prior", basename(@__DIR__), "results","dc3_loo_sample.csv"), dc3_loo_df_scaled)
+	CSV.write(projectdir("notebooks", "03_analysis","02_uniform_prior", basename(@__DIR__), "results","asdc_loo_sample.csv"), asdc_loo_df_scaled)
+	CSV.write(projectdir("notebooks", "03_analysis","02_uniform_prior", basename(@__DIR__), "results","asdc_loo_subsets.csv"), asdc_loo_subsets_df_scaled)
 
-	CSV.write(projectdir("notebooks", "03_analysis","02_uniform_prior/", basename(@__DIR__), "results","dc3_loo_sample_paper.csv"), dc3_loo_df_striped)
-	CSV.write(projectdir("notebooks", "03_analysis","02_uniform_prior/", basename(@__DIR__), "results","asdc_loo_sample_paper.csv"), asdc_loo_df_striped)
+	CSV.write(projectdir("notebooks", "03_analysis","02_uniform_prior", basename(@__DIR__), "results","dc3_loo_sample_paper.csv"), dc3_loo_df_striped)
+	CSV.write(projectdir("notebooks", "03_analysis","02_uniform_prior", basename(@__DIR__), "results","asdc_loo_sample_paper.csv"), asdc_loo_df_striped)
 end
 
 # ╔═╡ Cell order:
