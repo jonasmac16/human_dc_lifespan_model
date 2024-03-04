@@ -165,7 +165,7 @@ begin
 	for (idx, j) in enumerate(pooled_results_notebooks)
 		df_tmp = CSV.read(joinpath(j, "results", "df_ppc.csv"), DataFrame)
 		insertcols!(df_tmp, :data => data_input_pooled[idx], :strata => strata_pooled[idx], :model => model_id_pooled[idx], :prior=>priors_pooled[idx], :likelihood_f => likelihood_pooled[idx])
-		df = vcat(df, df_tmp, cols=:union)
+		global df = vcat(df, df_tmp, cols=:union)
 	end
 	rename!(df, :timestamp => :time)
 	transform!(df, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
@@ -176,18 +176,18 @@ end
 
 # ╔═╡ f4671e69-5fe2-4ce5-9d6b-38363bda3190
 begin
-	df_normal=DataFrame()
+# 	df_normal=DataFrame()
 	
-	for (idx, j) in enumerate(pooled_results_normal_notebooks)
-		df_tmp = CSV.read(joinpath(j, "results", "df_ppc.csv"), DataFrame)
-		insertcols!(df_tmp, :data => data_input_normal_pooled[idx], :strata => strata_normal_pooled[idx], :model => model_id_normal_pooled[idx], :prior=>priors_normal_pooled[idx], :likelihood_f => likelihood_normal_pooled[idx])
-		df_normal = vcat(df_normal, df_tmp, cols=:union)
-	end
-	rename!(df_normal, :timestamp => :time)
-	transform!(df_normal, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
-	transform!(df_normal, :population=> x -> categorical(x, levels=["ASDC","cDC1", "DC2"], compress=true), renamecols=false)
-	subset!(df_normal, :model => x -> x .∈ Ref([1,2,4,5]))
-	transform!(df_normal, :model => (x -> replace(x, 4=> 3, 5 => 4)), renamecols=false)
+# 	for (idx, j) in enumerate(pooled_results_normal_notebooks)
+# 		df_tmp = CSV.read(joinpath(j, "results", "df_ppc.csv"), DataFrame)
+# 		insertcols!(df_tmp, :data => data_input_normal_pooled[idx], :strata => strata_normal_pooled[idx], :model => model_id_normal_pooled[idx], :prior=>priors_normal_pooled[idx], :likelihood_f => likelihood_normal_pooled[idx])
+# 		global df_normal = vcat(df_normal, df_tmp, cols=:union)
+# 	end
+# 	rename!(df_normal, :timestamp => :time)
+# 	transform!(df_normal, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
+# 	transform!(df_normal, :population=> x -> categorical(x, levels=["ASDC","cDC1", "DC2"], compress=true), renamecols=false)
+# 	subset!(df_normal, :model => x -> x .∈ Ref([1,2,4,5]))
+# 	transform!(df_normal, :model => (x -> replace(x, 4=> 3, 5 => 4)), renamecols=false)
 end
 
 # ╔═╡ dc3227e9-f40f-4b38-9f01-4e479ce75a48
@@ -197,7 +197,7 @@ begin
 	for (idx, j) in enumerate(nonpooled_results_notebooks)
 		df_tmp = CSV.read(joinpath(j, "results", "df_ppc.csv"), DataFrame)
 		insertcols!(df_tmp, :data => data_input_nonpooled[idx], :strata => strata_nonpooled[idx], :model => model_id_nonpooled[idx], :prior=>priors_nonpooled[idx], :likelihood_f => likelihood_nonpooled[idx])
-		df_nonpooled = vcat(df_nonpooled, df_tmp, cols=:union)
+		global df_nonpooled = vcat(df_nonpooled, df_tmp, cols=:union)
 	end
 	rename!(df_nonpooled, :timestamp => :time)
 	transform!(df_nonpooled, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
@@ -208,18 +208,18 @@ end
 
 # ╔═╡ de3b5fc9-1725-44c6-bd6d-9278dca565a8
 begin
-	df_normal_nonpooled=DataFrame()
+# 	df_normal_nonpooled=DataFrame()
 	
-	for (idx, j) in enumerate(nonpooled_results_normal_notebooks)
-		df_tmp = CSV.read(joinpath(j, "results", "df_ppc.csv"), DataFrame)
-		insertcols!(df_tmp, :data => data_input_normal_nonpooled[idx], :strata => strata_normal_nonpooled[idx], :model => model_id_normal_nonpooled[idx], :prior=>priors_normal_nonpooled[idx], :likelihood_f => likelihood_normal_nonpooled[idx])
-		df_normal_nonpooled = vcat(df_normal_nonpooled, df_tmp, cols=:union)
-	end
-	rename!(df_normal_nonpooled, :timestamp => :time)
-	transform!(df_normal_nonpooled, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
-	transform!(df_normal_nonpooled, :population=> x -> categorical(x, levels=["ASDC","cDC1", "DC2"], compress=true), renamecols=false)
-	subset!(df_normal_nonpooled, :model => x -> x .∈ Ref([1,2,4,5]))
-	transform!(df_normal_nonpooled, :model => (x -> replace(x, 4=> 3, 5 => 4)), renamecols=false)
+# 	for (idx, j) in enumerate(nonpooled_results_normal_notebooks)
+# 		df_tmp = CSV.read(joinpath(j, "results", "df_ppc.csv"), DataFrame)
+# 		insertcols!(df_tmp, :data => data_input_normal_nonpooled[idx], :strata => strata_normal_nonpooled[idx], :model => model_id_normal_nonpooled[idx], :prior=>priors_normal_nonpooled[idx], :likelihood_f => likelihood_normal_nonpooled[idx])
+# 		global df_normal_nonpooled = vcat(df_normal_nonpooled, df_tmp, cols=:union)
+# 	end
+# 	rename!(df_normal_nonpooled, :timestamp => :time)
+# 	transform!(df_normal_nonpooled, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
+# 	transform!(df_normal_nonpooled, :population=> x -> categorical(x, levels=["ASDC","cDC1", "DC2"], compress=true), renamecols=false)
+# 	subset!(df_normal_nonpooled, :model => x -> x .∈ Ref([1,2,4,5]))
+# 	transform!(df_normal_nonpooled, :model => (x -> replace(x, 4=> 3, 5 => 4)), renamecols=false)
 end
 
 # ╔═╡ 80000554-c2aa-4c96-88d0-c2ac7a452b04
@@ -229,7 +229,7 @@ begin
 	for (idx, j) in enumerate(pooled_dc3_results_notebooks)
 		df_tmp = CSV.read(joinpath(j, "results", "df_ppc.csv"), DataFrame)
 		insertcols!(df_tmp, :data => data_input_dc3_nonpooled[idx], :strata => strata_dc3_nonpooled[idx], :model => model_id_dc3_nonpooled[idx], :prior=>priors_dc3_nonpooled[idx], :likelihood_f => likelihood_dc3_pooled[idx])
-		df_dc3_pooled = vcat(df_dc3_pooled, df_tmp, cols=:union)
+		global df_dc3_pooled = vcat(df_dc3_pooled, df_tmp, cols=:union)
 	end
 	rename!(df_dc3_pooled, :timestamp => :time)
 	transform!(df_dc3_pooled, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
@@ -242,7 +242,7 @@ begin
 	for (idx, j) in enumerate(nonpooled_dc3_results_notebooks)
 		df_tmp = CSV.read(joinpath(j, "results", "df_ppc.csv"), DataFrame)
 		insertcols!(df_tmp, :data => data_input_dc3_nonpooled[idx], :strata => strata_dc3_nonpooled[idx], :model => model_id_dc3_nonpooled[idx], :prior=>priors_dc3_nonpooled[idx], :likelihood_f => likelihood_dc3_nonpooled[idx])
-		df_dc3_nonpooled = vcat(df_dc3_nonpooled, df_tmp, cols=:union)
+		global df_dc3_nonpooled = vcat(df_dc3_nonpooled, df_tmp, cols=:union)
 	end
 	rename!(df_dc3_nonpooled, :timestamp => :time)
 	transform!(df_dc3_nonpooled, :sample_idx=> x -> categorical(x, levels=unique(x), compress=true), renamecols=false)
