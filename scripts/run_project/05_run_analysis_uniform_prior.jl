@@ -10,10 +10,10 @@ analysis_notebooks = readdir(projectdir("notebooks", "03_analysis", "02_uniform_
 
 include(projectdir("scripts", "run_project", "00_threads.jl"))
 
-for j in analysis_notebooks[[1,2,3,4]]
+for j in analysis_notebooks
     println("Started running " * j)
     println("...")
-    file_tmp = projectdir("notebooks", "03_analysis", j, j*".jl")
+    file_tmp = projectdir("notebooks", "03_analysis", "02_uniform_prior", j, j*".jl")
     cmd_tmp = `julia +1.6.1 -t $n_threads $file_tmp`
     run(cmd_tmp)
     println("Finished running " * j)
