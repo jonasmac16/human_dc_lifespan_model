@@ -69,14 +69,14 @@ Fitting the new implementation of model $(model_id) and the corresponding *Turin
 include(projectdir("models", "ode","revised_models", "model_dc3_"*model_id*".jl"))
 
 # ╔═╡ f3c8a1a0-7170-11eb-2af4-3b0a7b4989f8
-include(projectdir("models", "turing", "revised_models", "mean_student_t", "pooled", "turing_dc3_model_"*model_id*".jl"))
+include(projectdir("models", "turing", "revised_models", "mean", "pooled", "turing_dc3_model_"*model_id*".jl"))
 
 # ╔═╡ f891cf0c-7b40-11eb-0c5f-930711de036e
 begin	
 	include(projectdir("scripts", "run_project", "00_mcmc_settings.jl"))
 	warm_up = Int(mcmc_iters/2)
 	sample_iters = mcmc_iters
-	accept_rate = 0.94
+	accept_rate = 0.98
 end
 
 # ╔═╡ 83ac0efc-7ce7-11eb-32bc-c92fa3d52078
@@ -146,10 +146,10 @@ end
 U_func(t, fr, delta, frac, tau) = U_smooth_2stp(t, fr, delta, 0.5/24.0, tau, frac; c = bc)
 
 # ╔═╡ a1e72c1e-7175-11eb-3eee-25fae4864542
-u0 = zeros(2)
+u0 = zeros(3)
 
 # ╔═╡ 79d513e6-7176-11eb-0080-f7d16330d1c4
-p_init = ones([8,9][tryparse(Int, model_id)])
+p_init = ones([8,12,8][tryparse(Int, model_id)])
 
 # ╔═╡ 9c6a5860-717a-11eb-11b4-11109f68f8c9
 solver_in = AutoTsit5(KenCarp4())
@@ -160,16 +160,16 @@ begin
 
     data_in = prepare_data_turing(labelling_data, cell_ratios, label_ps, tau_stop; population = ["DC3"], individual = donor_ids, ratios = ["R_DC3"], label_p_names = [:fr,:delta, :frac], ratio_approach=ratio_approach, ratio_summary = ratio_summary, mean_data = true)
 	
-	model(du,u,h,p,t) = eval(Symbol("_model_dc3_"*model_id))(du,u,h,p,t, U_func, data_in.metadata.R)
+	model(du,u,p,t) = eval(Symbol("_model_dc3_"*model_id))(du,u,p,t, U_func, data_in.metadata.R)
 
-	problem = DDEProblem(model, u0, h, (0.0, maximum(vcat(data_in.metadata.timepoints...))),p_init)
+	problem = ODEProblem(model, u0, (0.0, maximum(vcat(data_in.metadata.timepoints...))),p_init)
 
 	## MTK
-	# mtk_model = modelingtoolkitize(problem)
-	# f_opt = ODEFunction(mtk_model, jac=true)
-	# mtk_problem = ODEProblem(f_opt, u0,(0.0, maximum(vcat(data_in.metadata.timepoints...))),p_init);
+	mtk_model = modelingtoolkitize(problem)
+	f_opt = ODEFunction(mtk_model, jac=true)
+	mtk_problem = ODEProblem(f_opt, u0,(0.0, maximum(vcat(data_in.metadata.timepoints...))),p_init);
 
-	turing_model = _turing_model(data_in.data, data_in.metadata, problem, solver_in, priors, ode_parallel_mode=solver_parallel_methods; ode_args=(abstol=1e-10, reltol=1e-10, maxiters=1e8))
+	turing_model = _turing_model(data_in.data, data_in.metadata, problem, solver_in, priors; ode_parallel_mode=solver_parallel_methods, ode_args=(abstol=1e-10, reltol=1e-10, maxiters=1e8))
 	
 	if !(isfile(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"mcmc_res.jlso")))
 		if isnothing(parallel_sampling_method)
@@ -218,7 +218,7 @@ end
 # ╔═╡ a4c3be9f-1561-4d5e-88fb-e36979f27f93
 begin
 	function create_model_prediction_df(vec_sol)
-	df_wide = vcat([(@pipe vec_sol[k].u |> _[j] |> DataFrame(_) |> rename(_, "value1" => "DC3_bm", "value2" => "DC3_b") |> insertcols!(_, :donor => donor_ids[j], :sample_idx=>k)) for k in 1:length(vec_sol) for j in 1:length(vec_sol[k])]...)
+	df_wide = vcat([(@pipe vec_sol[k].u |> _[j] |> DataFrame(_) |> rename(_, "value1" => "PREDC3_bm", "value2" => "DC3_bm", "value3" => "DC3_b") |> insertcols!(_, :donor => donor_ids[j], :sample_idx=>k)) for k in 1:length(vec_sol) for j in 1:length(vec_sol[k])]...)
 
 	df_combined = @pipe df_wide |> DataFrames.stack(_, Not([:timestamp, :donor, :sample_idx])) |> transform(_, :variable => ByRow(x -> (;zip((:population, :location),Tuple(split(x, "_")))...))=> AsTable) |> select(_, Not(:variable))
 	
@@ -342,7 +342,7 @@ begin
 		data_ppc.metadata.timepoints[j] = collect(0.0:0.1:24.0)
 	end
 	
-	turing_model_ppc = _turing_model(data_ppc.data, data_ppc.metadata, problem, solver_in, priors, ode_parallel_mode=solver_parallel_methods; ode_args=(abstol=1e-10, reltol=1e-10, maxiters=1e8, save_idxs=[1,2]))
+	turing_model_ppc = _turing_model(data_ppc.data, data_ppc.metadata, problem, solver_in, priors, ode_parallel_mode=solver_parallel_methods; ode_args=(abstol=1e-10, reltol=1e-10, maxiters=1e8, save_idxs=[1,2,3]))
 
 end	
 
@@ -355,13 +355,16 @@ begin
 	end
 end
 
+# ╔═╡ d707e8fb-dfbc-4485-963d-c10b353ee932
+
+
 # ╔═╡ 29b023e3-879d-438e-bef8-f290bf3d4a55
 begin
 	if !(isfile(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"ppc_fit_bm.pdf")))
 
 		# ppc_bm = @pipe get_posterior_predictive(turing_model_ppc_bm, sample_mcmc(chains, 50)) |>[_[j] for j in 1:length(_)]
 
-	p_ppc_bm = plot_ppc(ppc, [1], subplotkwargs=(; alpha=0.1),pop=["DC3"];title= permutedims([((permutedims(donor_ids) .* " ") .* ["DC3 (bm)"])...]), size=(1000,1000), legend=false)
+	p_ppc_bm = plot_ppc(ppc, [2], subplotkwargs=(; alpha=0.1),pop=["DC3"];title= permutedims([((permutedims(donor_ids) .* " ") .* ["DC3 (bm)"])...]), size=(1000,1000), legend=false)
 	else
 		load(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"ppc_fit_bm.pdf"))
 	end
@@ -369,7 +372,7 @@ begin
 	if !(isfile(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"ppc_fit.pdf")))
 
 		# ppc_b = @pipe get_posterior_predictive(turing_model, sample_mcmc(chains, 50)) |>[_[j] for j in 1:length(_)]
-		p_ppc = plot_ppc(ppc, data_in, [2], subplotkwargs=(; alpha=0.1),pop=["DC3"];title= permutedims([((permutedims(donor_ids) .* " ") .* ["DC3"])...]), size=(1000,1000), legend=false)
+		p_ppc = plot_ppc(ppc, data_in, [3], subplotkwargs=(; alpha=0.1),pop=["DC3"];title= permutedims([((permutedims(donor_ids) .* " ") .* ["DC3"])...]), size=(1000,1000), legend=false)
 	else
 		load(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"ppc_fit.pdf"))
 	end
@@ -401,7 +404,7 @@ end
 # ╔═╡ 69182965-21a3-442a-971e-2e27840a658e
 begin
 	if !(isfile(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"df_mcmc_comp.jlso")))
-		df_par_all = DataFrame(p_DC3bm=Float64[], δ_DC3bm=Float64[], δ_DC3b=Float64[], λ_DC3=Float64[], tau=Float64[], σ=Float64[])
+		df_par_all = DataFrame(p_PRO = Float64[], p_DC3bm=Float64[], δ_PRO = Float64[], δ_DC3bm=Float64[], δ_DC3b=Float64[], ϵ=Float64[],  λ_DC3=Float64[], R_PRO=Float64[], σ=Float64[])
 
 		@pipe parameter_est |>
 		for j in _
@@ -518,6 +521,7 @@ md"## Libraries"
 # ╠═e935825e-4671-4a7c-b0d0-c1deb6e036ff
 # ╠═e64f5bf3-acd3-451c-9b04-bc5a80f08a28
 # ╠═cd1a937c-7951-4bdc-b48a-da490fcbc25d
+# ╠═d707e8fb-dfbc-4485-963d-c10b353ee932
 # ╠═29b023e3-879d-438e-bef8-f290bf3d4a55
 # ╠═46158577-9672-44f8-bcf3-57eec228d5b0
 # ╟─64808ea4-746a-45ec-8f3f-a0625a1816db

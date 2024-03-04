@@ -69,7 +69,7 @@ Fitting the new implementation of model $(model_id) and the corresponding *Turin
 include(projectdir("models", "ode","revised_models", "model_dc3_"*model_id*".jl"))
 
 # ╔═╡ f3c8a1a0-7170-11eb-2af4-3b0a7b4989f8
-include(projectdir("models", "turing", "revised_models", "mean", "nonpooled", "turing_dc3_model_"*model_id*".jl"))
+include(projectdir("models", "turing", "revised_models", "mean_student_t", "nonpooled", "turing_dc3_model_"*model_id*".jl"))
 
 # ╔═╡ f891cf0c-7b40-11eb-0c5f-930711de036e
 begin	
@@ -163,12 +163,13 @@ begin
 	model(du,u,p,t) = eval(Symbol("_model_dc3_"*model_id))(du,u,p,t, U_func, data_in.metadata.R)
 
 	problem = ODEProblem(model, u0, (0.0, maximum(vcat(data_in.metadata.timepoints...))),p_init)
+
 	## MTK
 	mtk_model = modelingtoolkitize(problem)
 	f_opt = ODEFunction(mtk_model, jac=true)
 	mtk_problem = ODEProblem(f_opt, u0,(0.0, maximum(vcat(data_in.metadata.timepoints...))),p_init);
 
-	turing_model = _turing_model(data_in.data, data_in.metadata, problem, solver_in, priors; ode_parallel_mode=solver_parallel_methods, ode_args=(abstol=1e-10, reltol=1e-10, maxiters=1e8))
+	turing_model = _turing_model(data_in.data, data_in.metadata, problem, solver_in, priors, ode_parallel_mode=solver_parallel_methods; ode_args=(abstol=1e-10, reltol=1e-10, maxiters=1e8))
 	
 	if !(isfile(projectdir("notebooks","02_fitting","02_uniform_prior",notebook_folder,"mcmc_res.jlso")))
 		if isnothing(parallel_sampling_method)

@@ -69,14 +69,14 @@ Fitting the new implementation of model $(model_id) and the corresponding *Turin
 include(projectdir("models", "ode","revised_models", "model_dc3_"*model_id*".jl"))
 
 # ╔═╡ f3c8a1a0-7170-11eb-2af4-3b0a7b4989f8
-include(projectdir("models", "turing", "revised_models", "mean_student_t", "nonpooled", "turing_dc3_model_"*model_id*".jl"))
+include(projectdir("models", "turing", "revised_models", "mean", "pooled", "turing_dc3_model_"*model_id*".jl"))
 
 # ╔═╡ f891cf0c-7b40-11eb-0c5f-930711de036e
 begin	
 	include(projectdir("scripts", "run_project", "00_mcmc_settings.jl"))
 	warm_up = Int(mcmc_iters/2)
 	sample_iters = mcmc_iters
-	accept_rate = 0.94
+	accept_rate = 0.98
 end
 
 # ╔═╡ 83ac0efc-7ce7-11eb-32bc-c92fa3d52078
@@ -149,7 +149,7 @@ U_func(t, fr, delta, frac, tau) = U_smooth_2stp(t, fr, delta, 0.5/24.0, tau, fra
 u0 = zeros(2)
 
 # ╔═╡ 79d513e6-7176-11eb-0080-f7d16330d1c4
-p_init = ones([8,9][tryparse(Int, model_id)])
+p_init = ones([8,12,8][tryparse(Int, model_id)])
 
 # ╔═╡ 9c6a5860-717a-11eb-11b4-11109f68f8c9
 solver_in = AutoTsit5(KenCarp4())
@@ -226,7 +226,6 @@ begin
 	return df_combined
 	end
 end
-
 
 # ╔═╡ 5b3c6540-77a9-11eb-0c38-376abea08f6b
 md"## PPC of all individuals fitted"

@@ -37,7 +37,7 @@ begin
 	include(projectdir("scripts", "run_project", "00_mcmc_settings.jl"))
 	warm_up = Int(mcmc_iters/2)
 	sample_iters = mcmc_iters
-	accept_rate = 0.94
+	accept_rate = 0.98
 end
 
 # ╔═╡ e4e12340-7172-11eb-22b0-f7a72dfbb863
@@ -149,7 +149,7 @@ U_func(t, fr, delta, frac, tau) = U_smooth_2stp(t, fr, delta, 0.5/24.0, tau, fra
 u0 = zeros(2)
 
 # ╔═╡ 79d513e6-7176-11eb-0080-f7d16330d1c4
-p_init = ones([8,9][tryparse(Int, model_id)])
+p_init = ones([8,12,8][tryparse(Int, model_id)])
 
 # ╔═╡ 9c6a5860-717a-11eb-11b4-11109f68f8c9
 solver_in = AutoTsit5(KenCarp4())
