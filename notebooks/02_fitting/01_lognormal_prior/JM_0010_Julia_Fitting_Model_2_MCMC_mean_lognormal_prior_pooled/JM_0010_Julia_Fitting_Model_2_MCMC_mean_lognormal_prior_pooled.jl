@@ -95,7 +95,7 @@ begin
 	notebook_folder_title = basename(@__DIR__)
 	notebook_folder = joinpath(basename(@__DIR__), "results")
 	mkpath(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder))
-	data_folder = "data_derek_20210823"
+
 end
 
 # ╔═╡ 9be93270-716f-11eb-1eca-5df3697044c0
