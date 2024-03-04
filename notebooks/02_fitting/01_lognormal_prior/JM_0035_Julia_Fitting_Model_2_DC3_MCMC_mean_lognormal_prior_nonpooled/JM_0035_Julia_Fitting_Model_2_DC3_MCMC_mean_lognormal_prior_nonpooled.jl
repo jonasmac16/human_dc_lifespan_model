@@ -348,7 +348,7 @@ end
 # ╔═╡ cd1a937c-7951-4bdc-b48a-da490fcbc25d
 begin
 	if !isfile(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"df_ppc.csv"))
-		ppc = @pipe get_posterior_predictive(turing_model_ppc, sample_mcmc(chains, 50)) |> [_[j] for j in 1:length(_)]
+		ppc = @pipe get_posterior_predictive(turing_model_ppc, sample_mcmc(chains, 200)) |> [_[j] for j in 1:length(_)]
 		df_ppc = create_model_prediction_df(ppc)
 		save(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"df_ppc.csv"), df_ppc)
 	end
@@ -358,7 +358,7 @@ end
 begin
 	if !(isfile(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"ppc_fit_bm.pdf")))
 
-		# ppc_bm = @pipe get_posterior_predictive(turing_model_ppc_bm, sample_mcmc(chains, 50)) |>[_[j] for j in 1:length(_)]
+		# ppc_bm = @pipe get_posterior_predictive(turing_model_ppc_bm, sample_mcmc(chains, 200)) |>[_[j] for j in 1:length(_)]
 
 	p_ppc_bm = plot_ppc(ppc, [2], subplotkwargs=(; alpha=0.1),pop=["DC3"];title= permutedims([((permutedims(donor_ids) .* " ") .* ["DC3 (bm)"])...]), size=(1000,1000), legend=false)
 	else
@@ -367,7 +367,7 @@ begin
 	
 	if !(isfile(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"ppc_fit.pdf")))
 
-		# ppc_b = @pipe get_posterior_predictive(turing_model, sample_mcmc(chains, 50)) |>[_[j] for j in 1:length(_)]
+		# ppc_b = @pipe get_posterior_predictive(turing_model, sample_mcmc(chains, 200)) |>[_[j] for j in 1:length(_)]
 		p_ppc = plot_ppc(ppc, data_in, [3], subplotkwargs=(; alpha=0.1),pop=["DC3"];title= permutedims([((permutedims(donor_ids) .* " ") .* ["DC3"])...]), size=(1000,1000), legend=false)
 	else
 		load(projectdir("notebooks","02_fitting","01_lognormal_prior",notebook_folder,"ppc_fit.pdf"))
