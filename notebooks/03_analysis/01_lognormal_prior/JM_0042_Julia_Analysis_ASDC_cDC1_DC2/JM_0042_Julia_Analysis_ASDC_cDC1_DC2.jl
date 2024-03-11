@@ -101,58 +101,6 @@ begin
 	res_waic_extended_r = [rloo.waic(loglikehoods_extended_r[j],r_eff=relative_eff_extended_r[j]) for j in 1:length(results_folders_extended)]
 end
 
-# ╔═╡ cc437496-18a4-480f-ad7e-c9933a5cc677
-begin
-	### informative prior results
-	dfs_par_pooled = [JLSO.load(projectdir("notebooks", "02_fitting","01_lognormal_prior", j,"results", "df_mcmc_comp.jlso"))[:df_par_all] for j in results_folders[contains.(model_names,"_pooled")]]
-	## add model and donor
-	[dfs_par_pooled[j][!,:model_id] .= model_id[contains.(model_names,"_pooled")][j] for j in 1:length(dfs_par_pooled)]
-	[dfs_par_pooled[j][!,:model_type] .= model_type[contains.(model_names,"_pooled")][j] for j in 1:length(dfs_par_pooled)]
-	[dfs_par_pooled[j][!,:donor] .= "All" for j in 1:length(dfs_par_pooled)]
-end
-
-# ╔═╡ 14b46f70-d9bd-411c-9eed-3fe71527939d
-begin
-	dfs_par_nonpooled = [JLSO.load(projectdir("notebooks", "02_fitting","01_lognormal_prior", j,"results", "df_mcmc_comp.jlso"))[:df_par_all] for j in results_folders[contains.(model_names,"_nonpooled")]]
-	for j in 1:length(dfs_par_nonpooled)
-		dfs_par_nonpooled[j]= @pipe dfs_par_nonpooled[j] |> 
-		combine(_, names(_)[.!map(c -> isa(c, Vector{Union{Missing, Float64}}), eachcol(_))].=> (x -> vcat(x...)),
-		names(_)[map(c -> isa(c, Vector{Union{Missing, Float64}}), eachcol(_))] .=> (x -> repeat(x, 3)), renamecols=false) |> 
-		insertcols!(_, :donor=>repeat(["D01","D02", "D04"], outer=Int(nrow(_)/3)))
-	end
-	## add model and donor
-	[dfs_par_nonpooled[j][!,:model_id] .= model_id[contains.(model_names,"_nonpooled")][j] for j in 1:length(dfs_par_nonpooled)]
-	[dfs_par_nonpooled[j][!,:model_type] .= model_type[contains.(model_names,"_nonpooled")][j] for j in 1:length(dfs_par_nonpooled)]
-end
-
-# ╔═╡ 2fd13a67-6187-40fc-9685-6e28f09b140e
-begin
-	dfs_par_pooled_extended = [JLSO.load(projectdir("notebooks", "02_fitting","01_lognormal_prior", j,"results", "df_mcmc_comp.jlso"))[:df_par_all] for j in results_folders_extended]
-	## add model and donor
-	[dfs_par_pooled_extended[j][!,:model_id] .=model_id_extended[j] for j in 1:length(dfs_par_pooled_extended)]
-	[dfs_par_pooled_extended[j][!,:model_type] .=model_type_extended[j] for j in 1:length(dfs_par_pooled_extended)]
-
-	[dfs_par_pooled_extended[j][!,:donor] .= "All" for j in 1:length(dfs_par_pooled_extended)]
-end
-
-# ╔═╡ 56c9a3d9-d72c-47ab-b9a0-f48e1dbed000
-begin
-	# combine all together
-	df_par = @pipe vcat(vcat(dfs_par_pooled...),
-	vcat(dfs_par_nonpooled...), 
-	vcat(dfs_par_pooled_extended...)) |>
-	transform(_,[:δ_ASDCbm, :λ_ASDC, :Δ_cDC1bm, :Δ_DC2bm] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_ASDC_bm,
-	[:δ_cDC1bm, :λ_cDC1] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_cDC1_bm,
-	[:δ_DC2bm, :λ_DC2] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_DC2_bm,
-	[:δ_ASDCb, :Δ_cDC1b, :Δ_DC2b] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_ASDC_b,
-	[:δ_cDC1b] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_cDC1_b,
-	[:δ_DC2b] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_DC2_b) |>
-	insertcols!(_, :prior=>"lognormal")
-
-	df_par_all= df_par
-end
-
-
 # ╔═╡ c2a3b797-a097-4aa7-887f-0a16e437a440
 begin
 	res_compare_loo = ParetoSmooth.loo_compare(res_loo_cv[:], model_names=model_names)
@@ -272,6 +220,58 @@ begin
 	df_arviz_loo_extended = ArviZ.compare(arr_ifd_arviz_loo_extended, "loo")
 
 end
+
+# ╔═╡ cc437496-18a4-480f-ad7e-c9933a5cc677
+begin
+	### informative prior results
+	dfs_par_pooled = [JLSO.load(projectdir("notebooks", "02_fitting","01_lognormal_prior", j,"results", "df_mcmc_comp.jlso"))[:df_par_all] for j in results_folders[contains.(model_names,"_pooled")]]
+	## add model and donor
+	[dfs_par_pooled[j][!,:model_id] .= model_id[contains.(model_names,"_pooled")][j] for j in 1:length(dfs_par_pooled)]
+	[dfs_par_pooled[j][!,:model_type] .= model_type[contains.(model_names,"_pooled")][j] for j in 1:length(dfs_par_pooled)]
+	[dfs_par_pooled[j][!,:donor] .= "All" for j in 1:length(dfs_par_pooled)]
+end
+
+# ╔═╡ 14b46f70-d9bd-411c-9eed-3fe71527939d
+begin
+	dfs_par_nonpooled = [JLSO.load(projectdir("notebooks", "02_fitting","01_lognormal_prior", j,"results", "df_mcmc_comp.jlso"))[:df_par_all] for j in results_folders[contains.(model_names,"_nonpooled")]]
+	for j in 1:length(dfs_par_nonpooled)
+		dfs_par_nonpooled[j]= @pipe dfs_par_nonpooled[j] |> 
+		combine(_, names(_)[.!map(c -> isa(c, Vector{Union{Missing, Float64}}), eachcol(_))].=> (x -> vcat(x...)),
+		names(_)[map(c -> isa(c, Vector{Union{Missing, Float64}}), eachcol(_))] .=> (x -> repeat(x, 3)), renamecols=false) |> 
+		insertcols!(_, :donor=>repeat(["D01","D02", "D04"], outer=Int(nrow(_)/3)))
+	end
+	## add model and donor
+	[dfs_par_nonpooled[j][!,:model_id] .= model_id[contains.(model_names,"_nonpooled")][j] for j in 1:length(dfs_par_nonpooled)]
+	[dfs_par_nonpooled[j][!,:model_type] .= model_type[contains.(model_names,"_nonpooled")][j] for j in 1:length(dfs_par_nonpooled)]
+end
+
+# ╔═╡ 2fd13a67-6187-40fc-9685-6e28f09b140e
+begin
+	dfs_par_pooled_extended = [JLSO.load(projectdir("notebooks", "02_fitting","01_lognormal_prior", j,"results", "df_mcmc_comp.jlso"))[:df_par_all] for j in results_folders_extended]
+	## add model and donor
+	[dfs_par_pooled_extended[j][!,:model_id] .=model_id_extended[j] for j in 1:length(dfs_par_pooled_extended)]
+	[dfs_par_pooled_extended[j][!,:model_type] .=model_type_extended[j] for j in 1:length(dfs_par_pooled_extended)]
+
+	[dfs_par_pooled_extended[j][!,:donor] .= "All" for j in 1:length(dfs_par_pooled_extended)]
+end
+
+# ╔═╡ 56c9a3d9-d72c-47ab-b9a0-f48e1dbed000
+begin
+	# combine all together
+	df_par = @pipe vcat(vcat(dfs_par_pooled...),
+	vcat(dfs_par_nonpooled...), 
+	vcat(dfs_par_pooled_extended...)) |>
+	transform(_,[:δ_ASDCbm, :λ_ASDC, :Δ_cDC1bm, :Δ_DC2bm] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_ASDC_bm,
+	[:δ_cDC1bm, :λ_cDC1] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_cDC1_bm,
+	[:δ_DC2bm, :λ_DC2] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_DC2_bm,
+	[:δ_ASDCb, :Δ_cDC1b, :Δ_DC2b] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_ASDC_b,
+	[:δ_cDC1b] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_cDC1_b,
+	[:δ_DC2b] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_DC2_b) |>
+	insertcols!(_, :prior=>"lognormal")
+
+	df_par_all= df_par
+end
+
 
 # ╔═╡ 17fb9aef-7340-407d-9cc7-8ceedd415a54
 md"Filter out model 3 and rename model ids:"
