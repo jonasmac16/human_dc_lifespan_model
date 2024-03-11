@@ -66,6 +66,36 @@ begin
 	model_type = [match(r"Model_[1-5].*_(nonpooled|pooled)", j).captures[1] for j in model_names]
 end
 
+# ╔═╡ 99db6e93-5ec4-4a60-bb26-cbabef78793e
+begin
+	include(srcdir("dataprep.jl"))
+	donor_ids = ["D01", "D02", "D04"]
+	cell_cycle_approach = 3
+	ratio_approach = "2"
+	ratio_summary = "median"
+	tau_stop = 3.5/24.0
+	bc = 0.73
+	label_ps = DataFrame(load(datadir("exp_pro","labeling_parameters_revision.csv")))
+	cell_ratios = @linq DataFrame(load(datadir("exp_pro", "cell_ratios_revision.csv"))) |> DataFrames.transform(:approach => (x -> string.(x)) => :approach)
+	labelling_data = DataFrame(load(datadir("exp_pro","labelling_data_revision.csv")))
+	data_in = prepare_data_turing(labelling_data, cell_ratios, label_ps, tau_stop; population = ["DC3"], individual = donor_ids, ratios = ["R_DC3"], label_p_names = [:fr,:delta, :frac], ratio_approach=ratio_approach, ratio_summary = ratio_summary, mean_data = true)
+		
+	arr_ifd_arviz_loo = Dict{String, Any}() 
+
+	for k in 1: length(loglikehoods)
+		arr_ifd_arviz_loo[model_names[k]] = @pipe df_par |> 
+		subset(_,:model_id => (x -> x .== model_id[k]), :model_type => (x -> x .== model_type[k])) |> 
+		select(_,Not([:model_id, :model_type,:donor, :prior])) |> 
+		select(_, .!map(x -> any(ismissing.(x)), eachcol(_) )) |> 
+		(; zip((Symbol(j) for j in DataFrames.names(_)),(_[!,Symbol(j)] for j in DataFrames.names(_)))...) |> 
+		from_namedtuple(_; log_likelihood = permutedims(loglikehoods[k], [3,2,1]))
+	end
+
+	arr_ifd_arviz_loo_pooled = Dict([Pair(replace(j, "_pooled"=> ""),arr_ifd_arviz_loo[j]) for j in keys(arr_ifd_arviz_loo)])
+
+	df_arviz_loo = ArviZ.compare(arr_ifd_arviz_loo_pooled, "loo")
+end
+
 # ╔═╡ 53c53c8f-304c-4be7-af29-70496db46d6c
 md"## LOO-CV"
 
@@ -104,36 +134,6 @@ begin
 	transform(_,[:δ_DC3bm, :λ_DC3, :tau] => ByRow((x...) -> dwell_time(x)) => :dwell_DC3_bm,
 	[:δ_DC3b] => ByRow((x...) -> 1/sum(skipmissing(x))) => :dwell_DC3_b) |>
 	insertcols!(_, :prior=>"lognormal")
-end
-
-# ╔═╡ 99db6e93-5ec4-4a60-bb26-cbabef78793e
-begin
-	include(srcdir("dataprep.jl"))
-	donor_ids = ["D01", "D02", "D04"]
-	cell_cycle_approach = 3
-	ratio_approach = "2"
-	ratio_summary = "median"
-	tau_stop = 3.5/24.0
-	bc = 0.73
-	label_ps = DataFrame(load(datadir("exp_pro","labeling_parameters_revision.csv")))
-	cell_ratios = @linq DataFrame(load(datadir("exp_pro", "cell_ratios_revision.csv"))) |> DataFrames.transform(:approach => (x -> string.(x)) => :approach)
-	labelling_data = DataFrame(load(datadir("exp_pro","labelling_data_revision.csv")))
-	data_in = prepare_data_turing(labelling_data, cell_ratios, label_ps, tau_stop; population = ["DC3"], individual = donor_ids, ratios = ["R_DC3"], label_p_names = [:fr,:delta, :frac], ratio_approach=ratio_approach, ratio_summary = ratio_summary, mean_data = true)
-		
-	arr_ifd_arviz_loo = Dict{String, Any}() 
-
-	for k in 1: length(loglikehoods)
-		arr_ifd_arviz_loo[model_names[k]] = @pipe df_par |> 
-		subset(_,:model_id => (x -> x .== model_id[k]), :model_type => (x -> x .== model_type[k])) |> 
-		select(_,Not([:model_id, :model_type,:donor, :prior])) |> 
-		select(_, .!map(x -> any(ismissing.(x)), eachcol(_) )) |> 
-		(; zip((Symbol(j) for j in DataFrames.names(_)),(_[!,Symbol(j)] for j in DataFrames.names(_)))...) |> 
-		from_namedtuple(_; log_likelihood = permutedims(loglikehoods[k], [3,2,1]))
-	end
-
-	arr_ifd_arviz_loo_pooled = Dict([Pair(replace(j, "_pooled"=> ""),arr_ifd_arviz_loo[j]) for j in keys(arr_ifd_arviz_loo)])
-
-	df_arviz_loo = ArviZ.compare(arr_ifd_arviz_loo_pooled, "loo")
 end
 
 # ╔═╡ c2a3b797-a097-4aa7-887f-0a16e437a440
