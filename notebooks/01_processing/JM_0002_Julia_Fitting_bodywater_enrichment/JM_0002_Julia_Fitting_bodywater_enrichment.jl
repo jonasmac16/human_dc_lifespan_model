@@ -58,7 +58,7 @@ tp=collect(0.0:0.01:1.0)
 begin
 	Plots.plot(tp,  U_smooth_2stp.(tp, 0.73, 19.5, frac_exp, tau_stop, frac_exp), lab="simulation")
 	Plots.xlabel!("time (d)")
-	Plots.ylabel!("labelled fraction of BW")
+	Plots.ylabel!("enrichment labelled glucose (plasma)")
 	@df unstack(data_label, :time, :individual, :enrichment) Plots.scatter!(:time, cols(2:10))
 end
 
@@ -117,7 +117,7 @@ for j in 1:length(res_mle_local)
     Plots.plot!(p0, tp,  U_smooth_2stp.(tp, res_mle_global[j].minimizer[[1,2]]..., frac_exp, tau_stop, res_mle_global[j].minimizer[3]), lab="MLE fit (global)", subplot=j)
     Plots.plot!(p0, tp,  U_smooth_2stp.(tp, res_mle_local[j].minimizer[[1,2]]..., frac_exp, tau_stop, res_mle_local[j].minimizer[3]), lab="MLE fit (global + local)", subplot=j)
     Plots.xlabel!(p0, "time (d)",  subplot=j)
-    Plots.ylabel!(p0, "labelled fraction of BW", subplot=j)
+    Plots.ylabel!(p0, "enrichment labelled glucose (plasma)", subplot=j)
     @df gdata_label[j] Plots.scatter!(p0, :time, :enrichment, lab=unique(:individual)[1], subplot=j)
 end
 
@@ -158,7 +158,7 @@ for j in 1:length(res_map_local)
     Plots.plot!(p1, tp,  U_smooth_2stp.(tp, res_map_global[j].minimizer[[1,2]]...,frac_exp, tau_stop, res_map_global[j].minimizer[3]), lab="MLE fit (global)", subplot=j)
     Plots.plot!(p1, tp,  U_smooth_2stp.(tp, res_map_local[j].minimizer[[1,2]]...,frac_exp, tau_stop, res_map_local[j].minimizer[3]), lab="MLE fit (global + local)", subplot=j)
     Plots.xlabel!(p1, "time (d)",  subplot=j)
-    Plots.ylabel!(p1, "labelled fraction of BW", subplot=j)
+    Plots.ylabel!(p1, "enrichment labelled glucose (plasma)", subplot=j)
     @df gdata_label[j] Plots.scatter!(p1, :time, :enrichment, lab=unique(:individual)[1], subplot=j)
 end
 
@@ -287,7 +287,7 @@ layer_3 = @pipe df_ut_max_sol |> data(_) * mapping(:time, :enrichment, layout=:i
 
 
 # ╔═╡ 0aef9d50-cae1-11ec-1d7e-0bbdbba8b961
-plt_fit = draw(layer_2 + layer_3; axis=(axis..., xlabel="time (days)", ylabel="enrichment in body water (saliva)"), facet = (; linkxaxes = :none))
+plt_fit = draw(layer_2 + layer_3; axis=(axis..., xlabel="time (days)", ylabel="enrichment labelled glucose (plasma)"), facet = (; linkxaxes = :none))
 
 
 # ╔═╡ 0aef9d5a-cae1-11ec-110f-ad3f37e7b85d
