@@ -322,12 +322,14 @@ groupby(_, :individual) |>
 begin
 	f_glucose = Figure()
 	
-	ax_glucose = [Axis(f_glucose[fldmod1(j,3)...], title=first(_[j].individual),xlabel="time (hours)", ylabel="label enrichment",aspect=1) for j in 1:length(_)]
+	ax_glucose = [Axis(f_glucose[fldmod1(j,3)...], title=first(_[j].individual),xlabel="time (hours)", ylabel="labelled glucose enrichment (in blood)",aspect=1) for j in 1:length(_)]
 	
 	for j in 1:length(_)
 		CairoMakie.lines!(ax_glucose[j], _[j].time, _[j].enrichment)
 		CairoMakie.scatter!(ax_glucose[j], _[j].time, _[j].enrichment)
 	end
+	[hidexdecorations!(j; ticklabels=false, ticks=false, ) for j in  ax_glucose[1:6]]
+	[hideydecorations!(j; ticklabels=false, ticks=false, ) for j in  ax_glucose[[1,2,3,5,6,7,8,9]]]
 	linkxaxes!(ax_glucose...)
 	
 	f_glucose
@@ -369,7 +371,7 @@ md"### Cell popualtion concentrations across blood and bone marrow"
 # ╔═╡ 3e8a8a7d-e593-4a8b-9371-9f7ee5f855bd
 @pipe df_cell_concentration_long |>
 data(_) * 
-mapping(:dataset,:value, color = :dataset, row=:population, col=:location) * 
+mapping(:dataset,:value => "# cells", color = :dataset, row=:population, col=:location) * 
 visual(BoxPlot) |>
 draw(_; facet =(; linkyaxes=:none))
 
@@ -377,13 +379,13 @@ draw(_; facet =(; linkyaxes=:none))
 md"It appears that the new dataset has consistently lower DC cell concentrations compared to the original dataset. After consultating with Simon, he confirmed that the original data was measured using counting beads while the new dataset used the inherent capability of the flow cytometer to count cells per defined volume. The latter approach should yield more accurate numbers and thus will be used in the subsequent step to determine the cell compartment sizes and ratio."
 
 # ╔═╡ 77ee7ac7-9d16-4a52-9aec-aa1c681eb3ff
-md"### Cell popualtion cell cycle status across blood and bone marrow"
+md"### Cell population cell cycle status across blood and bone marrow"
 
 # ╔═╡ d767393d-8ee8-464f-b36a-4a76232ab748
 @pipe df_cycle_long |>
 subset(_, :state => (x -> x .== "G2")) |>
 data(_) * 
-mapping(:population,:value, color = :dataset, dodge=:dataset, col=:location) * 
+mapping(:population,:value => "% in SG2M phase", color = :dataset, dodge=:dataset, col=:location) * 
 visual(BoxPlot) |>
 draw(_; facet =(; linkyaxes=:minimal))
 
@@ -480,7 +482,7 @@ AlgebraOfGraphics.set_aog_theme!()
 # ╠═3e8a8a7d-e593-4a8b-9371-9f7ee5f855bd
 # ╟─06ce9870-1bdc-4264-b1b0-b644ef83b764
 # ╟─77ee7ac7-9d16-4a52-9aec-aa1c681eb3ff
-# ╟─d767393d-8ee8-464f-b36a-4a76232ab748
+# ╠═d767393d-8ee8-464f-b36a-4a76232ab748
 # ╟─30661c72-e6e4-11ea-2608-e9ab333397bc
 # ╠═8847baba-fc0e-11ea-092b-0907836dda6d
 # ╠═3fcf90b4-e6e4-11ea-3b2b-51f2749c1f91
