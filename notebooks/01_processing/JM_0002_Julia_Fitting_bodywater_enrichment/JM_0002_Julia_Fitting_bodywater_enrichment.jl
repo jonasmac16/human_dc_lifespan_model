@@ -59,7 +59,7 @@ begin
 	Plots.plot(tp,  U_smooth_2stp.(tp, 0.73, 19.5, frac_exp, tau_stop, frac_exp), lab="simulation")
 	Plots.xlabel!("time (d)")
 	Plots.ylabel!("labelled fraction of BW")
-	@df unstack(data_label, :time, :individual, :enrichment) Plots.scatter!(:time, cols(2:4))
+	@df unstack(data_label, :time, :individual, :enrichment) Plots.scatter!(:time, cols(2:10))
 end
 
 # ╔═╡ 0aef9cba-cae1-11ec-2303-81619c401f96

@@ -83,7 +83,14 @@ glucose_data_c55 = @pipe CSV.read(datadir("exp_raw","glucose", "C55_glucose.csv"
 
 # ╔═╡ 043c9c36-5636-420d-ae66-78482bbc1e90
 glucose_data_d01 = @pipe CSV.read(datadir("exp_raw","glucose", "D01_glucose.csv"), DataFrame) |>
-subset(_, :time => (x -> x .∉ Ref([6.0, 23.0]))) |>
+# subset(_, :time => (x -> x .∉ Ref([6.0, 23.0]))) |>
+transform(_,
+	:time => (x -> (x ./ 24.0)) => :time,
+	:enrichment => (x ->(x ./ 100)) => :enrichment) |> 
+insertcols!(_, :individual => "D01")
+
+# ╔═╡ 562b739c-49b7-4d2d-857c-82baa48de40b
+glucose_data_d01_uncen = @pipe CSV.read(datadir("exp_raw","glucose", "D01_glucose.csv"), DataFrame) |>
 transform(_,
 	:time => (x -> (x ./ 24.0)) => :time,
 	:enrichment => (x ->(x ./ 100)) => :enrichment) |> 
@@ -91,7 +98,14 @@ insertcols!(_, :individual => "D01")
 
 # ╔═╡ 4bfa51af-2d97-42af-aace-cb95c881d9a2
 glucose_data_d02 = @pipe CSV.read(datadir("exp_raw","glucose", "D02_glucose.csv"), DataFrame) |>
-subset(_, :time => (x -> x .∉ Ref([6.0, 23.0]))) |>
+# subset(_, :time => (x -> x .∉ Ref([6.0, 23.0]))) |>
+transform(_,
+	:time => (x -> (x ./ 24.0)) => :time,
+	:enrichment => (x ->(x ./ 100)) => :enrichment) |> 
+insertcols!(_, :individual => "D02")
+
+# ╔═╡ c5e2fe6e-4224-4840-9f3e-494ca5a12192
+glucose_data_d02_uncen = @pipe CSV.read(datadir("exp_raw","glucose", "D02_glucose.csv"), DataFrame) |>
 transform(_,
 	:time => (x -> (x ./ 24.0)) => :time,
 	:enrichment => (x ->(x ./ 100)) => :enrichment) |> 
@@ -99,7 +113,14 @@ insertcols!(_, :individual => "D02")
 
 # ╔═╡ e1106754-21d1-47cd-9271-64dc994a2d08
 glucose_data_d04 = @pipe CSV.read(datadir("exp_raw","glucose", "D04_glucose.csv"), DataFrame) |> 
-subset(_, :time => (x -> x .∉ Ref([6.0, 23.0]))) |>
+# subset(_, :time => (x -> x .∉ Ref([6.0, 23.0]))) |>
+transform(_,
+	:time => (x -> (x ./ 24.0)) => :time,
+	:enrichment => (x ->(x ./ 100)) => :enrichment) |> 
+insertcols!(_, :individual => "D04")
+
+# ╔═╡ 42a5a8b5-de87-4bef-bd00-30f8b6bbb665
+glucose_data_d04_uncen = @pipe CSV.read(datadir("exp_raw","glucose", "D04_glucose.csv"), DataFrame) |> 
 transform(_,
 	:time => (x -> (x ./ 24.0)) => :time,
 	:enrichment => (x ->(x ./ 100)) => :enrichment) |> 
@@ -329,7 +350,7 @@ df_cycle_long = df_cycle_long_new
 md"## Visualise experimental data"
 
 # ╔═╡ f941ddc6-e6e3-11ea-2595-f9d672b2b4a9
-md"### Gluscose measurements in saliva"
+md"### Gluscose measurements in blood"
 
 # ╔═╡ 17b42c87-1598-4596-8f71-e316ae5d761f
 @pipe glucose_data |>
@@ -340,9 +361,10 @@ begin
 	ax_glucose = [Axis(f_glucose[fldmod1(j,3)...], title=first(_[j].individual),xlabel="time (hours)", ylabel="label enrichment",aspect=1) for j in 1:length(_)]
 	
 	for j in 1:length(_)
-		CairoMakie.scatter!(ax_glucose[j], _[j].time, _[j].enrichment) 
+		CairoMakie.lines!(ax_glucose[j], _[j].time, _[j].enrichment)
+		CairoMakie.scatter!(ax_glucose[j], _[j].time, _[j].enrichment)
 	end
-	
+	linkxaxes!(ax_glucose...)
 	
 	f_glucose
 end
@@ -442,8 +464,11 @@ AlgebraOfGraphics.set_aog_theme!()
 # ╠═9ae0078d-d602-4432-af02-aff11227005d
 # ╠═e13f7819-ca9d-414f-8bae-836b618f1350
 # ╠═043c9c36-5636-420d-ae66-78482bbc1e90
+# ╠═562b739c-49b7-4d2d-857c-82baa48de40b
 # ╠═4bfa51af-2d97-42af-aace-cb95c881d9a2
+# ╠═c5e2fe6e-4224-4840-9f3e-494ca5a12192
 # ╠═e1106754-21d1-47cd-9271-64dc994a2d08
+# ╠═42a5a8b5-de87-4bef-bd00-30f8b6bbb665
 # ╠═32997d5a-8742-11eb-1e90-3fefee5473e7
 # ╠═f1a63b74-e775-11ea-2ec3-5565299a719c
 # ╠═fef75fb4-6d69-4e6d-8c90-34a563af3ae5
@@ -489,7 +514,7 @@ AlgebraOfGraphics.set_aog_theme!()
 # ╠═b2a613fe-fb87-4aa8-9ed2-42f43452fcdc
 # ╟─d6468240-e6e3-11ea-0803-d5cb9a2e6625
 # ╟─f941ddc6-e6e3-11ea-2595-f9d672b2b4a9
-# ╟─17b42c87-1598-4596-8f71-e316ae5d761f
+# ╠═17b42c87-1598-4596-8f71-e316ae5d761f
 # ╟─0778dca0-e6e4-11ea-2b36-378e3a625756
 # ╟─9a3c029f-9c1e-4503-910b-0ab8013e124c
 # ╟─4dc25ab4-2d41-44b5-bf87-314e886041d7
