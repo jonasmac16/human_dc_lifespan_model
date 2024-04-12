@@ -258,44 +258,8 @@ md"### Cell cycle status datasets in the blood and bone marrow"
 # ╔═╡ 3bc01530-07c3-4e43-ac02-313dae3264ce
 md"#### Original dataset"
 
-# ╔═╡ 88a45692-f9e0-4c53-8b7a-2b054929e484
-md"##### Blood"
-
-# ╔═╡ 3720d03f-4f05-4c45-a695-83b385a2a944
-df_cycle_blood_old = @pipe datadir("exp_raw","cycle", "cell_cycle_blood.csv") |>
-CSV.read(_, DataFrame) |>
-insertcols!(_,
-	:individual => "donor_blood_" .* string.(collect(1:nrow(_))),
-	:location .=> "blood" 
-)
-
-# ╔═╡ 0f447211-438b-4e3a-a559-d308a7da96d0
-md"##### Bone marrow"
-
-# ╔═╡ e89d05ef-cf4f-45ef-b986-a4a197e3f267
-df_cycle_bm_old = @pipe datadir("exp_raw","cycle", "cell_cycle_BM.csv") |>
-CSV.read(_, DataFrame) |>
-insertcols!(_,
-	:individual => "donor_bm_" .* string.(collect(1:nrow(_))),
-	:location .=> "bm" 
-)
-
 # ╔═╡ e85ffe11-4317-45f8-8dfd-4196e752af9f
 md"Next, we transform dataframe into long format, separate the cell state and population information into indvidual columns and translate population names into the updated nomenclature."
-
-# ╔═╡ 94d3873b-49b3-4bb5-8409-d84e06cf0442
-df_cycle_long_old = @pipe vcat(df_cycle_blood_old, df_cycle_bm_old) |>
-stack(_, variable_name=:measurement) |>
-transform(_, 
-	:measurement => ByRow((x) -> match(r"(.*) ((PreDC)|(cDC1)|(cDC2|pDC))", x).captures[1]) => :state, 
-	:measurement => ByRow((x) -> match(r"(.*) ((PreDC)|(cDC1)|(cDC2|pDC))", x).captures[2]) => :population) |> 
-select(_, Not(:measurement)) |> 
-transform(_,
-	:population => ByRow((x) -> ifelse(x == "PreDC", "ASDC", identity(x)))   => :population) |> 
-transform(_,
-	:state => ByRow((x) -> ifelse(x == "G2,M, S", "G2", identity(x))) => :state) |>
-insertcols!(_, :dataset .=> "original")
-
 
 # ╔═╡ b52019ff-11f6-4693-a79f-664213a5ed9d
 md"#### New dataset"
@@ -310,7 +274,7 @@ md"##### Blood"
 df_cycle_blood_new = @pipe datadir("exp_raw","cycle", "cell_cycle_blood_revision_aug23.csv") |>
 CSV.read(_, DataFrame) |>
 insertcols!(_,
-	:individual => "donor_blood_" .* string.(collect((nrow(df_cycle_blood_old)+1):(nrow(df_cycle_blood_old)+nrow(_)))),
+	:individual => "donor_blood_" .* string.(collect(1:nrow(_))),
 	:location .=> "blood" 
 )
 
@@ -321,7 +285,7 @@ md"##### Bone marrow"
 df_cycle_bm_new = @pipe datadir("exp_raw","cycle", "cell_cycle_BM_revision_aug23.csv") |>
 CSV.read(_, DataFrame) |>
 insertcols!(_,
-	:individual => "donor_bm_" .* string.(collect((nrow(df_cycle_bm_old)+1):(nrow(df_cycle_bm_old)+nrow(_)))),
+	:individual => "donor_bm_" .* string.(collect(1:nrow(_))),
 	:location .=> "bm" 
 )
 
@@ -338,7 +302,7 @@ transform(_,
 transform(_, :population => (x -> replace(x, "DC1" => "cDC1", "DC" => "cDC1", "DC23" => "DC3", "dc3" => "DC3")) => :population,
 	:state => (x -> replace(x, "Go" => "G0", "G2SM" => "G2", "g2sm" => "G2")) => :state) |>
 select(_, Not(:measurement)) |>
-insertcols!(_, :dataset .=> "new")
+insertcols!(_, :dataset .=> "combined")
 
 # ╔═╡ ef7a2d01-b624-4d6e-9025-c64efbd0db75
 md"#### Combine the original and new cell cycle datasets"
@@ -496,12 +460,7 @@ AlgebraOfGraphics.set_aog_theme!()
 # ╠═b8e9b89c-e1a3-4579-af51-04ef654fe085
 # ╟─bcabae34-1b8f-48ea-ad19-62e686c03a46
 # ╟─3bc01530-07c3-4e43-ac02-313dae3264ce
-# ╟─88a45692-f9e0-4c53-8b7a-2b054929e484
-# ╠═3720d03f-4f05-4c45-a695-83b385a2a944
-# ╟─0f447211-438b-4e3a-a559-d308a7da96d0
-# ╠═e89d05ef-cf4f-45ef-b986-a4a197e3f267
 # ╟─e85ffe11-4317-45f8-8dfd-4196e752af9f
-# ╠═94d3873b-49b3-4bb5-8409-d84e06cf0442
 # ╟─b52019ff-11f6-4693-a79f-664213a5ed9d
 # ╟─e3c9b3c5-6154-4661-9c6d-f49c84615453
 # ╟─50eeb30e-8d6e-4375-b991-1112c66f9668
@@ -518,7 +477,7 @@ AlgebraOfGraphics.set_aog_theme!()
 # ╟─0778dca0-e6e4-11ea-2b36-378e3a625756
 # ╟─9a3c029f-9c1e-4503-910b-0ab8013e124c
 # ╟─4dc25ab4-2d41-44b5-bf87-314e886041d7
-# ╟─3e8a8a7d-e593-4a8b-9371-9f7ee5f855bd
+# ╠═3e8a8a7d-e593-4a8b-9371-9f7ee5f855bd
 # ╟─06ce9870-1bdc-4264-b1b0-b644ef83b764
 # ╟─77ee7ac7-9d16-4a52-9aec-aa1c681eb3ff
 # ╟─d767393d-8ee8-464f-b36a-4a76232ab748
