@@ -154,42 +154,6 @@ md"### Cell concentration datasets in the blood and bone marrow"
 # ╔═╡ 22851eb3-4aa8-4170-8b36-701d71dff969
 md"We load each dataset seperately and calculate absolute cell numbers in blood and bone marrow by multiplying the respective concentrations as measured by flow cytometry with $(blood_vol=5000) and $(bm_vol=1750)."
 
-# ╔═╡ 112bb054-a750-412c-852a-6bb5e930a89f
-md"#### Original dataset"
-
-# ╔═╡ f51a953c-177e-48ec-a1e9-5fecaf1b43cc
-md"##### Blood"
-
-# ╔═╡ aae52094-f3d3-4559-8cbd-eb668bb5457e
-df_cell_conc_blood_old = @pipe datadir("exp_raw","cells", "cell_count_blood.csv") |>
-CSV.read(_, DataFrame) |>
-_ .* blood_vol |>
-insertcols!(_,
-	:individual => "donor_blood_" .* string.(collect(1:nrow(_))),
-	:location .=> "blood" 
-) |> 
-rename(_, Symbol(" PreDC") => :ASDC)
-
-# ╔═╡ 668186e5-c197-4808-9552-78874706fc75
-md"##### Bone marrow"
-
-# ╔═╡ 7e4ab3e8-e58f-41bd-b52d-e07469186796
-df_cell_conc_bm_old = @pipe datadir("exp_raw","cells", "cell_count_bone_marrow.csv") |>
-CSV.read(_, DataFrame) |>
-_ .* bm_vol |>
-insertcols!(_,
-	:individual => "donor_bm_" .* string.(collect(1:nrow(_))),
-	:location .=> "bm" 
-)  |> 
-rename(_, Symbol(" PreDC") => :ASDC)
-
-# ╔═╡ 644de2e6-6756-469c-b4ac-83a1fd0638dd
-md"##### Combined"
-
-# ╔═╡ 81ed5559-0696-4235-ae2e-758c338d63ba
-df_cell_conc_combined_old  = @pipe vcat(df_cell_conc_blood_old, df_cell_conc_bm_old) |>
-insertcols!(_, :dataset .=> "original")
-
 # ╔═╡ 1647c56f-b774-4160-b25f-987cc539fc61
 md"#### New dataset"
 
@@ -201,7 +165,7 @@ df_cell_conc_blood_new = @pipe datadir("exp_raw","cells", "cell_count_blood_revi
 CSV.read(_, DataFrame) |>
 _ .* blood_vol |>
 insertcols!(_,
-	:individual => "donor_blood_" .* string.(collect((nrow(df_cell_conc_blood_old)+1):(nrow(df_cell_conc_blood_old)+nrow(_)))),
+	:individual => "donor_blood_" .* string.(collect(1:(nrow(_)))),
 	:location .=> "blood" 
 ) |> 
 rename(_,
@@ -218,7 +182,7 @@ df_cell_conc_bm_new = @pipe datadir("exp_raw","cells", "cell_count_bone_marrow_r
 CSV.read(_, DataFrame) |>
 _ .* bm_vol |>
 insertcols!(_,
-	:individual => "donor_bm_" .* string.(collect((nrow(df_cell_conc_bm_old)+1):(nrow(df_cell_conc_bm_old)+nrow(_)))),
+	:individual => "donor_bm_" .* string.(collect(1:(nrow(_)))),
 	:location .=> "bm" 
 )  |> 
 rename(_,
@@ -242,7 +206,7 @@ md"#### Combined blood and bone marrow dataset"
 md"Combine all the old and new datasets together:"
 
 # ╔═╡ e5fcca24-ae34-48b3-92bb-c3aa15dcdb5f
-df_cell_concentration = vcat(df_cell_conc_combined_old, df_cell_conc_combined_new; cols=:union)
+df_cell_concentration = df_cell_conc_combined_new
 
 # ╔═╡ 34d155be-363f-4e5f-b677-054326cc3dc2
 md"Transform into a long/stacked format:"
@@ -328,8 +292,8 @@ begin
 		CairoMakie.lines!(ax_glucose[j], _[j].time, _[j].enrichment)
 		CairoMakie.scatter!(ax_glucose[j], _[j].time, _[j].enrichment)
 	end
-	[hidexdecorations!(j; ticklabels=false, ticks=false, ) for j in  ax_glucose[1:6]]
-	[hideydecorations!(j; ticklabels=false, ticks=false, ) for j in  ax_glucose[[1,2,3,5,6,7,8,9]]]
+	[hidexdecorations!(j; ticklabels=false, ticks=false) for j in  ax_glucose[1:6]]
+	[hideydecorations!(j; ticklabels=false, ticks=false) for j in  ax_glucose[[1,2,3,5,6,7,8,9]]]
 	linkxaxes!(ax_glucose...)
 	
 	f_glucose
@@ -440,22 +404,15 @@ AlgebraOfGraphics.set_aog_theme!()
 # ╠═fef75fb4-6d69-4e6d-8c90-34a563af3ae5
 # ╠═c51ee9d9-0b6a-4168-be29-7e6520b7671f
 # ╟─04adabda-5dee-4710-8bbb-3004e2a6b95b
-# ╠═22851eb3-4aa8-4170-8b36-701d71dff969
-# ╟─112bb054-a750-412c-852a-6bb5e930a89f
-# ╟─f51a953c-177e-48ec-a1e9-5fecaf1b43cc
-# ╠═aae52094-f3d3-4559-8cbd-eb668bb5457e
-# ╟─668186e5-c197-4808-9552-78874706fc75
-# ╠═7e4ab3e8-e58f-41bd-b52d-e07469186796
-# ╠═644de2e6-6756-469c-b4ac-83a1fd0638dd
-# ╠═81ed5559-0696-4235-ae2e-758c338d63ba
+# ╟─22851eb3-4aa8-4170-8b36-701d71dff969
 # ╟─1647c56f-b774-4160-b25f-987cc539fc61
 # ╟─7b4b2a9d-6d76-4361-8c4a-3bfd5eff951d
 # ╠═0e3e955c-8a28-4dc1-b167-6452a9d4ac13
 # ╟─31684568-d08a-4c05-8b24-9cd3a01e4d21
 # ╠═88074a62-16fb-4a52-8481-b0dd70aae6e1
-# ╠═64c2e8fe-42e6-4b4f-8bbe-7788b52cf99c
+# ╟─64c2e8fe-42e6-4b4f-8bbe-7788b52cf99c
 # ╠═7245240c-e760-4f9c-858e-7e9a9d4c8050
-# ╠═fb022ebd-1e9e-4a6b-9f61-3c573507a3c4
+# ╟─fb022ebd-1e9e-4a6b-9f61-3c573507a3c4
 # ╟─0c12e7d1-544c-4c74-98cd-c1a883cd88f3
 # ╠═e5fcca24-ae34-48b3-92bb-c3aa15dcdb5f
 # ╟─34d155be-363f-4e5f-b677-054326cc3dc2
