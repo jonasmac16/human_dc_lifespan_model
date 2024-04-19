@@ -330,7 +330,7 @@ begin
 end
 
 # ╔═╡ 4dc25ab4-2d41-44b5-bf87-314e886041d7
-md"### Cell popualtion concentrations across blood and bone marrow"
+md"### Cell popultion concentrations across blood and bone marrow"
 
 # ╔═╡ 3e8a8a7d-e593-4a8b-9371-9f7ee5f855bd
 @pipe df_cell_concentration_long |>
@@ -435,7 +435,7 @@ AlgebraOfGraphics.set_aog_theme!()
 # ╠═17b42c87-1598-4596-8f71-e316ae5d761f
 # ╟─0778dca0-e6e4-11ea-2b36-378e3a625756
 # ╟─9a3c029f-9c1e-4503-910b-0ab8013e124c
-# ╟─4dc25ab4-2d41-44b5-bf87-314e886041d7
+# ╠═4dc25ab4-2d41-44b5-bf87-314e886041d7
 # ╠═3e8a8a7d-e593-4a8b-9371-9f7ee5f855bd
 # ╟─06ce9870-1bdc-4264-b1b0-b644ef83b764
 # ╟─77ee7ac7-9d16-4a52-9aec-aa1c681eb3ff
