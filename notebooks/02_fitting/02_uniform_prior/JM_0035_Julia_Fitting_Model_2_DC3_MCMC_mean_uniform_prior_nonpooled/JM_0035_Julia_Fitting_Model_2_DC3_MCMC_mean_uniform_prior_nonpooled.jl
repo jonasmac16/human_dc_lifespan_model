@@ -82,7 +82,7 @@ end
 # ╔═╡ 83ac0efc-7ce7-11eb-32bc-c92fa3d52078
 begin
 	
-	parallel_sampling_method = MCMCThreads() #nothing or MCMCThreads()
+	parallel_sampling_method = nothing #nothing or MCMCThreads()
 	solver_parallel_methods = EnsembleThreads() #EnsembleSerial() or #EnsembleThreads() for parallel solving of ODEs
 end
 
