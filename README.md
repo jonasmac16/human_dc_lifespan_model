@@ -6,7 +6,7 @@ to make a reproducible scientific project named
 
 It is authored by Jonas Mackerodt as part of the following publiction:
 
-> Amit A Patel, Ruth Lubi, Yan Zhang, Charles A Dutertre, Kevin Mulder, Jonas Mackerodt, Parinaaz Jalali, et al. ‘The Lifespan and Role of Human Dendritic Cell Subsets and Their Precursors in Health and Inflammation’
+> Ruth Lubin, Amit A Patel, Jonas Mackerodt, Yan Zhang, Rotem Gvili, Kevin Mulder, Charles-Antoine Dutertre, Parinaaz Jalali, James Glanville, Idit Hazan, Nikhila Sridharan, Leon Kandel, Gurion Rivkin, Ayse Akarca, Derek Gilroy, Teresa Marafioti, Alexander Mildner, Becca Asquith, Asaf Wilensky, Florent Ginhoux, Derek Macallan & Simon Yona ‘The lifespan and kinetics of human Dendritic Cell subsets and their precursors in health and inflammation’
 
 To (locally) reproduce this project, do the following:
 
